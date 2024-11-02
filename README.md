@@ -157,7 +157,7 @@ Define a dictionary for the variables. The key is the variable name and de value
 6.66665
 ```
 
-### Commandline
+### Command line
 python -m symexpress3
 
 - *Help*: python -m symexpress3  -h
