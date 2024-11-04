@@ -1,7 +1,7 @@
 #
 # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml
 # https://stackoverflow.com/questions/75570780/pip-show-does-not-show-summary-home-page-author-and-license
-# 
+#
 # https://stackoverflow.com/questions/63326840/specifying-command-line-scripts-in-pyproject-toml
 #
 
@@ -19,7 +19,7 @@ dependencies = [
   'sympy >= 1.13.2'
 ]
 authors = [
-  { name ="Gien van den Enden"}, 
+  { name ="Gien van den Enden"},
   { email="swvandenenden@gmail.com" },
 ]
 maintainers = [
@@ -37,3 +37,6 @@ classifiers = [
 ]
 license = {text = "GNU General Public License v3 or later (GPLv3+)"}
 keywords = ["math", "symbolic", "calculator"]
+
+[project.urls]
+"Source Code" = "https://github.com/SWVandenEnden/symexpress3"
