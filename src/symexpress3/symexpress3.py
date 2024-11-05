@@ -81,6 +81,7 @@ __buildnumber__ = "20240920001" # build number
 
 import sys
 import math
+import warnings
 
 from abc       import ABC, abstractmethod
 from threading import Thread
@@ -88,6 +89,8 @@ from threading import Thread
 # from multiprocessing import Process
 # import multiprocessing as mp
 # from queue     import Queue
+
+# pylint disable:import-outside-toplevel
 
 from symexpress3 import symtables
 
@@ -2411,8 +2414,7 @@ class SymExpress( SymBaseList ):
     """
     Deprecated in 0.0.10, use optimizeExtended
     """
-    import warnings 
-    warnings.warn( "optimizeSpecial is deprecated in 0.0.10, use optimizeExtended" ) 
+    warnings.warn( "optimizeSpecial is deprecated in 0.0.10, use optimizeExtended" )
     self.optimizeExtended( output, filehandle, extra, varDict )
 
   def optimizeExtended( self , output = None, filehandle = None, extra = None, varDict = None ):
