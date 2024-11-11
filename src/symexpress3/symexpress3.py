@@ -76,7 +76,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20240920001" # build number
+__buildnumber__ = "20241111001" # build number
 
 
 import sys
@@ -85,12 +85,10 @@ import warnings
 
 from abc       import ABC, abstractmethod
 from threading import Thread
-# multiprocess is not working with this solutions
+# multi process is not working with this solutions
 # from multiprocessing import Process
 # import multiprocessing as mp
 # from queue     import Queue
-
-# pylint disable:import-outside-toplevel
 
 from symexpress3 import symtables
 
@@ -111,7 +109,8 @@ colorallroot   = "#000000"  # black, for roots with multiple values
 
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
-globalUseThreads    = False # use thread, see _optSubThread()
+globalUseThreads      = False # use thread, see _optSubThread()
+globalInfinityDefault = 20
 
 #
 # base class for the SymExpress2 module
@@ -949,6 +948,8 @@ class SymVariable( SymBasePower ):
         dValue = complex( 0, 1 )
       elif self.name == 'e':
         dValue = math.e
+      elif self.name == 'infinity':
+        dValue = globalInfinityDefault # infinity is most time used in sun and product functions, so max iteration default to 20
       else:
         raise NameError( f'getValue, for variable "{self.name}" is no value given.' )
     # print( "dValue before: {}".format( dValue ))

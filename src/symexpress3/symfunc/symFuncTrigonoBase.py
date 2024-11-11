@@ -18,6 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/Sine_and_cosine
+    https://en.wikipedia.org/wiki/Trigonometric_functions
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+
 """
 
 import math

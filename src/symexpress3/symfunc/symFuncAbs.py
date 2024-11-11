@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Abs function voor Sym Express 3
+    Abs function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -20,6 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/Absolute_value
 """
 
 from symexpress3         import symexpress3

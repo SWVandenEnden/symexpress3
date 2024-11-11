@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Ceil and Floor functions voor Sym Express 3
+    Ceil and Floor functions for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -20,6 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/Floor_and_ceiling_functions
 """
 
 import math

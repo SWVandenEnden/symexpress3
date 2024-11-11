@@ -20,11 +20,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/List_of_trigonometric_identities
 
 """
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
+from symexpress3 import symtools
 
 class OptSymFunctionCosToSum( optFunctionBase.OptFunctionBase ):
   """
@@ -46,7 +48,8 @@ class OptSymFunctionCosToSum( optFunctionBase.OptFunctionBase ):
     elemParam = elem.elements[ 0 ]
 
     # https://en.wikipedia.org/wiki/Trigonometric_functions
-    elemSym = symexpress3.SymFormulaParser( "sum( n, 0 ,20, exp( n, -1 ) * exp( 2 * n, x ) / factorial( 2 * n ) )" )
+    varName = symtools.VariableGenerateGet()
+    elemSym = symexpress3.SymFormulaParser( "sum( " + varName + ", 0 ,infinity, exp( " + varName + ", -1 ) * exp( 2 * " + varName + ", x ) / factorial( 2 * " + varName + " ) )" )
 
     dDict = {}
     dDict[ 'x' ] = str( elemParam )
@@ -67,6 +70,8 @@ def Test( display = False):
   """
   Unit test
   """
+  symtools.VariableGenerateReset()
+
   symTest = symexpress3.SymFormulaParser( "cos(pi/4)" )
   symTest.optimize()
   symTest = symTest.elements[ 0 ]
@@ -81,7 +86,7 @@ def Test( display = False):
     print( f"orginal   : {str( symTest )}" )
     print( f"optimized : {str( symNew  )}" )
 
-  if str( symNew ).strip() != "sum( n,0,20, exp( n,(-1) ) *  exp( 2 * n,pi * 1 * 4^^-1 ) *  factorial( 2 * n )^^-1 )":
+  if str( symNew ).strip() != "sum( n1,0,infinity, exp( n1,(-1) ) *  exp( 2 * n1,pi * 1 * 4^^-1 ) *  factorial( 2 * n1 )^^-1 )":
     print( f"Error unit test {testClass.name} function" )
     raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symNew )}' )
 

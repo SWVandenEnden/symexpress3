@@ -23,6 +23,41 @@ import math
 from symexpress3 import symtables
 from symexpress3 import symexpress3
 
+# pylint: disable=global-variable-not-assigned
+globalVariableLetter  = "n"  # the letter for the generated unique variable
+globalVariableCounter = 1    # the current unique number, rises every time a variable is get
+
+def VariableGenerateGet():
+  """
+  Get a unique generated variable.
+  Format is fixed letter with a unique number
+  """
+  # pylint: disable=global-statement
+  global globalVariableLetter, globalVariableCounter
+
+  varName = globalVariableLetter + str( globalVariableCounter )
+  globalVariableCounter += 1
+  return varName
+
+def VariableGenerateReset():
+  """
+  Reset the variable counter.
+  Is for test scripts
+  """
+  # pylint: disable=global-statement
+  global globalVariableCounter
+  globalVariableCounter = 1
+
+def VariableGenerateSet( newCurrentNumber ):
+  """
+  Set the variable counter to the given number.
+  Is for test scripts
+  """
+  # pylint: disable=global-statement
+  global globalVariableCounter
+  globalVariableCounter = newCurrentNumber
+
+
 
 def GetAllOptimizeActions():
   """

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Atan2 function voor Sym Express 3
+    Atan2 function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -18,6 +18,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+    https://en.wikipedia.org/wiki/Atan2
 
 """
 

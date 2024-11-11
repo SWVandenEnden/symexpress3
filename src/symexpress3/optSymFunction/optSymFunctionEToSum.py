@@ -20,11 +20,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/E_(mathematical_constant)
 
 """
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
+from symexpress3 import symtools
 
 class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
   """
@@ -56,7 +58,8 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
     elemParam = elem.elements[ 0 ]
 
     # https://en.wikipedia.org/wiki/E_(mathematical_constant)
-    elemSym = symexpress3.SymFormulaParser( "sum( n, 0 ,20, exp(n, x) / factorial( n ) )" )
+    varName = symtools.VariableGenerateGet()
+    elemSym = symexpress3.SymFormulaParser( "sum( " + varName + ", 0 ,infinity, exp(" + varName + ", x) / factorial( " + varName + " ) )" )
 
     dDict = {}
     dDict[ 'x' ] = str( elemParam )
@@ -87,6 +90,8 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
+  symtools.VariableGenerateReset()
+
   symTest = symexpress3.SymFormulaParser( 'exp( 3 i )' )
   symTest.optimize()
   symTest = symTest.elements[ 0 ]
@@ -95,7 +100,7 @@ def Test( display = False):
   testClass = OptSymFunctionEToSum()
   symTest   = testClass.optimize( symTest, "eToSum" )
 
-  _Check( testClass, symOrg, symTest, "sum( n,0,20, exp( n,3 * i ) *  factorial( n )^^-1 )" )
+  _Check( testClass, symOrg, symTest, "sum( n1,0,infinity, exp( n1,3 * i ) *  factorial( n1 )^^-1 )" )
 
 if __name__ == '__main__':
   Test( True )

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Sin function voor Sym Express 3
+    Sin function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -20,6 +20,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/Sine_and_cosine
+    https://en.wikipedia.org/wiki/Trigonometric_functions
 """
 
 import cmath

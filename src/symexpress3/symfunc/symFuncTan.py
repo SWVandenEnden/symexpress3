@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Tan function voor Sym Express 3
+    Tan function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -19,6 +19,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+    https://en.wikipedia.org/wiki/Sine_and_cosine
+    https://en.wikipedia.org/wiki/Trigonometric_functions
 
 """
 

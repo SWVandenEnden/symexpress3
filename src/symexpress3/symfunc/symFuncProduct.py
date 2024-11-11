@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Sum function for Sym Express 3
+    Product function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -20,7 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-    https://en.wikipedia.org/wiki/Series_(mathematics)
+    https://en.wikipedia.org/wiki/Infinite_product
     https://en.wikipedia.org/wiki/Infinite_expression
 
 """
@@ -28,18 +28,18 @@
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 
-class SymFuncSum( symFuncBase.SymFuncBase ):
+class SymFuncProduct( symFuncBase.SymFuncBase ):
   """
-  Sum function, sum(<variable>,<lower>,<upper>,<function>)
+  Product function, product(<variable>,<lower>,<upper>,<function>)
   """
   def __init__( self ):
     super().__init__()
-    self._name        = "sum"
-    self._desc        = "sum function, from lower to upper, example: sum(n,0,100,exp(x,n))"
+    self._name        = "product"
+    self._desc        = "product function, from lower to upper, example: product(n,0,100,exp(x,n))"
     self._minparams   = 4    # minimum number of parameters
     self._maxparams   = 4    # maximum number of parameters
-    self._syntax      = "sum(<variable>,<lower>,<upper>,<function>)"
-    self._synExplain  = "sum function, from lower to upper, example: sum(n,0,100,exp(x,n))"
+    self._syntax      = "product(<variable>,<lower>,<upper>,<function>)"
+    self._synExplain  = "product function, from lower to upper, example: product(n,0,100,exp(x,n))"
 
 
 
@@ -92,7 +92,7 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     if startVal > endVal:
       return None
 
-    elemList = symexpress3.SymExpress( '+' )
+    elemList = symexpress3.SymExpress( '*' )
     elemList.powerSign        = elem.powerSign
     elemList.powerCounter     = elem.powerCounter
     elemList.powerDenominator = elem.powerDenominator
@@ -116,9 +116,9 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
 
 
     if dDict == None:
-      dDictSum = {}
+      dDictProduct = {}
     else:
-      dDictSum = dDict.copy()
+      dDictProduct = dDict.copy()
 
     # print( "Var: {}".format( str(  elemFunc.elements[0])))
 
@@ -154,19 +154,19 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
 
     # dValue = 0
     # for iCnt in range( dStart, dEnd + 1 ):
-    #   dDictSum[ cVar ] = iCnt
-    #   dValue += elemExpress.getValue( dDictSum )
+    #   dDictProduct[ cVar ] = iCnt
+    #   dValue += elemExpress.getValue( dDictProduct )
 
     result = []
     for startVal in listStart:
       for endVal in listEnd:
         dStart = int( startVal )
         dEnd   = int( endVal   )
-        dValue = 0
+        dValue = 1
         for iCnt in range( dStart, dEnd + 1 ):
-          dDictSum[ cVar ] = iCnt
-          # TODO sym, expression give list back, how to add
-          dValue += elemExpress.getValue( dDictSum )
+          dDictProduct[ cVar ] = iCnt
+          # TODO product, expression give list back, how to add
+          dValue *= elemExpress.getValue( dDictProduct )
         result.append( dValue )
 
     if len( result ) == 1:
@@ -199,13 +199,13 @@ def Test( display = False):
       raise NameError( f'function {testClass.name}, unit test error: {str( symTest )}, value: {value} <> {valueCalc}, dValue:{dValue} <> {dValueCalc}' )
 
 
-  symTest = symexpress3.SymFormulaParser( 'sum( n, 1, 4, n^2 )' )
+  symTest = symexpress3.SymFormulaParser( 'product( n, 1, 4, n^2 )' )
   symTest.optimize()
-  testClass = SymFuncSum()
+  testClass = SymFuncProduct()
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "(1)^2 + (2)^2 + (3)^2 + (4)^2", 30 )
+  _Check( testClass, symTest, value, dValue, "(1)^2 * (2)^2 * (3)^2 * (4)^2", 576 )
 
 if __name__ == '__main__':
   Test( True )

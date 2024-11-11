@@ -34,6 +34,10 @@ from symexpress3.symfunc import symFuncSin
 from symexpress3.symfunc import symFuncCos
 from symexpress3.symfunc import symFuncTan
 from symexpress3.symfunc import symFuncSum
+from symexpress3.symfunc import symFuncProduct
+from symexpress3.symfunc import symFuncFallingFactorial
+from symexpress3.symfunc import symFuncRisingFactorial
+
 #
 # automatic called from symepxress3 too fill functionTable[]
 #
@@ -53,6 +57,9 @@ def SymRegisterFunctions():
   symtables.RegisterTableEntry( 'function', symFuncCos.SymFuncCos()             )
   symtables.RegisterTableEntry( 'function', symFuncTan.SymFuncTan()             )
   symtables.RegisterTableEntry( 'function', symFuncSum.SymFuncSum()             )
+  symtables.RegisterTableEntry( 'function', symFuncProduct.SymFuncProduct()     )
+  symtables.RegisterTableEntry( 'function', symFuncFallingFactorial.SymFuncFallingFactorial() )
+  symtables.RegisterTableEntry( 'function', symFuncRisingFactorial.SymFuncRisingFactorial()   )
 
 
 #
@@ -65,17 +72,20 @@ def SymRegisterGetModuleNames():
 
   symModules = []
 
-  symModules.append( symFuncCeilFloor )
-  symModules.append( symFuncExp       )
-  symModules.append( symFuncAbs       )
-  symModules.append( symFuncFactorial )
-  symModules.append( symFuncBinomial  )
-  symModules.append( symFuncAtan2     )
-  symModules.append( symFuncAtan      )
-  symModules.append( symFuncSin       )
-  symModules.append( symFuncCos       )
-  symModules.append( symFuncTan       )
-  symModules.append( symFuncSum       )
+  symModules.append( symFuncCeilFloor        )
+  symModules.append( symFuncExp              )
+  symModules.append( symFuncAbs              )
+  symModules.append( symFuncFactorial        )
+  symModules.append( symFuncBinomial         )
+  symModules.append( symFuncAtan2            )
+  symModules.append( symFuncAtan             )
+  symModules.append( symFuncSin              )
+  symModules.append( symFuncCos              )
+  symModules.append( symFuncTan              )
+  symModules.append( symFuncSum              )
+  symModules.append( symFuncProduct          )
+  symModules.append( symFuncFallingFactorial )
+  symModules.append( symFuncRisingFactorial  )
 
   return symModules
 

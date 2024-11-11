@@ -20,17 +20,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""
+    https://en.wikipedia.org/wiki/Trigonometric_functions
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+    https://en.wikipedia.org/wiki/Exact_trigonometric_values
+    https://en.wikipedia.org/wiki/Sine
 
+"""
 
 # sin 0 -> PI/2 equal to PI -> PI/2 (inverse),  PI -> 2PI/3 ( * -1)
 # cos ( x ) = sin( pi / 2 - x )
 # only needed is sin from  0 -> pi/2
 #
-# https://en.wikipedia.org/wiki/Trigonometric_functions   (todo: Half-angle and angle-addition formulas)
-# https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
-# https://en.wikipedia.org/wiki/Exact_trigonometric_values
-# https://en.wikipedia.org/wiki/Sine                      (specials (?) )
 #               trio-name[0], sign[1], counter[2], denominator[3], expression[4]    , SymExpress[5]
 trigonometricdata = [ [ "sin",    1    ,0      ,  1         , "0"                               , None]
                     , [ "sin",    1    ,1      , 12         , "( 6^^(1/2) - 2^^(1/2) ) / 4"     , None]
