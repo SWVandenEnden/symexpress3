@@ -98,11 +98,18 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     elemList.powerDenominator = elem.powerDenominator
 
     for iCntVal in range( startVal, endVal + 1 ):
-      dDict = {}
-      dDict[ varName ] = str( iCntVal )
 
-      elemNew = elemFunc.copy()
-      elemNew.replaceVariable( dDict )
+      if isinstance( elemFunc, symexpress3.SymVariable ):
+        if elemFunc.name == varName:
+          elemNew = symexpress3.SymNumber( 1, iCntVal, 1, elemFunc.powerSign, elemFunc.powerCounter, elemFunc.powerDenominator, 1 )
+        else:
+          elemNew = elemFunc
+      else:
+        dDict = {}
+        dDict[ varName ] = str( iCntVal )
+        
+        elemNew = elemFunc.copy()
+        elemNew.replaceVariable( dDict )
 
       elemList.add( elemNew )
 

@@ -46,6 +46,11 @@ class OptSymAnyRootToPrincipalRoot( optTypeBase.OptTypeBase ):
     if elem.onlyOneRoot == 1 :
       return None
 
+    if elem.powerDenominator == 1:
+      elemNew = elem.copy()
+      elemNew.onlyOneRoot = 1
+      return elemNew
+
     elemNew = elem.copy()
     elemNew.onlyOneRoot  = 1
     elemNew.powerCounter = 1
