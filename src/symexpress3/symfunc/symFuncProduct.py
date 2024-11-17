@@ -92,6 +92,12 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     if startVal > endVal:
       return None
 
+    # Arrays (multiple values) are depended
+    # So first take the array out of the product and after that expand the product
+    # See expandArrays (optimizeExpandArrays.py & optSymAnyExpandArray.py)
+    if elem.existArray():
+      return None
+
     elemList = symexpress3.SymExpress( '*' )
     elemList.powerSign        = elem.powerSign
     elemList.powerCounter     = elem.powerCounter
@@ -120,13 +126,10 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
 
-
     if dDict == None:
       dDictProduct = {}
     else:
       dDictProduct = dDict.copy()
-
-    # print( "Var: {}".format( str(  elemFunc.elements[0])))
 
     listStart  = []
     listEnd    = []
@@ -151,17 +154,7 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     else:
       listEnd.append( endVal )
 
-    # dStart      = int( elemFunc.elements[1].getValue( dDict ) )
-    # dEnd        = int( elemFunc.elements[2].getValue( dDict ) )
     elemExpress = elemFunc.elements[3]
-
-    # print ( "dStart: {}".format( dStart ))
-    # print ( "dEnd  : {}".format( dEnd   ))
-
-    # dValue = 0
-    # for iCnt in range( dStart, dEnd + 1 ):
-    #   dDictProduct[ cVar ] = iCnt
-    #   dValue += elemExpress.getValue( dDictProduct )
 
     result = []
     for startVal in listStart:
@@ -171,8 +164,13 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
         dValue = 1
         for iCnt in range( dStart, dEnd + 1 ):
           dDictProduct[ cVar ] = iCnt
-          # TODO product, expression give list back, how to add
-          dValue *= elemExpress.getValue( dDictProduct )
+          # if multiple values are given back, only the first will be used
+          # see above by functionToValue()
+          value = elemExpress.getValue( dDictProduct )
+          if isinstance( value, list ):
+            dValue *= value[ 0 ]
+          else:
+            dValue *= value
         result.append( dValue )
 
     if len( result ) == 1:

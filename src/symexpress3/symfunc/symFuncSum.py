@@ -92,6 +92,12 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     if startVal > endVal:
       return None
 
+    # Arrays (multiple values) are depended
+    # So first take the array out of the sum and after that expand the sum
+    # See expandArrays (optimizeExpandArrays.py & optSymAnyExpandArray.py)
+    if elem.existArray():
+      return None
+
     elemList = symexpress3.SymExpress( '+' )
     elemList.powerSign        = elem.powerSign
     elemList.powerCounter     = elem.powerCounter
@@ -107,7 +113,7 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
       else:
         dDict = {}
         dDict[ varName ] = str( iCntVal )
-        
+
         elemNew = elemFunc.copy()
         elemNew.replaceVariable( dDict )
 
@@ -121,17 +127,13 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
 
-
     if dDict == None:
       dDictSum = {}
     else:
       dDictSum = dDict.copy()
 
-    # print( "Var: {}".format( str(  elemFunc.elements[0])))
-
     listStart  = []
     listEnd    = []
-    # listExpres = []
 
     # first must always be a single variable
     elemVar = elemFunc.elements[0]
@@ -152,17 +154,7 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     else:
       listEnd.append( endVal )
 
-    # dStart      = int( elemFunc.elements[1].getValue( dDict ) )
-    # dEnd        = int( elemFunc.elements[2].getValue( dDict ) )
     elemExpress = elemFunc.elements[3]
-
-    # print ( "dStart: {}".format( dStart ))
-    # print ( "dEnd  : {}".format( dEnd   ))
-
-    # dValue = 0
-    # for iCnt in range( dStart, dEnd + 1 ):
-    #   dDictSum[ cVar ] = iCnt
-    #   dValue += elemExpress.getValue( dDictSum )
 
     result = []
     for startVal in listStart:
@@ -172,8 +164,13 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
         dValue = 0
         for iCnt in range( dStart, dEnd + 1 ):
           dDictSum[ cVar ] = iCnt
-          # TODO sym, expression give list back, how to add
-          dValue += elemExpress.getValue( dDictSum )
+          # if multiple values are given back, only the first will be used
+          # see above by functionToValue()
+          value = elemExpress.getValue( dDictSum )
+          if isinstance( value, list ):
+            dValue += value[ 0 ]
+          else:
+            dValue += value
         result.append( dValue )
 
     if len( result ) == 1:

@@ -73,15 +73,33 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
     if endVal == 0:
       elemSym = symexpress3.SymFormulaParser( "1" )
     else:
-      varName = symtools.VariableGenerateGet()
-      elemStr = "product(" + varName + ", 1, nFallingFactorial, xFallingFactorial - " + varName + " + 1)"
-      elemSym = symexpress3.SymFormulaParser( elemStr )
+      # if function is a hole number then special case
+      if ( isinstance( elemFunc, symexpress3.SymNumber ) and
+           elemFunc.factSign         == 1 and
+           elemFunc.factDenominator  == 1 and
+           elemFunc.powerSign        == 1 and
+           elemFunc.powerCounter     == 1 and
+           elemFunc.powerDenominator == 1      ) :
 
-      dDict = {}
-      dDict[ 'xFallingFactorial' ] = str( elemFunc )
-      dDict[ 'nFallingFactorial' ] = str( elemEnd  )
+        elemStr = "factorial( xFallingFactorial ) / factorial( xFallingFactorial - nFallingFactorial )"
+        elemSym = symexpress3.SymFormulaParser( elemStr )
 
-      elemSym.replaceVariable( dDict )
+        dDict = {}
+        dDict[ 'xFallingFactorial' ] = str( elemFunc )
+        dDict[ 'nFallingFactorial' ] = str( elemEnd  )
+
+        elemSym.replaceVariable( dDict )
+      else:
+
+        varName = symtools.VariableGenerateGet()
+        elemStr = "product(" + varName + ", 1, nFallingFactorial, xFallingFactorial - " + varName + " + 1)"
+        elemSym = symexpress3.SymFormulaParser( elemStr )
+
+        dDict = {}
+        dDict[ 'xFallingFactorial' ] = str( elemFunc )
+        dDict[ 'nFallingFactorial' ] = str( elemEnd  )
+
+        elemSym.replaceVariable( dDict )
 
     elemSym.powerCounter     = elem.powerCounter
     elemSym.powerDenominator = elem.powerDenominator
@@ -107,7 +125,8 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue = round( dValue, 10 )
+    if dValue != None:
+      dValue = round( dValue, 10 )
     if dValueCalc != None:
       dValueCalc = round( dValueCalc, 10 )
     if display == True :
@@ -116,19 +135,33 @@ def Test( display = False):
       print( f"Value   : {str( value   )}" )
       print( f"DValue  : {str( dValue  )}" )
 
-    if str( value ).strip() != valueCalc or (dValueCalc != None and dValue != dValueCalc) : # pylint: disable=consider-using-in
+    if str( value ).strip() != valueCalc.strip() or (dValueCalc != None and dValue != dValueCalc) : # pylint: disable=consider-using-in
+    # if str( value ).strip() != valueCalc.strip() : # pylint: disable=consider-using-in
+      # print( str( value ).strip() )
+      # print( valueCalc.strip()    )
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'function {testClass.name}, unit test error: {str( symTest )}, value: {value} <> {valueCalc}, dValue:{dValue} <> {dValueCalc}' )
 
   symtools.VariableGenerateReset()
 
-  symTest = symexpress3.SymFormulaParser( 'fallingfactorial( 5, 4 )' )
+  symTest = symexpress3.SymFormulaParser( 'fallingfactorial( x, 4 )' )
+  symTest.optimize()
+  testClass = SymFuncFallingFactorial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = None # testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "product( n1,1,4,x + (-1) * n1 + 1 )", None )
+
+
+  symtools.VariableGenerateReset()
+
+  symTest = symexpress3.SymFormulaParser( 'fallingfactorial( 6, 4 )' )
   symTest.optimize()
   testClass = SymFuncFallingFactorial()
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "product( n1,1,4,5 + (-1) * n1 + 1 )", 120 )
+  _Check( testClass, symTest, value, dValue, " factorial( 6 ) *  factorial( 6 + (-1) * 4 )^^-1", 360 )
 
 if __name__ == '__main__':
   Test( True )
