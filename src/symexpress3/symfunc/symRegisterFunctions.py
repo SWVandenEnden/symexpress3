@@ -37,6 +37,7 @@ from symexpress3.symfunc import symFuncSum
 from symexpress3.symfunc import symFuncProduct
 from symexpress3.symfunc import symFuncFallingFactorial
 from symexpress3.symfunc import symFuncRisingFactorial
+from symexpress3.symfunc import symFuncHypergeometric
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -60,6 +61,7 @@ def SymRegisterFunctions():
   symtables.RegisterTableEntry( 'function', symFuncProduct.SymFuncProduct()     )
   symtables.RegisterTableEntry( 'function', symFuncFallingFactorial.SymFuncFallingFactorial() )
   symtables.RegisterTableEntry( 'function', symFuncRisingFactorial.SymFuncRisingFactorial()   )
+  symtables.RegisterTableEntry( 'function', symFuncHypergeometric.SymFuncHypergeometric()     )
 
 
 #
@@ -86,6 +88,8 @@ def SymRegisterGetModuleNames():
   symModules.append( symFuncProduct          )
   symModules.append( symFuncFallingFactorial )
   symModules.append( symFuncRisingFactorial  )
+  symModules.append( symFuncHypergeometric   )
+
 
   return symModules
 

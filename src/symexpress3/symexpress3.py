@@ -23,6 +23,7 @@
     MathMl: https://www.mathjax.org/
             https://elsenaju.eu/mathml/MathML-Examples.htm
             https://www.w3.org/TR/MathML3/mathml.pdf
+            https://www.javatpoint.com/mathml-algebra-symbols
 
     Math html editor:
             http://mathquill.com/
@@ -76,7 +77,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20241111001" # build number
+__buildnumber__ = "20241123001" # build number
 
 
 import sys
@@ -237,7 +238,11 @@ class SymBase( ABC ):
     expr.powerDenominator = elem.powerDenominator
     expr.onlyOneRoot      = elem.onlyOneRoot
 
-    addexpr = SymFormulaParser( cValue )
+    if not isinstance( cValue, SymExpress ):
+      addexpr = SymFormulaParser( cValue )
+    else:
+      addexpr = cValue
+      
     expr.add( addexpr )
 
     # print( "elem was: {}, wordt: {}".format( str( elem ), str( expr )))
@@ -932,7 +937,7 @@ class SymVariable( SymBasePower ):
     return dFunc
 
   def replaceVariable( self, dDict ):
-    # you cannot replace your self, only subelements
+    # you cannot replace your self, only sub elements
     pass
 
   def getValue( self, dDict = None ):
@@ -988,7 +993,24 @@ class SymVariable( SymBasePower ):
     elif self.name == 'infinity':
       output += '<mi>' + '&infin;' + '</mi>'
     else:
-      output += '<mi>' + self.name + '</mi>'
+      varName = self.name
+      varNum  = ""
+      if len( varName ) > 0:
+        for varLetter in reversed(self.name):
+          if varLetter.isdigit() :
+            varNum  = varLetter + varNum
+            varName = varName[:-1]
+          else:
+            break
+      
+      if len( varNum ) == 0:
+        output += '<mi>' + self.name + '</mi>'
+      else:
+        output += '<msub>'
+        output += '<mi>' + varName + '</mi>'
+        output += '<mn>' + varNum  + '</mn>'
+        output += '</msub>'
+        
 
     if self.power != 1:
       if self.powerCounter != 1:
@@ -2822,6 +2844,14 @@ class SymToHtml():
       self.writeLine( cTitle )
     for key, value in dVars.items() :
       self.writeLine( key + ' = ' + str( value ))
+
+  def writeSymExpressWithStr( self, oSymExpress, cTitle = None ):
+    """
+    Write the expression in MathMl and ascii format
+    """
+    self.writeSymExpress( oSymExpress, cTitle )
+    self.writeLine( str( oSymExpress ) )
+    self.writeLine( '' )
 
   def writeSymExpressComplete( self, oSymExpress, dVars = None, cTitle = None ):
     """
