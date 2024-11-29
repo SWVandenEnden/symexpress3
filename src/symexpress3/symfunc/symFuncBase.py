@@ -95,7 +95,7 @@ class SymFuncBase( ABC ):
     return None
 
   def _checkCorrectFunction( self, elem ):
-    # check if the given element is a function and has the correct function name`
+    # check if the given element is a function and has the correct function name
     if not isinstance( elem, symexpress3.SymFunction ):
       return False
     if elem.name != self.name:
@@ -108,6 +108,19 @@ class SymFuncBase( ABC ):
       return False
 
     return True
+
+
+
+  def mathMl( self, elem ):
+    """
+    Give the MathMl string back for the given function
+    1e parameter indicate that the power must be done by the caller
+    2e parameter is the string MathMl of the function, if None is given back then the caller must do it all
+    See symexpress3.SymFunction.MathMl()
+    """
+    # pylint: disable=unused-argument
+    return [], None
+
 
   # to be override
   def _getValueSingle( self, dValue, dValue2 = None ):

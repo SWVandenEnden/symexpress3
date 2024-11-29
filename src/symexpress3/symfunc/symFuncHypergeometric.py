@@ -21,24 +21,24 @@
 
 
     https://en.wikipedia.org/wiki/Generalized_hypergeometric_function
-    
+
     https://docs.sympy.org/latest/modules/simplify/hyperexpand.html
     https://github.com/sympy/sympy/blob/master/sympy/simplify/hyperexpand.py
-    
-    https://mathoverflow.net/questions/424518/does-any-hyper-geometric-function-can-be-analytically-continuated-to-the-whole-c    
+
+    https://mathoverflow.net/questions/424518/does-any-hyper-geometric-function-can-be-analytically-continuated-to-the-whole-c
     https://dlmf.nist.gov/15.2
     https://encyclopediaofmath.org/wiki/Hypergeometric_function
     https://fa.ewi.tudelft.nl/~koekoek/documents/wi4006/hyper.pdf
-    
+
     analytic continuation of 2F1
     https://www.sciencedirect.com/science/article/pii/S0377042700002673
-    
-    
-    
+
+
+
     _2F_1(a, b; c; z) = (1-z)^{-a} {}_2F_1(c-a, b; c; 1-z).
-    
+
     Kummer's transformation
-    
+
 """
 
 from symexpress3         import symexpress3
@@ -58,6 +58,87 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     self._syntax      = "hypergeometric( p, q, a1,..,ap, b1,..,bq, z )"
     self._synExplain  = "hypergeometric( p, q, a1,..,ap, b1,..,bq, z ) Example: hypergeometric( 2, 1, a1, a2, b1, z )"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return None, None
+
+    elemP   = elem.elements[ 0 ]
+    elemQ   = elem.elements[ 1 ]
+
+    elemTot = len( elem.elements )
+    elemZ   = elem.elements[ elemTot - 1 ]
+
+    if not isinstance( elemP, symexpress3.SymNumber ):
+      dVars = elemP.getVariables()
+      if len( dVars ) != 0:
+        return None, None
+    else:
+      if elemP.power != 1:
+        return None, None
+      if elemP.factDenominator != 1:
+        return None, None
+
+    if not isinstance( elemQ, symexpress3.SymNumber):
+      dVars = elemQ.getVariables()
+      if len( dVars ) != 0:
+        return None, None
+    else:
+      if elemQ.power != 1:
+        return None, None
+      if elemQ.factDenominator != 1:
+        return None, None
+
+    try:
+      valP = elemP.getValue()
+      valQ = elemQ.getValue()
+    except: # pylint: disable=bare-except
+      return None, None
+
+    if not isinstance(valP, int):
+      return None, None
+    if not isinstance(valQ, int):
+      return None, None
+
+    if valP + valQ + 3 != elemTot:
+      return None, None
+
+
+    output = ""
+
+    # https://developer.mozilla.org/en-US/docs/Web/MathML/Element/mmultiscripts
+    output += '<mmultiscripts>'
+    output += '<mi>F</mi>'                           # <!-- base expression -->
+    output += '<mi>' + elemQ.mathMl() + '</mi>'      # <!-- post-sub-script -->
+    output += '<mrow></mrow>'                        # <!-- post-sup-script -->
+    output += '<mprescripts />'                      #
+    output += '<mi>' + elemP.mathMl() + '</mi>'      # <!-- pre-sub-script -->
+    output += '<mrow></mrow>'                        # <!-- pre-sup-script -->
+    output += '</mmultiscripts>'
+
+    output += "<mfenced separators=''>"
+
+    # print( f"valP {valP}" )
+    # print( f"valQ {valQ}" )
+    # print( f"elemTot {elemTot}" )
+
+    output += elem.mathMlParameters( False, 2, valP + 1 )
+
+    output += '<mspace width="4px"></mspace>'
+    output += '<mi>;</mi>'
+    output += '<mspace width="8px"></mspace>'
+
+    output += elem.mathMlParameters( False, valP + 2, elemTot - 2 )
+
+    output += '<mspace width="4px"></mspace>'
+    output += '<mi>;</mi>'
+    output += '<mspace width="8px"></mspace>'
+
+    output += elemZ.mathMl()
+
+    output += "</mfenced>"
+
+    return [ '()' ], output
+
 
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:
@@ -65,13 +146,12 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
     elemP   = elem.elements[ 0 ]
     elemQ   = elem.elements[ 1 ]
-    
+
     elemTot = len( elem.elements )
     elemZ   = elem.elements[ elemTot - 1 ]
 
     #
-    # The below transformation is only valid
-    # if abs( elemZ ) < 1
+    # TODO The below transformation is only valid if abs( elemZ ) < 1
     #
 
     if not isinstance( elemP, symexpress3.SymNumber ):
@@ -111,13 +191,13 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     elemPQ  = symexpress3.SymExpress( '*' )
     varName = symtools.VariableGenerateGet()
     symVarN = symexpress3.SymVariable( varName )
-    
+
     for iCntVal in range( 2, valP + 2):
       elemA    = elem.elements[ iCntVal ]
       elemFunc = symexpress3.SymFunction( "risingfactorial" )
       elemFunc.add( elemA   )
       elemFunc.add( symVarN )
-      
+
       elemPQ.add( elemFunc )
 
     for iCntVal in range( valP + 2, valP + valQ + 2):
@@ -125,16 +205,16 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       elemFunc = symexpress3.SymFunction( "risingfactorial", -1, 1, 1 )
       elemFunc.add( elemB   )
       elemFunc.add( symVarN )
-      
+
       elemPQ.add( elemFunc )
 
     elemZExp = symexpress3.SymFunction( "exp" )
     elemZExp.add( symVarN )
     elemZExp.add( elemZ   ) # z^^n
-   
+
     elemNFact = symexpress3.SymFunction( 'factorial', -1, 1, 1 )
     elemNFact.add( symVarN )
-    
+
     elemParam = symexpress3.SymExpress( '*' )
     elemParam.add( elemPQ    )
     elemParam.add( elemZExp  )
@@ -145,7 +225,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     elemProduct.add( symexpress3.SymNumber( 1, 0, 1, 1, 1, 1, 1 ) )
     elemProduct.add( symexpress3.SymVariable( 'infinity' ))
     elemProduct.add( elemParam )
-    
+
     elemProduct.powerSign        = elem.powerSign
     elemProduct.powerCounter     = elem.powerCounter
     elemProduct.powerDenominator = elem.powerDenominator
@@ -160,9 +240,9 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     #
     elemNew = self.functionToValue( elemFunc )
     if elemNew == None:
-      return None 
-      
-    dValue = elemNew.getValue( dDict );  
+      return None
+
+    dValue = elemNew.getValue( dDict )
 
     return dValue
 

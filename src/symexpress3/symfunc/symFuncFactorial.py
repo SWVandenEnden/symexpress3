@@ -43,6 +43,18 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
     self._syntax      = "factorial(<n>)"
     self._synExplain  = "factorial(<n>) = n!"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+    output += "<mfenced separators=''>"
+    output += elem.elements[ 0 ].mathMl()
+    output += "</mfenced>"
+    output += '<mo>!</mo>'
+
+    return [ '()' ], output
+
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:
       return None

@@ -43,6 +43,45 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     self._syntax    = "exp(<x> [,<y>])"
     self._synExplain= "exp(<x> [,<y>]) = y^^x, default is e (e^^x)"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+
+    output += '<msup>'
+
+    if elem.numElements() == 2:
+
+      isExtraClose = True
+      if (     isinstance( elem.elements[ 1 ], symexpress3.SymNumber )
+         and elem.elements[ 1 ].power           == 1
+         and elem.elements[ 1 ].factDenominator == 1
+         and elem.elements[ 1 ].factSign        == 1 ):
+        isExtraClose = False
+
+      if (     isinstance( elem.elements[ 1 ], symexpress3.SymVariable )
+         and elem.elements[ 1 ].power           == 1         ):
+        isExtraClose = False
+
+      if isExtraClose == True:
+        output += "<mfenced separators=''>"
+
+      output += elem.elements[ 1 ].mathMl()
+
+      if isExtraClose == True:
+        output += "</mfenced>"
+    else:
+      output += '<mi>'
+      output += 'e'
+      output += '</mi>'
+
+    output += elem.elements[ 0 ].mathMl()
+
+    output += '</msup>'
+
+    return ['()'], output
+
 
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:

@@ -24,9 +24,13 @@
             https://elsenaju.eu/mathml/MathML-Examples.htm
             https://www.w3.org/TR/MathML3/mathml.pdf
             https://www.javatpoint.com/mathml-algebra-symbols
+            https://developer.mozilla.org/en-US/docs/Web/MathML
 
     Math html editor:
             http://mathquill.com/
+
+    Html/MathMl validtor:
+            https://validator.w3.org
 
     Python documentation tools:
             https://wiki.python.org/moin/DocumentationTools
@@ -242,7 +246,7 @@ class SymBase( ABC ):
       addexpr = SymFormulaParser( cValue )
     else:
       addexpr = cValue
-      
+
     expr.add( addexpr )
 
     # print( "elem was: {}, wordt: {}".format( str( elem ), str( expr )))
@@ -470,30 +474,69 @@ class SymBasePower( SymBase ):
 
     return ' mathcolor= "' + cResult + '" '
 
-  def powermathMl( self ):
+  def powermathMl( self, defaults = None ):
     """
     Internal use, give the power in mathml format
+    [] = default
+    [ 'NP'  ] = No power add
+    [ '()'  ] = always put () on value when there is a power
     """
-    output = ""
-    if self.powerDenominator != 1:
-      output += '<mfrac' + self.powerMathMlColor() + '>'
-      if self.powerSign == -1:
-        output += '<mrow>'
-        output += '<mo>-</mo>'
-      output += '<mn>' + str( self.powerCounter     ) + '</mn>'
-      if self.powerSign == -1:
-        output += '</mrow>'
-      output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-      output += '</mfrac>'
+    if defaults is None:
+      defaults = []
 
-    else:
+    startPower = ""
+    endPower   = ""
+    # check return empty (no power)
+    if 'NP' in defaults:
+      return startPower, endPower
+
+    if self.power != 1:
       if self.powerSign == -1:
-        output += '<mrow">'
-        output += '<mo>-</mo>'
-      output += '<mn>' + str( self.powerCounter     ) + '</mn>'
+        startPower += '<mfrac>'
+        startPower += '<mn>1</mn>'
+        startPower += '<mrow>'
+
+      if self.powerCounter != 1:
+        startPower += '<msup>'
+        startPower += '<mrow>'
+        if self.powerDenominator != 1:
+          startPower += "<mfenced separators=''>"
+
+      if self.powerDenominator != 1:
+        startPower += '<mroot' + self.powerMathMlColor() + '>'
+        startPower += '<mrow>'
+
+
+      if '()' in defaults and self.powerCounter != 1 and self.powerDenominator == 1:
+        startPower += "<mfenced separators=''>"
+        endPower   += "</mfenced>"
+
+
+      if self.powerDenominator != 1:
+        endPower += '</mrow>'
+        if self.powerDenominator != 2:
+          endPower += '<mn>'
+          endPower += str( self.powerDenominator )
+          endPower += '</mn>'
+        else:
+          endPower += '<mn></mn>'
+        endPower += '</mroot>'
+
+      if self.powerCounter != 1:
+        if self.powerDenominator != 1:
+          endPower   += "</mfenced>"
+
+        endPower += '</mrow>'
+        endPower += '<mn>' + str( self.powerCounter )  + '</mn>'
+        endPower += '</msup>'
+
       if self.powerSign == -1:
-        output += '</mrow>'
-    return output + '\n'
+        endPower += '</mrow>'
+        endPower += '</mfrac>'
+
+
+
+    return startPower, endPower
 
 
   # optimize the unit
@@ -776,41 +819,14 @@ class SymNumber( SymBasePower ):
     output = ''
     output += '<mrow>'
 
-    if self.power != 1:
-      if self.powerSign == -1:
-        output += '<mfrac>'
-        output += '<mn>1</mn>'
-        output += '<mrow>'
+    startPower, endPower = self.powermathMl( [] )
 
-      if self.powerDenominator != 1:
-        output += '<mroot' + self.powerMathMlColor() + '>'
-        output += '<mrow>'
-
-      if self.powerCounter != 1:
-        output += '<msup>'
-        output += '<mrow>'
-
+    output += startPower
     output += self.factormathMl()
-
-    if self.power != 1:
-      if self.powerCounter != 1:
-        output += '</mrow>'
-        output += '<mn>' + str( self.powerCounter )  + '</mn>'
-        output += '</msup>'
-
-      if self.powerDenominator != 1:
-        output += '</mrow>'
-        if self.powerDenominator != 2:
-          output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-        else:
-          output += '<mn></mn>'
-        output += '</mroot>'
-
-      if self.powerSign == -1:
-        output += '</mrow>'
-        output += '</mfrac>'
+    output += endPower
 
     output += '</mrow>'
+
     return output + '\n'
 
   def __str__( self ):
@@ -974,19 +990,9 @@ class SymVariable( SymBasePower ):
     output = ''
     output += '<mrow>'
 
-    if self.power != 1:
-      if self.powerSign == -1:
-        output += '<mfrac>'
-        output += '<mn>1</mn>'
-        output += '<mrow>'
+    startPower, endPower = self.powermathMl( [] )
 
-      if self.powerDenominator != 1:
-        output += '<mroot' + self.powerMathMlColor() + '>'
-        output += '<mrow>'
-
-      if self.powerCounter != 1:
-        output += '<msup>'
-        output += '<mrow>'
+    output += startPower
 
     if self.name == 'pi' :
       output += '<mi>' + '&pi;' + '</mi>'
@@ -1002,7 +1008,7 @@ class SymVariable( SymBasePower ):
             varName = varName[:-1]
           else:
             break
-      
+
       if len( varNum ) == 0:
         output += '<mi>' + self.name + '</mi>'
       else:
@@ -1010,27 +1016,11 @@ class SymVariable( SymBasePower ):
         output += '<mi>' + varName + '</mi>'
         output += '<mn>' + varNum  + '</mn>'
         output += '</msub>'
-        
 
-    if self.power != 1:
-      if self.powerCounter != 1:
-        output += '</mrow>'
-        output += '<mn>' + str( self.powerCounter )  + '</mn>'
-        output += '</msup>'
-
-      if self.powerDenominator != 1:
-        output += '</mrow>'
-        if self.powerDenominator != 2:
-          output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-        else:
-          output += '<mn></mn>'
-        output += '</mroot>'
-
-      if self.powerSign == -1:
-        output += '</mrow>'
-        output += '</mfrac>'
+    output += endPower
 
     output += '</mrow>'
+
     return output + '\n'
 
   # the SymVariable in string format
@@ -1136,6 +1126,34 @@ class SymBaseList( SymBasePower ):
         break
 
     return result
+
+  def mathMlParameters( self, setOpenClose = True, startElem = 0, endElem = 0, seperator = ',' ):
+    """
+    Give back the parameters of the function in mathMl format.
+    If always start with ( and end with ) between the parameters there is a ,
+    """
+    output = ""
+
+    if setOpenClose == True:
+      output += "<mfenced separators=''>"
+
+    for iCnt, elem in enumerate( self.elements ):
+
+      if iCnt < startElem:
+        continue
+
+      if endElem > 0 and iCnt > endElem:  # pylint: disable=chained-comparison)
+        break
+
+      if iCnt > startElem:
+        output += '<mo>' + seperator + '</mo>'
+
+      output += elem.mathMl()
+
+    if setOpenClose == True:
+      output += "</mfenced>"
+
+    return output
 
 
   def _convertFunctionsToValues( self, funcname = None):
@@ -1417,19 +1435,9 @@ class SymArray( SymBaseList ):
     output = ''
     output += '<mrow>'
 
-    if self.power != 1:
-      if self.powerDenominator != 1:
-        output += '<mroot' + self.powerMathMlColor() + '>'
-        output += '<mrow>'
+    startPower, endPower = self.powermathMl( [] )
 
-      if self.powerSign == -1:
-        output += '<mfrac>'
-        output += '<mn>1</mn>'
-        output += '<mrow>'
-
-      if self.powerCounter != 1:
-        output += '<msup>'
-        output += '<mrow>'
+    output += startPower
 
     output += "<mfenced open='[' close=']'>"
     output += '<mtable>'
@@ -1443,25 +1451,10 @@ class SymArray( SymBaseList ):
     output += '</mtable>'
     output += '</mfenced>'
 
-    if self.power != 1:
-      if self.powerCounter != 1:
-        output += '</mrow>'
-        output += '<mn>' + str( self.powerCounter )  + '</mn>'
-        output += '</msup>'
-
-      if self.powerSign == -1:
-        output += '</mrow>'
-        output += '</mfrac>'
-
-      if self.powerDenominator != 1:
-        output += '</mrow>'
-        if self.powerDenominator != 2:
-          output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-        else:
-          output += '<mn></mn>'
-        output += '</mroot>'
+    output += endPower
 
     output += '</mrow>'
+
     return output + '\n'
 
 
@@ -1629,222 +1622,45 @@ class SymFunction( SymBaseList ):
     return copyFunc
 
   def mathMl( self ):
-    isFactorial  = False
-    isExp        = False
-    isExtraClose = False
-    isSum        = False
-    isBinomial   = False
-    isFloor      = False
-    isCeil       = False
+    # get the function specific mathml string
+    powerDef   = []
+    funcMathMl = None
+    funcDef = symtables.functionTable.get( self.name )
+    if funcDef != None:
+      powerDef, funcMathMl = funcDef.mathMl( self )
+      if funcMathMl == None or not isinstance( funcMathMl, str ) or len( funcMathMl ) == 0:
+        funcMathMl = None
 
-    if (self.name == "factorial" and self.numElements() == 1 ):
-      isFactorial = True
-
-    if (self.name == "exp" and ( self.numElements() == 1 or self.numElements() == 2)):
-      isExp = True
-
-    if (self.name == "sum" and ( self.numElements() == 4 )):
-      isSum = True
-
-    if (self.name == "binomial" and ( self.numElements() == 2 )):
-      isBinomial = True
-
-    if (self.name == "floor" and ( self.numElements() == 1 )):
-      isFloor = True
-
-    if (self.name == "ceil" and ( self.numElements() == 1 )):
-      isCeil = True
+    startPower, endPower = self.powermathMl( powerDef )
 
     output = ''
     output += "<mrow>"
 
-    if isFactorial == True:
-      # output += '<apply><factorial/><ci>'
-      # output += '<apply><factorial/><apply>'
-      pass
+    output += startPower
 
-    if self.power != 1:
-      if ( isFactorial == True or isExp == True or isSum == True):
-        output += '<mo>(</mo>'
-
-      if self.powerDenominator != 1:
-        output += '<mroot' + self.powerMathMlColor() + '>'
-        output += '<mrow>'
-
-      if self.powerSign == -1:
-        output += '<mfrac>'
-        output += '<mn>1</mn>'
-        output += '<mrow>'
-
-      if self.powerCounter != 1:
-        output += '<msup>'
-        output += '<mrow>'
-
-    if (isFactorial == False and isExp == False and isSum == False and isBinomial == False and isFloor == False and isCeil == False):
+    if funcMathMl == None:
       output += '<mi>' + self.name + '</mi>'
-      output += "<mfenced separators=''>"
+      # output += "<mfenced separators=''>"
+    else:
+      output += funcMathMl
 
     if self.numElements() == 0:
       output += '<mn>0</mn>'
 
-    if isCeil == True:
-      output += "<mfenced  open='&lceil;' close='&rceil;'>"
-      output += "<mtable>"
+    if funcMathMl == None:
+      output += self.mathMlParameters()
 
-      output += "<mtr>"
-      output += "<mtd>"
-      output += self.elements[ 0 ].mathMl()
-      output += "</mtd>"
-      output += "</mtr>"
+      # for iCnt, elem in enumerate( self.elements ):
+      #   if iCnt > 0:
+      #     output += '<mo>,</mo>'
+      #   output += elem.mathMl()
 
-      output += "</mtable>"
-      output += "</mfenced>"
+    # if funcMathMl == None:
+    #  output += "</mfenced>"
 
-    elif isFloor == True:
-      output += "<mfenced  open='&lfloor;' close='&rfloor;'>"
-      output += "<mtable>"
-
-      output += "<mtr>"
-      output += "<mtd>"
-      output += self.elements[ 0 ].mathMl()
-      output += "</mtd>"
-      output += "</mtr>"
-
-      output += "</mtable>"
-      output += "</mfenced>"
-
-    elif isBinomial == True:
-      output += "<mfenced>"
-      output += "<mtable>"
-
-      output += "<mtr>"
-      output += "<mtd>"
-      output += self.elements[ 0 ].mathMl()
-      output += "</mtd>"
-      output += "</mtr>"
-
-      output += "<mtr>"
-      output += "<mtd>"
-      output += self.elements[ 1 ].mathMl()
-      output += "</mtd>"
-      output += "</mtr>"
-
-      output += "</mtable>"
-      output += "</mfenced>"
-
-    elif isSum == True:
-      output += "<munderover>"
-      output += '<mn>&#x2211;</mn>'  # this give a sum with above and lower the range
-
-      output += '<mrow>'
-      output += '<mi>'
-      output += self.elements[ 0 ].mathMl()
-      output += '</mi>'
-      output += '<mo>=</mo>'
-      output += '<mi>'
-      output += self.elements[ 1 ].mathMl()
-      output += '</mi>'
-      output += '</mrow>'
-
-      output += '<mi>'
-      output += self.elements[ 2 ].mathMl()
-      output += '</mi>'
-
-      output += '</munderover>'
-
-      output += '<mi>'
-      output += '<mo>(</mo>'
-      output += self.elements[ 3 ].mathMl()
-      output += '<mo>)</mo>'
-      output += '</mi>'
-
-    elif isExp == True:
-      output += '<msup>'
-
-      output += '<mi>'
-      if self.numElements() == 2:
-
-        isExtraClose = True
-        if (     isinstance( self.elements[ 1 ], SymNumber )
-           and self.elements[ 1 ].power           == 1
-           and self.elements[ 1 ].factDenominator == 1
-           and self.elements[ 1 ].factSign        == 1 ):
-          isExtraClose = False
-
-        if (     isinstance( self.elements[ 1 ], SymVariable )
-           and self.elements[ 1 ].power           == 1         ):
-          isExtraClose = False
-
-        if isExtraClose == True:
-          output += '<mo>(</mo>'
-
-        output += self.elements[ 1 ].mathMl()
-
-        if isExtraClose == True:
-          output += '<mo>)</mo>'
-      else:
-        output += 'e'
-      output += '</mi>'
-
-      output += '<mi>'
-      output += self.elements[ 0 ].mathMl()
-      output += '</mi>'
-
-      output += '</msup>'
-    else:
-      # for iCnt in range( 0, len( self.elements )):
-      for iCnt, elem in enumerate( self.elements ):
-        if iCnt > 0:
-          output += '<mo>,</mo>'
-
-        if isFactorial == True:
-          isExtraClose = True
-          if (   isinstance( elem, SymNumber )
-             and elem.power           == 1
-             and elem.factDenominator == 1
-             and elem.factSign        == 1 ):
-            isExtraClose = False
-
-        if isExtraClose == True:
-          output += '<mo>(</mo>'
-
-        output += elem.mathMl()
-
-        if isExtraClose == True:
-          output += '<mo>)</mo>'
-
-    if (isFactorial == False and isExp == False and isSum == False and isBinomial == False and isFloor == False and isCeil == False):
-      output += "</mfenced>"
-
-    if isFactorial == True:
-      # output += '<mn>)!</mn>'
-      # output += '</ci></apply>'
-      # output += '</apply></apply>'
-      output += '<mo>!</mo>'
-
-    if self.power != 1:
-
-      if self.powerCounter != 1:
-        output += '</mrow>'
-        output += '<mn>' + str( self.powerCounter )  + '</mn>'
-        output += '</msup>'
-
-      if self.powerSign == -1:
-        output += '</mrow>'
-        output += '</mfrac>'
-
-      if ( isFactorial == True or isExp == True or isSum == True):
-        output += '<mo>)</mo>'
-
-      if self.powerDenominator != 1:
-        output += '</mrow>'
-        if self.powerDenominator != 2:
-          output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-        else:
-          output += '<mn></mn>'
-        output += '</mroot>'
-
+    output += endPower
     output += '</mrow>'
+
     return output + '\n'
 
   def __str__( self ):
@@ -2565,22 +2381,9 @@ class SymExpress( SymBaseList ):
 
     output += '<mrow>'
 
-    if self.power != 1:
-      if self.powerDenominator != 1:
-        output += '<mroot' + self.powerMathMlColor() + '>'
-        output += '<mrow>'
+    startPower, endPower = self.powermathMl( [ '()' ] )
 
-      if self.powerSign == -1:
-        output += '<mfrac>'
-        output += '<mn>1</mn>'
-        output += '<mrow>'
-
-      if self.powerCounter != 1:
-        output += '<msup>'
-        output += '<mrow>'
-
-    if self.powerCounter != 1:
-      output += "<mfenced separators=''>"
+    output += startPower
 
     if len( self.elements ) == 0:
       output += '<mn>0</mn>'
@@ -2607,11 +2410,11 @@ class SymExpress( SymBaseList ):
               and elem.factSign        == -1
               and elem.factDenominator ==  1
               and elem.power           ==  1 ):
-            output += '<mspace width="4px" />'
+            output += '<mspace width="4px"></mspace>'
           else:
-            output += '<mspace width="4px" />'
+            output += '<mspace width="4px"></mspace>'
             output += '<mo>' + self.symType + '</mo> '
-            output += '<mspace width="4px" />'
+            output += '<mspace width="4px"></mspace>'
 
         if ( isinstance( elem, SymExpress ) and elem.symType != '*' and elem.power == 1 ):
           output += "<mfenced separators=''>"
@@ -2620,28 +2423,10 @@ class SymExpress( SymBaseList ):
         else:
           output += elem.mathMl()
 
-    if self.powerCounter != 1:
-      output += "</mfenced>"
-
-    if self.power != 1:
-      if self.powerCounter != 1:
-        output += '</mrow>'
-        output += '<mn>' + str( self.powerCounter )  + '</mn>'
-        output += '</msup>'
-
-      if self.powerSign == -1:
-        output += '</mrow>'
-        output += '</mfrac>'
-
-      if self.powerDenominator != 1:
-        output += '</mrow>'
-        if self.powerDenominator != 2:
-          output += '<mn>' + str( self.powerDenominator ) + '</mn>'
-        else:
-          output += '<mn></mn>'
-        output += '</mroot>'
+    output += endPower
 
     output += '</mrow>'
+
     return output + '\n'
 
   # the SymExpress in string format
@@ -2784,7 +2569,7 @@ class SymToHtml():
     Write the default html header to the file. Is called by opening the file (openFile).
     """
     self.write( '<!DOCTYPE html>' )
-    self.write( '<html>' )
+    self.write( '<html lang="en">' )
     self.write( '<head>' )
     self.write( '<meta charset="utf-8">' )
     self.write( '<title>' + self.title + '</title>' )
@@ -2806,7 +2591,8 @@ class SymToHtml():
     cMath = oSymExpress.mathMl()
     if cTitle != None:
       self.writeLine( cTitle )
-    self.write( "<math math-style='normal'>"  )
+    # self.write( "<math math-style='normal'>"  )
+    self.write( "<math>"  )
     self.write( cMath     )
     self.write( '</math>' )
     self.writeLine( '' )

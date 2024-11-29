@@ -41,6 +41,31 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     self._syntax      = "sum(<variable>,<lower>,<upper>,<function>)"
     self._synExplain  = "sum function, from lower to upper, example: sum(n,0,100,exp(x,n))"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+
+    output += "<munderover>"
+    output += '<mn>&#x2211;</mn>'  # this give a product with above and lower the range
+    # output += '<mo>&#x2211;</mo>'  # this give a product with next to it the lower the range
+
+    output += '<mrow>'
+    output += elem.elements[ 0 ].mathMl()
+    output += '<mo>=</mo>'
+    output += elem.elements[ 1 ].mathMl()
+    output += '</mrow>'
+
+    output += elem.elements[ 2 ].mathMl()
+
+    output += '</munderover>'
+
+    output += "<mfenced separators=''>"
+    output += elem.elements[ 3 ].mathMl()
+    output += "</mfenced>"
+
+    return [ '()' ], output
 
 
   def functionToValue( self, elem ):

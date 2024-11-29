@@ -41,6 +41,25 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     self._maxparams = 1    # maximum number of parameters
     self._syntax    = "ceil(<x>)"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+
+    output += "<mfenced  open='&lceil;' close='&rceil;'>"
+    output += "<mtable>"
+
+    output += "<mtr>"
+    output += "<mtd>"
+    output += elem.elements[ 0 ].mathMl()
+    output += "</mtd>"
+    output += "</mtr>"
+
+    output += "</mtable>"
+    output += "</mfenced>"
+
+    return [], output
 
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:
@@ -93,6 +112,26 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     self._minparams = 1    # minimum number of parameters
     self._maxparams = 1    # maximum number of parameters
     self._syntax    = "floor(<x>)"
+
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+
+    output += "<mfenced  open='&lfloor;' close='&rfloor;'>"
+    output += "<mtable>"
+
+    output += "<mtr>"
+    output += "<mtd>"
+    output += elem.elements[ 0 ].mathMl()
+    output += "</mtd>"
+    output += "</mtr>"
+
+    output += "</mtable>"
+    output += "</mfenced>"
+
+    return [], output
 
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:

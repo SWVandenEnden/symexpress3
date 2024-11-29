@@ -43,6 +43,33 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     self._syntax      = "binomial(<n>,<k>)"
     self._synExplain  = "binomial(<n>,<k>) = n!/(n!(n - k)!)"
 
+  def mathMl( self, elem ):
+    if self._checkCorrectFunction( elem ) != True:
+      return [], None
+
+    output = ""
+
+    output += "<mfenced>"
+    output += "<mtable>"
+
+    output += "<mtr>"
+    output += "<mtd>"
+    output += elem.elements[ 0 ].mathMl()
+    output += "</mtd>"
+    output += "</mtr>"
+
+    output += "<mtr>"
+    output += "<mtd>"
+    output += elem.elements[ 1 ].mathMl()
+    output += "</mtd>"
+    output += "</mtr>"
+
+    output += "</mtable>"
+    output += "</mfenced>"
+
+    return [], output
+
+
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:
       return None
