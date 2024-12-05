@@ -699,6 +699,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     #  cos( -x ) = + cos(  x )
     #  tan( -x ) = - tan(  x )
     # atan( -x ) = - atan( x )
+    # asin( -x ) = - asin( x )
+    # acos( -x ) = pi - acos( x )
 
     if elem.numElements() != 1:
       return None
@@ -714,6 +716,16 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
       if elemExpress.name == "cos":
         elemResult = elemExpress
+
+      elif elemExpress.name == "acos":
+        elemResult = symexpress3.SymExpress( '+' )
+        elemResult.add( symexpress3.SymVariable( 'pi' ))
+
+        elemExtra = symexpress3.SymExpress('*')
+        elemExtra.add( symexpress3.SymNumber( -1, 1, 1 ) )
+        elemExtra.add( elemExpress )
+
+        elemResult.add( elemExtra )
       else:
         elemResult = symexpress3.SymExpress('*')
         elemResult.add( symexpress3.SymNumber( -1, 1, 1, 1, 1, 1, 1) )
@@ -747,9 +759,68 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
     if elemExpress.name == "cos":
       elemResult = elemExpress
+
+    elif elemExpress.name == "acos":
+      elemResult = symexpress3.SymExpress( '+' )
+      elemResult.add( symexpress3.SymVariable( 'pi' ))
+
+      elemExtra = symexpress3.SymExpress('*')
+      elemExtra.add( symexpress3.SymNumber( -1, 1, 1 ) )
+      elemExtra.add( elemExpress )
+
+      elemResult.add( elemExtra )
     else:
       elemResult = symexpress3.SymExpress('*')
       elemResult.add( symexpress3.SymNumber( -1, 1, 1, 1, 1, 1, 1) )
       elemResult.add( elemExpress )
 
     return elemResult
+
+  def _conversTableToArc( self, elem ):
+    funcname = None
+    if elem.name == 'atan':
+      funcname = 'tan'
+    elif elem.name == 'asin':
+      funcname = "sin"
+    elif elem.name == "acos":
+      funcname = "cos"
+
+    if funcname == None:
+      return None
+
+    exp = elem.elements[ 0 ]
+
+    # print( "funcname: {}, exp: {}, type: {}".format( funcname, str( exp ), type( exp ) ))
+
+    for tri in symTrigonometricData.trigonometricdata:
+
+      if tri[ 0 ] != funcname:
+        continue
+
+      # convert string to expression
+      if tri[ 5 ] == None:
+        tri[ 5 ] = symexpress3.SymFormulaParser( tri[ 4 ] )
+        tri[ 5 ].optimizeNormal()
+        if tri[ 5 ].numElements() == 1:
+          tri[ 5 ] = tri[ 5 ].elements[ 0 ]
+
+      # print( "found {}, expr: {}, type: {}".format( tri[ 0 ], str( tri[ 5 ] ), type( tri[5] ) ) )
+
+      if not exp.isEqual( tri[ 5 ] ):
+        continue
+
+      # found one
+      angle = ''
+      if tri [ 1 ] == -1:
+        angle += '-1 '
+
+      angle += str( tri[ 2 ] ) + ' / ' + str( tri[ 3 ] ) + ' * pi '
+
+      newelem = symexpress3.SymFormulaParser( angle )
+      newelem.powerSign        = elem.powerSign
+      newelem.powerCounter     = elem.powerCounter
+      newelem.powerDenominator = elem.powerDenominator
+
+      return newelem
+
+    return None

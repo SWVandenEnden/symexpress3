@@ -1554,7 +1554,8 @@ class SymFunction( SymBaseList ):
 
       if ( isinstance( elem, SymExpress ) and elem.numElements() == 1 ):
         elem1 = elem.elements[0]
-        if ( elem.power  == 1 and ( elem1.power == 1 )):
+        # counter & denominator can be equal
+        if ( elem.power == 1 and elem.powerDenominator == 1):
           self.elements[ iCnt ]  = elem1
           result = True
 

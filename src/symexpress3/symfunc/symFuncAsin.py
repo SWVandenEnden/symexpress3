@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Atan function for Sym Express 3
+    Asin function for Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -28,17 +28,17 @@ import cmath
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
 
-class SymFuncAtan( symFuncTrigonoBase.SymFuncTrigonoBase ):
+class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
-  Atan function
+  Asin function
   """
   def __init__( self ):
     super().__init__()
-    self._name      = "atan"
-    self._desc      = "atan"
+    self._name      = "asin"
+    self._desc      = "asin"
     self._minparams = 1    # minimum number of parameters
     self._maxparams = 1    # maximum number of parameters
-    self._syntax    = "atan(<x>)"
+    self._syntax    = "asin(<x>)"
 
 
   def functionToValue( self, elem ):
@@ -50,7 +50,6 @@ class SymFuncAtan( symFuncTrigonoBase.SymFuncTrigonoBase ):
     if result != None:
       return result
 
-    # atan( -x ) = -atan( x )
     result = self._convertSinCosTanAtanSign( elem )
     if result != None:
       return result
@@ -59,7 +58,7 @@ class SymFuncAtan( symFuncTrigonoBase.SymFuncTrigonoBase ):
 
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return cmath.atan( dValue )
+    return cmath.asin( dValue )
 
 
 
@@ -81,22 +80,22 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'function {testClass.name}, unit test error: {str( symTest )}, value: {value}' )
 
-  symTest = symexpress3.SymFormulaParser( 'atan( 1 )' )
+  symTest = symexpress3.SymFormulaParser( 'asin( 1 )' )
   symTest.optimize()
-  testClass = SymFuncAtan()
+  testClass = SymFuncAsin()
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "1 * 4^^-1 * pi", round( 0.7853981633974483, 10) )
+  _Check(  testClass, symTest, value, round( dValue, 10), "1 * 2^^-1 * pi", round( 1.5707963268, 10) )
 
 
-  symTest = symexpress3.SymFormulaParser( 'atan( -2 )' )
+  symTest = symexpress3.SymFormulaParser( 'asin( -1 )' )
   symTest.optimize()
-  testClass = SymFuncAtan()
+  testClass = SymFuncAsin()
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "(-1) *  atan( 2 )", round( -1.1071487177940904, 10) )
+  _Check(  testClass, symTest, value, round( dValue, 10), "(-1) *  asin( 1 )", round( -1.5707963268, 10) )
 
 
 if __name__ == '__main__':

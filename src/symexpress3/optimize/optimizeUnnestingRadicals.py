@@ -330,7 +330,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
     if result != False:
       return result
 
-    # try reprocipals
+    # try reciprocals
     # 1/a * a = 1
     result |= _reprocipals()
     if result != False:

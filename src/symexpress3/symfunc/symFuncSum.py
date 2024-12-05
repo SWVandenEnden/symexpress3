@@ -234,7 +234,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "(1)^2 + (2)^2 + (3)^2 + (4)^2", 30 )
+  _Check( testClass, symTest, value, dValue, "1^^2 + 2^^2 + 3^^2 + 4^^2", 30 )
 
 if __name__ == '__main__':
   Test( True )
