@@ -127,6 +127,7 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     elemList.powerSign        = elem.powerSign
     elemList.powerCounter     = elem.powerCounter
     elemList.powerDenominator = elem.powerDenominator
+    elemList.onlyOneRoot      = elem.onlyOneRoot
 
     for iCntVal in range( startVal, endVal + 1 ):
 
@@ -161,11 +162,9 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     listEnd    = []
 
     # first must always be a single variable
-    elemVar = elemFunc.elements[0]
-    while elemVar != None and not isinstance( elemVar, symexpress3.SymVariable):
-      elemVar = elemVar.elements[0]
-
-    cVar = elemVar.name
+    cVar = self.getVarname( elemFunc.elements[0] )
+    if cVar == None:
+      return None
 
     startVal = elemFunc.elements[1].getValue( dDict )
     if isinstance( startVal, list ):

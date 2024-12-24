@@ -91,6 +91,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
       elemNew.powerSign        = elem.powerSign
       elemNew.powerCounter     = elem.powerCounter
       elemNew.powerDenominator = elem.powerDenominator
+      elemNew.onlyOneRoot      = elem.onlyOneRoot
 
       elemNumber = symexpress3.SymNumber( elem1.powerSign, elem1.powerCounter, elem1.powerDenominator )
 
@@ -121,6 +122,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
         elemNew.powerSign        = elem.powerSign
         elemNew.powerCounter     = elem.powerCounter
         elemNew.powerDenominator = elem.powerDenominator
+        elemNew.onlyOneRoot      = elem.onlyOneRoot
 
         elemLog1 = elem.copy()
         elemLog1.powerSign        = 1
@@ -167,6 +169,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
         elemNew.powerSign        = elem.powerSign
         elemNew.powerCounter     = elem.powerCounter
         elemNew.powerDenominator = elem.powerDenominator
+        elemNew.onlyOneRoot      = elem.onlyOneRoot
 
         elemLog = elem.copy()
         elemLog.powerSign        = 1
@@ -205,6 +208,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
             elemNew.powerSign        = elem.powerSign
             elemNew.powerCounter     = elem.powerCounter
             elemNew.powerDenominator = elem.powerDenominator
+            elemNew.onlyOneRoot      = elem.onlyOneRoot
 
             elemNew.add( symexpress3.SymNumber( 1, highestPower, 1 ) )
 
@@ -237,6 +241,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
         elemNew.powerSign        = elem.powerSign
         elemNew.powerCounter     = elem.powerCounter
         elemNew.powerDenominator = elem.powerDenominator
+        elemNew.onlyOneRoot      = elem.onlyOneRoot
 
         elemNew.add( elem1.elements[ 0 ] )
 
@@ -272,6 +277,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
       elemNew.powerSign        = elem.powerSign
       elemNew.powerCounter     = elem.powerCounter
       elemNew.powerDenominator = elem.powerDenominator
+      elemNew.onlyOneRoot      = elem.onlyOneRoot
 
       elemBase = None
       if elem.numElements() > 1:

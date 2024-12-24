@@ -33,10 +33,14 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Mathematics",
-    "Intended Audience :: Science/Research"
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers"
 ]
 license = {text = "GNU General Public License v3 or later (GPLv3+)"}
 keywords = ["math", "symbolic", "calculator"]
 
 [project.urls]
-"Source Code" = "https://github.com/SWVandenEnden/symexpress3"
+Homepage = "https://github.com/SWVandenEnden/"
+Repository = "https://github.com/SWVandenEnden/symexpress3"
+

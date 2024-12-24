@@ -534,9 +534,17 @@ class SymBasePower( SymBase ):
         endPower += '</mrow>'
         endPower += '</mfrac>'
 
-
-
     return startPower, endPower
+
+  def copyPower( self, elemTo ):
+    """
+    Copy the power to the given SymBasePower object
+    """
+    elemTo.powerSign        = self.powerSign
+    elemTo.powerCounter     = self.powerCounter
+    elemTo.powerDenominator = self.powerDenominator
+    elemTo.onlyOneRoot      = self.onlyOneRoot
+
 
 
   # optimize the unit

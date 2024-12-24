@@ -202,3 +202,32 @@ class SymFuncBase( ABC ):
       listOrValue = elemFunc.valuePow( listOrValue )
 
     return listOrValue
+
+  def getVarname( self, elemVar ):
+    """
+    Get the variable name of given expression
+    Special for integral functions
+    """
+
+    while elemVar != None and not isinstance( elemVar, symexpress3.SymVariable):
+      if elemVar.power != 1:
+        elemVar = None
+
+      elif isinstance( elemVar, symexpress3.SymExpress ):
+        if elemVar.numElements() == 1:
+          elemVar = elemVar.elements[0]
+        else:
+          elemVar = None
+
+      else:
+        elemVar = None
+
+    if not isinstance( elemVar, symexpress3.SymVariable):
+      return None
+
+    if elemVar.power != 1:
+      return None
+
+    cVar = elemVar.name
+
+    return cVar
