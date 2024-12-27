@@ -43,6 +43,7 @@ from symexpress3.symfunc import symFuncAsin
 from symexpress3.symfunc import symFuncAcos
 from symexpress3.symfunc import symFuncIntegral
 from symexpress3.symfunc import symFuncIntegralResult
+from symexpress3.symfunc import symFuncDerivative
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -72,6 +73,8 @@ def SymRegisterFunctions():
   symtables.RegisterTableEntry( 'function', symFuncAcos.SymFuncAcos()                         )
   symtables.RegisterTableEntry( 'function', symFuncIntegral.SymFuncIntegral()                 )
   symtables.RegisterTableEntry( 'function', symFuncIntegralResult.SymFuncIntegralResult()     )
+  symtables.RegisterTableEntry( 'function', symFuncDerivative.SymFuncDerivative()             )
+
 
 
 #
@@ -104,7 +107,7 @@ def SymRegisterGetModuleNames():
   symModules.append( symFuncAcos             )
   symModules.append( symFuncIntegral         )
   symModules.append( symFuncIntegralResult   )
-
+  symModules.append( symFuncDerivative       )
 
   return symModules
 

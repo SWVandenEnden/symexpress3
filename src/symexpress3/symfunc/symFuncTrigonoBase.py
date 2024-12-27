@@ -577,7 +577,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       #
       # never ending loop -> give another cos( atan(...))
 
-      # TODO sort out, solve others = disconnect...
+      # TODO sort out, solve others = disconnect... = cleaning needed, is solved with unnesting. Maybe create a optSymFunction routine
       return None
       # pylint: disable=unreachable
 
@@ -701,6 +701,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     # atan( -x ) = - atan( x )
     # asin( -x ) = - asin( x )
     # acos( -x ) = pi - acos( x )
+
+    # TODO sin(asin)), cos(acos), etc
 
     if elem.numElements() != 1:
       return None

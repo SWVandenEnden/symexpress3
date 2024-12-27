@@ -36,7 +36,8 @@ from queue     import Queue
 from functools import reduce
 
 import sympy   # use it for prime factorization and divisors
-# TODO seek out, use sympy always and delete own implementation
+# TO DO seek out, use sympy always and delete own implementation
+# for the moment let stay it. Looking for a smaller solution then sympy
 # https://stackoverflow.com/questions/4643647/fast-prime-factorization-module
 
 

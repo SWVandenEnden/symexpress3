@@ -101,7 +101,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elem.copyPower( elemNew )
       return elemNew
 
-    def _subGetConstantAndVariable( elemFunc ):
+    def _subGetConstantAndVariable( elemFunc, checkPower = True ):
       """
       Split the function into a constant and the variable
       Give 2 result, first = constant, second = variable
@@ -114,11 +114,12 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
 
       # first write out the power
-      if (   elemFunc.powerSign        != 1
-          or elemFunc.powerCounter     != 1
-          or elemFunc.powerDenominator != 1
-         ):
-        return None, None
+      if checkPower == True:
+        if (   elemFunc.powerSign        != 1
+            or elemFunc.powerCounter     != 1
+            or elemFunc.powerDenominator != 1
+           ):
+          return None, None
 
       cVarName = elem.elements[ 1 ].name
 
@@ -204,6 +205,16 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       if not isinstance( arrVar[ 0 ], symexpress3.SymVariable ):
         return None
 
+      # print( "check 1" )
+
+      if elemFunc.numElements() >= 2:
+        # integral( log( x, x))  not supported
+        elemBase = elemFunc.elements[1]
+        dDictVar = elemBase.getVariables()
+        if elem.elements[1].name in dDictVar:
+          return None
+
+
       elemNew = symexpress3.SymExpress( '+' )
       elemPart1 = symexpress3.SymExpress( '*' )
       elemPart1.add( symexpress3.SymVariable( elem.elements[1].name ))
@@ -243,8 +254,57 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       elemParam = elemFunc.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, False )
+      if arrVar == None and arrConst == None:
+        return None
+
       if arrVar == None :
+        # exp( a, x ) = x^a
+        if elemFunc.numElements() >= 2:
+          elemBase = elemFunc.elements[1]
+
+          if (    isinstance( elemBase, symexpress3.SymVariable)
+              and elemBase.name  == elem.elements[1].name
+              and elemBase.power == 1
+             ):
+            # result = exp( constants + 1, x ) / ( n + 1)  , n <> -1
+            if (    len( arrConst )    == 1
+                and isinstance( arrConst[0], symexpress3.SymNumber )
+                and arrConst[0].factor == -1
+               ):
+              # 1/x = ln(abs(x))
+              # x^^(-1) => ln( abs( x ))
+              elemNew = symexpress3.SymFunction( "log" )
+              elemAbs = symexpress3.SymFunction( "abs" )
+              elemAbs.add( symexpress3.SymVariable( elemBase.name ) )
+              elemNew.add( elemAbs )
+
+              elemNew = _subToResultAndPower( elemNew )
+            else:
+              expConst = symexpress3.SymExpress( '*' )
+              # exp( n + 1, x ) / ( n + 1)
+              for elemConst in arrConst:
+                expConst.add( elemConst )
+
+              elemNew = symexpress3.SymExpress( '*' )
+
+              elemPlus = symexpress3.SymExpress( '+' )
+              elemPlus.add( symexpress3.SymNumber() )
+              elemPlus.add( expConst )
+
+              elemExp = symexpress3.SymFunction( 'exp' )
+              elemExp.add( elemPlus )
+              elemExp.add( elemBase )
+
+              elemNew.add( elemExp )
+
+              elemPlus.powerSign = -1
+              elemNew.add( elemPlus )
+
+            elemNew = _subToResultAndPower( elemNew )
+            return elemNew
+
+
         return None
 
       if len( arrVar ) > 1:
@@ -259,6 +319,13 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       if not isinstance( arrVar[ 0 ], symexpress3.SymVariable ):
         return None
+
+      if elemFunc.numElements() >= 2:
+        elemBase = elemFunc.elements[1]
+        dDictVar = elemBase.getVariables()
+        if elem.elements[1].name in dDictVar:
+          return None
+
 
       # create constant expression
       expConst = symexpress3.SymExpress( '*' )
@@ -276,7 +343,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemDiv.add( expConst )
 
       if elemFunc.numElements() == 2:
-        # TODO ignore for the moment Integral( a exp( x, b ), x) = exp( a x, b ) / (a ln( b )) , b > 0 and b <> 1
+        # TO DO ignore for the moment Integral( a exp( x, b ), x) = exp( a x, b ) / (a ln( b )) , b > 0 and b <> 1
         # Integral( a exp( x, b ), x) = exp( a x, b ) / (a ln( b )) , b > 0 and b <> 1
         elemLog = symexpress3.SymFunction( 'log' )
         elemLog.add( elemFunc.elements[ 1 ] )
@@ -608,7 +675,9 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # check if the function is a constant with regarding the variable
       dictVars = elem.elements[ 0 ].getVariables()
 
-      # print( f"dictVars: {dictVars}" )
+      # print( f"elem: {str(elem)}" )
+      # print( f"Integral: { str(elem.elements[ 0 ]) }" )
+      # print( f"dictVars: { str(dictVars)}" )
       # print( f"Name: {elem.elements[ 1 ].name}" )
 
       if elem.elements[ 1 ].name in dictVars:
@@ -915,7 +984,6 @@ def Test( display = False):
 
   _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x ) * (3)^^-1,x,(1/10),2 * (1/10) )", 0.1574199386 )
 
-
   # exp base 10
   symTest = symexpress3.SymFormulaParser( 'integral( exp( 3 x, 10 ), x, 1/10 , 2/10 )' )
   symTest.optimize()
@@ -924,6 +992,15 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x,10 ) * (3 *  log( 10 ))^^-1,x,(1/10),2 * (1/10) )", 0.2874747819 )
+
+  # exp base x
+  symTest = symexpress3.SymFormulaParser( 'integral( exp( 3^^(1/2), x ), x, 1/10 , 2/10 )' )
+  symTest.optimize()
+  testClass = SymFuncIntegral()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 1 + 3^^(1/2),x ) * (1 + 3^^(1/2))^^-1,x,(1/10),2 * (1/10) )", 0.0038286527  )
 
 
   # log
