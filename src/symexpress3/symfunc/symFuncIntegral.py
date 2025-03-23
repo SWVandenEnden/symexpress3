@@ -168,6 +168,168 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return arrConst, arrVar
 
+    def _integralByParts():
+      """
+      Integral by parts: integral( f(x) * g(x), x ) = f(x) * integral( g(x), x ) - integral( derivative( f(x), x) * integral( g(x),x), x )
+      https://en.wikipedia.org/wiki/Integration_by_parts
+      """
+      
+      # TODO it can generate an never ending loop. Need to remember the original and look if it appears in the sub integrals...
+      # but how....
+      
+      elemFunc = elem.elements[ 0 ]
+      if not isinstance( elemFunc, symexpress3.SymExpress ):
+        # convert function with power into a SymExpress()
+        if  isinstance( elemFunc, symexpress3.SymFunction ):
+          if elemFunc.powerCounter > 1 and elemFunc.powerDenominator == 1:
+            elemFunc = symexpress3.SymExpress( '*' )
+            elemFunc.add( elem.elements[ 0 ] )
+          else:
+            return None 
+        else:    
+          return None
+      
+      if elemFunc.symType != '*':
+        return None
+        
+      # do not support radicals  
+      if elemFunc.powerDenominator != 1:
+        return None
+       
+      if elemFunc.numElements() <= 1:
+        if isinstance( elemFunc.elements[0], symexpress3.SymFunction ):
+          if elemFunc.elements[0].powerCounter <= 1:
+            return None 
+        else:
+          return None
+      
+      # if there is a integral or derivative then do nothing. This must be first be done
+      dictFunc = elemFunc.getFunctions()
+      if "integral" in dictFunc:
+        return None
+      if "derivative" in dictFunc:
+        return None
+      
+      # the LIATE rule
+      # 0 = log
+      # 1 = inverse trigonometric function
+      # 2 = variables
+      # 3 = trigonometric function
+      # 4 = exp
+      # 5 = rest of functions and expressions
+      arrLite = [ [], [], [], [], [], [] ]
+      for iCnt, elemSub in enumerate( elemFunc.elements ):
+        if isinstance( elemSub, symexpress3.SymFunction ):
+          # do not supported powers on functions
+          if elemSub.powerDenominator != 1:
+            return None
+          if elemSub.name == "log":
+            arrLite[ 0 ].append( elemSub )
+          elif elemSub.name in [ 'asin', 'acos', 'atan' ]:
+            arrLite[ 1 ].append( elemSub )
+          elif elemSub.name in [ 'sin', 'cos', 'tan' ]:
+            arrLite[ 3 ].append( elemSub )
+          elif elemSub.name == 'exp' :
+            arrLite[ 4 ].append( elemSub )
+          else:
+            # unknown / not supported function
+            return None
+            # arrLite[ 5 ].append( elemSub )
+            
+        elif isinstance( elemSub, symexpress3.SymVariable ):
+          # only support whole number powers (no fractions)
+          if elemSub.powerDenominator > 1:
+            return None
+          arrLite[ 2 ].append( elemSub )
+        else:
+          if isinstance( elemSub, symexpress3.SymExpress ):
+            # only support multi expression of plus with 1 element
+            if elemSub.numElements() == 1 or elemSub.symType == '*':
+              arrLite[ 5 ].append( elemSub )
+            else:
+              return None
+          else:
+            # not supported element
+            return None 
+      
+      # split elemFunc.elements in 2
+      # 1 = f(x), 2 = g(x)
+      # first found in array = f(x)
+      elemFx = None
+      elemGx = symexpress3.SymExpress( '*' )
+      for arrElem in arrLite:
+        if len( arrElem ) <= 0:
+          continue
+        elemFx = arrElem[ 0 ]
+        break
+        
+      if elemFx == None:  # should not be possible
+        return None 
+        
+      for elemSub in elemFunc.elements:
+        if elemSub == elemFx:
+          if not isinstance( elemFx, symexpress3.SymVariable ) and elemFx.powerCounter > 1:
+            # split power into 1 for f(x) and the rest in g(x), but not for a variable
+            elemCopy = elemFx.copy()
+            elemCopy.powerCounter = elemCopy.powerCounter - 1
+            elemGx.add( elemCopy )
+            elemFx = elemCopy
+            elemFx.powerCounter = 1
+          continue
+        elemGx.add( elemSub )
+
+      # how we have elemFx en elemGx
+      # integral( f(x) * g(x), x ) = f(x) * integral( g(x), x ) - integral( derivative( f(x), x) * integral( g(x),x), x )
+      elemNew = symexpress3.SymExpress( '+' )
+      
+      elemPart1 = symexpress3.SymExpress( '*' )
+      elemPart1.add( elemFx )
+      elemInt1 = symexpress3.SymFunction( 'integral' )
+      elemInt1.add( elemGx )
+      elemInt1.add( elem.elements[ 1 ] )
+      elemPart1.add( elemInt1 )
+      
+      if elem.numElements() >= 4:
+        elemRest1 = symexpress3.SymFunction( 'integralresult' )
+        elemRest1.add( elemPart1 )
+        elemRest1.add( elem.elements[ 1 ] )
+        elemRest1.add( elem.elements[ 2 ] )
+        elemRest1.add( elem.elements[ 3 ] )
+        
+        elemNew.add( elemRest1 )
+      else:
+        elemNew.add( elemPart1 )
+      
+      elemPart2 = symexpress3.SymExpress( '*' )
+      elemPart2.add( symexpress3.SymNumber( -1, 1, 1, 1 ))
+      
+      elemInt2 = symexpress3.SymFunction( 'integral' )
+      
+      elemExp2 = symexpress3.SymExpress( '*' )
+      
+      elemDer2 = symexpress3.SymFunction( 'derivative' )
+      elemDer2.add( elemFx )
+      elemDer2.add( elem.elements[1])
+      elemExp2.add( elemDer2 )
+      
+      elemInt21 = symexpress3.SymFunction( 'integral' )
+      elemInt21.add( elemGx )
+      elemInt21.add( elem.elements[ 1 ] )
+      elemExp2.add( elemInt21 )
+      
+      elemInt2.add( elemExp2 )
+      elemInt2.add( elem.elements[1] )
+      
+      if elem.numElements() >= 4:
+        elemInt2.add( elem.elements[2] )
+        elemInt2.add( elem.elements[3] )
+      
+      elemPart2.add( elemInt2 )
+      
+      elemNew.add( elemPart2 )
+      
+      return elemNew
+
     def _integralLog():
       """
       Integral( log( a x, b ), x ) =  x log( a x ) - x / log( a, e )
@@ -179,6 +341,10 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       cFuncName = elemFunc.name
       if cFuncName != "log":
         return None
+
+      # no power supported
+      if elemFunc.power != 1:
+        return None 
 
       if elemFunc.numElements() > 2:
         return None
@@ -249,6 +415,10 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       cFuncName = elemFunc.name
       if cFuncName != "exp":
         return None
+
+      # no power supported
+      if elemFunc.power != 1:
+        return None 
 
       if elemFunc.numElements() > 2:
         return None
@@ -363,6 +533,10 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemFunc = elem.elements[ 0 ]
       if not isinstance( elemFunc, symexpress3.SymFunction ):
         return None
+
+      # no power supported
+      if elemFunc.power != 1:
+        return None 
 
       cFuncName = elemFunc.name
       if not cFuncName in [ 'sin', 'cos', 'tan', 'asin', 'acos', 'atan' ]:
@@ -749,6 +923,12 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     elemNew = _integralLog()
     if elemNew != None:
       return elemNew
+
+    # integral by parts
+    elemNew = _integralByParts()
+    if elemNew != None:
+      return elemNew
+
 
     return None
 

@@ -77,6 +77,13 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
     if elem.existArray() == True:
       return None
 
+    # if there is a integral or derivative then do nothing. This must be first be done
+    dictFunc = elem.getFunctions()
+    if "integral" in dictFunc:
+      return None
+    if "derivative" in dictFunc:
+      return None
+
     elemNew = symexpress3.SymExpress( '+' )
     elemNew.powerSign        = elem.powerSign
     elemNew.powerCounter     = elem.powerCounter
