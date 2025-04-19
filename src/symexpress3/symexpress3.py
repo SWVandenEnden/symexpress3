@@ -630,7 +630,8 @@ class SymNumber( SymBasePower ):
   @factCounter.setter
   def factCounter(self, val):
     if not isinstance( val, int):
-      raise NameError( f'factCounter is incorrect: {val}, expected integer value({type(val)})' )
+      # print( f'Factcounter: {val} - type: { type(val) }' )
+      raise NameError( f'factCounter is incorrect: {val}, expected integer value( {type(val)} )' )
 
     if val < 0:
       self.factSign *= -1
