@@ -183,13 +183,13 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     # TODO check (reason) why 2 must always in the denominator
     # we can handle quations by whole numbers, work out how the handle it
 
-    if not 2 in factorDenominator:
+    if 2 not in factorDenominator:
       factorDenominator.append( 2 )
 
-    if not 3 in factorDenominator:
+    if 3 not in factorDenominator:
       factorDenominator.append( 3 )
 
-    if not 6 in factorDenominator:
+    if 6 not in factorDenominator:
       factorDenominator.append( 6 )
 
 

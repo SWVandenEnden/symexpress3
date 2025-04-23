@@ -243,16 +243,16 @@ def FactorizationDict(n):
   # print( f"FactorizationDict: {n}" )
 
   factorDict = sympy.ntheory.factorint( n )
-  
+
   # mpmath give gmpy2 integer back, but i want python integers
   # print( f'Before factorDict: {factorDict}' )
   tempFactorDict = {}
   for key, value in factorDict.items():
     # print( f'Key: {key} value: {value}' )
     tempFactorDict[ int( key ) ] = int( value )
-    
-  factorDict = tempFactorDict  
-  # print( f'After factorDict: {factorDict}' )  
+
+  factorDict = tempFactorDict
+  # print( f'After factorDict: {factorDict}' )
 
   # pylint: disable=pointless-string-statement)
   """
@@ -303,16 +303,16 @@ def FactorAllInt( n ):
   # print( f"FactorAllInt: {n}" )
 
   factors = sympy.divisors( n )
-  
+
   # print( f'Before Factors: {factors} ')
-  # force Python integers sympy give gmpy2 integers 
+  # force Python integers sympy give gmpy2 integers
   tempFactors = []
   for key in factors:
     tempFactors.append( int( key ) )
-  factors = tempFactors   
-    
-  # print( f'After Factors: {factors} ')  
-  
+  factors = tempFactors
+
+  # print( f'After Factors: {factors} ')
+
 
   # print( "factors: {factors}" )
 

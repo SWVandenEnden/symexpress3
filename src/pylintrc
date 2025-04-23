@@ -290,6 +290,7 @@ ignored-parents=
 
 # Maximum number of arguments for function / method.
 max-args=10 # symexpress3
+max-positional-arguments=10 # symexpress3
 
 # Maximum number of attributes for a class (see R0902).
 max-attributes=20 # symexpress3
