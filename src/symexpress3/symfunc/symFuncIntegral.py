@@ -168,6 +168,61 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return arrConst, arrVar
 
+    def _integralSum():
+      """
+      Integral of a sum: integral( sum( x, -1, 1, x ))
+      """
+      elemFunc = elem.elements[ 0 ]
+      if not isinstance( elemFunc, symexpress3.SymFunction ):
+        return None
+
+      cFuncName = elemFunc.name
+      if cFuncName != "sum":
+        return None
+
+      # no power supported
+      if elemFunc.power != 1:
+        return None
+      if elemFunc.onlyOneRoot != 1:
+        return None
+
+      if elemFunc.numElements() != 4:
+        return None
+
+      # the lower and upper limit may not contain the integral variable
+      elemVar = elem.elements[ 1 ]
+
+      elemLower = elemFunc.elements[ 1 ]
+      elemUpper = elemFunc.elements[ 2 ]
+
+      dictVarLower = elemLower.getVariables()
+      dictVarUpper = elemUpper.getVariables()
+
+      if elemVar in dictVarLower:
+        return None
+
+      if elemVar in dictVarUpper:
+        return None
+
+      elemNew = symexpress3.SymFunction( "sum" )
+      elemNew.add( elemFunc.elements[ 0 ] )
+      elemNew.add( elemFunc.elements[ 1 ] )
+      elemNew.add( elemFunc.elements[ 2 ] )
+
+      elemInt = symexpress3.SymFunction( "integral" )
+      elemInt.add( elemFunc.elements[ 3 ] )
+      elemInt.add( elemVar )
+
+      if elem.numElements() >= 3:
+        elemInt.add( elem.elements[2] )
+
+      if elem.numElements() >= 4:
+        elemInt.add( elem.elements[3] )
+
+      elemNew.add( elemInt )
+
+      return elemNew
+
     def _integralByParts():
       """
       Integral by parts: integral( f(x) * g(x), x ) = f(x) * integral( g(x), x ) - integral( derivative( f(x), x) * integral( g(x),x), x )
@@ -924,6 +979,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
+    # integral( sum( x, -1, 1, x ) )
+    elemNew = _integralSum()
+    if elemNew != None:
+      return elemNew
+
     # integral by parts
     elemNew = _integralByParts()
     if elemNew != None:
@@ -1026,9 +1086,11 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
+    if dValue != None:
+      dValue = round( dValue, 10 )
     if dValueCalc != None:
       dValueCalc = round( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )
@@ -1202,6 +1264,24 @@ def Test( display = False):
 
   _Check( testClass, symTest, value, dValue, "integralresult( x *  log( x,10 ) + (-1) * x *  log( 10 )^^-1,x,(1/10),2 * (1/10) )", -0.0832233586 )
 
+
+  # sum
+  symTest = symexpress3.SymFormulaParser( 'integral( sum( n,1,5,n * x^2 ),x )' )
+  symTest.optimize()
+  testClass = SymFuncIntegral()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = None
+
+  _Check( testClass, symTest, value, dValue, "sum( n,1,5, integral( n * x^2,x ) )", None )
+
+  # sum 2
+  symTest = symexpress3.SymFormulaParser( 'integral( sum( n,0,4,n * x^^2 ),x,(-10),20 )' )
+  symTest.optimize()
+  testClass = SymFuncIntegral()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "sum( n,0,4, integral( n * x^^2,x,(-10),20 ) )", 29997.75 )
 
 if __name__ == '__main__':
   Test( True )

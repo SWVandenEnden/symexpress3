@@ -86,12 +86,40 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
   def functionToValue( self, elem ):
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    # (x^2)^y = x^( 2 * y )
+    # elem1 = y
+    # elem2 = x
+    if elem.numElements() == 2:
+      elem1 = elem.elements[ 0 ]
+      elem2 = elem.elements[ 1 ]
+      if elem2.onlyOneRoot == 1 and elem2.power != 1:
+        elemXNew = elem2.copy()
+        elemXNew.powerSign        = 1
+        elemXNew.powerCounter     = 1
+        elemXNew.powerDenominator = 1
+        elemYNew = symexpress3.SymExpress( '*' )
+        elemYNew.add( elem1 )
+        elemXPower = symexpress3.SymNumber( elem2.powerSign, elem2.powerCounter, elem2.powerDenominator )
+        elemYNew.add( elemXPower )
+
+        elemNew = symexpress3.SymFunction( 'exp' )
+        elemNew.add( elemYNew )
+        elemNew.add( elemXNew )
+
+        elemNew.powerSign        = elem.powerSign
+        elemNew.powerCounter     = elem.powerCounter
+        elemNew.powerDenominator = elem.powerDenominator
+
+        return elemNew
+
     #
     # x^y
     # elem1 = y
     # elem2 = x if not provided, e is used
     #
     elem1 = elem.elements[ 0 ]
+
 
     if not isinstance ( elem1, symexpress3.SymNumber ):
       return None
@@ -136,7 +164,8 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
+    if dValue != None:
+      dValue = round( dValue, 10 )
     if dValueCalc != None:
       dValueCalc = round( dValueCalc, 10 )
     if display == True :
@@ -165,6 +194,15 @@ def Test( display = False):
   dValue = exp.getValue(        symTest.elements[ 0 ] )
 
   _Check( exp, symTest, value, dValue, "(e)^^2", 7.3890560989 )
+
+
+  symTest = symexpress3.SymFormulaParser( ' exp( 2 * n + 1,x^^3 )' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( (2 * n + 1) * 3,x )", None )
 
 if __name__ == '__main__':
   Test( True )
