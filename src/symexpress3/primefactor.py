@@ -20,10 +20,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-    Module primfac and clones give sometimes error by installation.
-    This is a python only implementation. Not that fast but it is python only
-
-    based on:
     https://stackoverflow.com/questions/32871539/integer-Factorization-in-python
     https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm
 
@@ -244,14 +240,9 @@ def FactorizationDict(n):
 
   factorDict = sympy.ntheory.factorint( n )
 
-  # mpmath give gmpy2 integer back, but i want python integers
-  # print( f'Before factorDict: {factorDict}' )
-  tempFactorDict = {}
-  for key, value in factorDict.items():
-    # print( f'Key: {key} value: {value}' )
-    tempFactorDict[ int( key ) ] = int( value )
+  # sympy (mpmath) give gmpy2 integers back, but I want Python integers
+  factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
 
-  factorDict = tempFactorDict
   # print( f'After factorDict: {factorDict}' )
 
   # pylint: disable=pointless-string-statement)
@@ -282,6 +273,7 @@ def factorint(n):  # pylint: disable=invalid-name
   """
   return FactorizationDict(n)
 
+
 # https://stackoverflow.com/questions/6800193/what-is-the-most-efficient-way-of-finding-all-the-factors-of-a-number-in-python
 def FactorsAll(n):
   """
@@ -290,31 +282,19 @@ def FactorsAll(n):
   step = 2 if n%2 else 1
   return set(reduce(list.__add__, ([i, n//i] for i in range(1, int(sqrt(n))+1, step) if n % i == 0)))
 
+
 # get all the factors of the given n`
 def FactorAllInt( n ):
   """
   Get all the factors of a given n with caching
   """
-  # global globalCacheAllFactors
-
   if n in globalCacheAllFactors:
     return globalCacheAllFactors[ n ].copy()
 
-  # print( f"FactorAllInt: {n}" )
-
   factors = sympy.divisors( n )
 
-  # print( f'Before Factors: {factors} ')
   # force Python integers sympy give gmpy2 integers
-  tempFactors = []
-  for key in factors:
-    tempFactors.append( int( key ) )
-  factors = tempFactors
-
-  # print( f'After Factors: {factors} ')
-
-
-  # print( "factors: {factors}" )
+  factors = [ int(key) for key in factors ]
 
   # factors = FactorsAll( n )
 

@@ -919,7 +919,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # integral( log( x, a))
+    # integral( log( x, a ))
     elemNew = _integralLog()
     if elemNew != None:
       return elemNew
