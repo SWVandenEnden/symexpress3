@@ -154,7 +154,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
           else:
             arrConst.append( elemCheck )
       else:
-        # array check is already done, now only the is there is an variable in it
+        # array check is already done, now only the is there is a variable in it
         dictVars = elemFunc.getVariables()
         if cVarName in dictVars:
           arrVar.append( elemFunc )
@@ -594,6 +594,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       cFuncName = elemFunc.name
+      # print( f"integral funcname: {cFuncName}" )
       if not cFuncName in [ 'sin', 'cos', 'tan', 'asin', 'acos', 'atan' ]:
         return None
 
@@ -603,12 +604,38 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemParam = elemFunc.elements[ 0 ]
       arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
       if arrVar == None :
+        # no variable found in function with power of 1
+        # convert the function into a sum to get integrated
+        # example: integral( sin( x^3 ),x)
+
+        # convert to sum
+        if cFuncName == "sin":
+          elemCopy = elem.copy()
+          elemCopy.optimize( 'sinToSum' )
+          return elemCopy
+
+        if cFuncName == "cos":
+          elemCopy = elem.copy()
+          elemCopy.optimize( 'cosToSum' )
+          return elemCopy
+
+        # tan has no power series with is always valid, see https://proofwiki.org/wiki/Power_Series_Expansion_for_Exponential_of_Tangent_of_x
+        # atan was 3 power series for 3 different domains, see https://proofwiki.org/wiki/Power_Series_Expansion_for_Real_Arctangent_Function
+
+        if cFuncName == "asin":
+          elemCopy = elem.copy()
+          elemCopy.optimize( 'asinToSum' )
+          return elemCopy
+
+        if cFuncName == "acos":
+          elemCopy = elem.copy()
+          elemCopy.optimize( 'acosToSum' )
+          return elemCopy
+
         return None
 
       if len( arrVar ) > 1:
         return None
-
-      # print( f"arrVar: { arrVar[0]}" )
 
       if (    arrVar[ 0 ].powerSign        != 1
            or arrVar[ 0 ].powerCounter     != 1
