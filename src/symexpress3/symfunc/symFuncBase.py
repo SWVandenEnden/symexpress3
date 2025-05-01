@@ -94,6 +94,12 @@ class SymFuncBase( ABC ):
     """
     return None
 
+  def checkCorrectFunction( self, elem ):
+    """
+    Check if the function is correct (number of parameters, name)
+    """
+    return self._checkCorrectFunction( elem )
+
   def _checkCorrectFunction( self, elem ):
     # check if the given element is a function and has the correct function name
     if not isinstance( elem, symexpress3.SymFunction ):

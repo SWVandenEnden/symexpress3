@@ -81,7 +81,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20241123001" # build number
+__buildnumber__ = "20250501001" # build number
 
 
 import sys
@@ -111,7 +111,7 @@ from symexpress3 import symtables
 # mathml colors
 colorposroot   = "#429e00"  # green, for roots with only one positive value
 colorallroot   = "#000000"  # black, for roots with multiple values
-
+colorfuncbad   = "#b30000"  # red, for function with wrong number of parameters
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
 globalUseThreads      = False # use thread, see _optSubThread()
@@ -1648,8 +1648,16 @@ class SymFunction( SymBaseList ):
 
     output += startPower
 
+    # function name get a red color if the functions is incorrect or not existing
     if funcMathMl == None:
-      output += '<mi>' + self.name + '</mi>'
+      colorBad = ''
+      if funcDef != None:
+        if funcDef.checkCorrectFunction( self ) != True:
+          colorBad = ' mathcolor="' + colorfuncbad + '"'
+      else:
+        colorBad = ' mathcolor="' + colorfuncbad + '"'
+
+      output += '<mi' + colorBad + '>' + self.name + '</mi>'
       # output += "<mfenced separators=''>"
     else:
       output += funcMathMl
@@ -2332,6 +2340,7 @@ class SymExpress( SymBaseList ):
 
       _printCalc( 'start', 0, iCntBig )
 
+      _optimizeAction( ["infinity"                    ], 'Simplify infinity'                           , iCntBig,  3 )
       _optimizeAction( ["rootToPrincipalRoot"         ], 'Write out all roots into principal roots'    , iCntBig,  1 )
       _optimizeAction( ["powerArrays"                 ], 'Put the power of the array into the elements', iCntBig,  1 )
       _optimizeAction( ["arrayPower"                  ], 'Put the power of an array into his elements' , iCntBig, 10 )

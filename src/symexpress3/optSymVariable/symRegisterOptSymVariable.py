@@ -24,6 +24,7 @@
 from symexpress3                import symtables
 from symexpress3.optSymVariable import optSymVariableI
 from symexpress3.optSymVariable import optSymVariableRootIToSinCos
+from symexpress3.optSymVariable import optSymVariableInfinity
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -34,6 +35,7 @@ def SymRegisterOptimize():
   """
   symtables.RegisterTableEntry( 'optSymVariable', optSymVariableI.OptSymVariableI()                         )
   symtables.RegisterTableEntry( 'optSymVariable', optSymVariableRootIToSinCos.OptSymVariableRootIToSinCos() )
+  symtables.RegisterTableEntry( 'optSymVariable', optSymVariableInfinity.OptSymVariableInfinity()           )
 
 #
 # Get all the modules from the optSymVariable, used in testsymexpress3.py
@@ -47,6 +49,7 @@ def SymRegisterGetModuleNames():
 
   symModules.append( optSymVariableI             )
   symModules.append( optSymVariableRootIToSinCos )
+  symModules.append( optSymVariableInfinity      )
 
   return symModules
 
