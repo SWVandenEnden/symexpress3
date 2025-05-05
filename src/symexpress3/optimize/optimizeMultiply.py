@@ -293,6 +293,13 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             if elem2.name != elem1.name:
               continue
 
+            # Special case for infinity
+            # If power sign is not the same then do nothing
+            # infinity * infinity / infinity = infinity / infinity = 1
+            # see optimzeInfinity.py & optSymVariableInfinity.py
+            if elem1.name == "infinity" and elem1.powerSign != elem2.powerSign:
+              continue
+
             elemnew = elem1.copy()
 
             # if it is a fraction, make the denominator equal
@@ -891,6 +898,19 @@ def Test( display = False):
   testClass.optimize( symTest, "multiply" )
 
   _Check( testClass, symOrg, symTest, "cos( x )^^2" )
+
+
+  # multiply infinity
+  symTest = symexpress3.SymFormulaParser( 'infinity * infinity / infinity * infinity^^(-1) * infinity' )
+  symTest.optimize()
+  symTest = symTest.elements[ 0 ]
+  symOrg = symTest.copy()
+
+  testClass = OptimizeMultiply()
+  testClass.optimize( symTest, "multiply" )
+
+  _Check( testClass, symOrg, symTest, "infinity^^3 * infinity^^-2" )
+
 
 if __name__ == '__main__':
   Test( True )
