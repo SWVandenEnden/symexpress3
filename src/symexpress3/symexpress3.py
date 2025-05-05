@@ -2306,6 +2306,8 @@ class SymExpress( SymBaseList ):
           bChanged |= self.optimize( cAction )
           cCode     = cAction
 
+        # print( f"_optimizeAction: {cAction}, {iCnt}, bChanged: {bChanged}" )
+
         if bChanged == False:
           break
 

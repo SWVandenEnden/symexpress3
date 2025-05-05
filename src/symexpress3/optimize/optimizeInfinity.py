@@ -19,6 +19,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+    Handle infinity with the idea that all infinities are equal, positive and real.
+    This mean:
+    infinity - infinity = 0
+    infinity / infinity = 1
+    infinity * infinity = infinity
+    infinity + infinity = infinity
+
+    Accumulation of infinity with the same operation has priority.
+    infinity * infinity * infinity / infinity = infinity / infinity = 1
+
+    There are 4 type of infinity's in complex numbers
+     1:          infinity  (positive real)
+     2: -1 *     infinity  (negative real)
+     3:      i * infinity  (positive imaginary)
+     4: -1 * i * infinity  (negative imaginary)
+
+     This only work with infinity and numbers.
+     Functions are not optimized for infinity. Function must handle infinity them self
+
 """
 
 from symexpress3          import symexpress3
@@ -32,7 +52,7 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
     super().__init__()
     self._name         = "infinity"
     self._symtype      = "all"
-    self._desc         = "Optimize"
+    self._desc         = "Optimize infinity"
 
 
   def optimize( self, symExpr, action ):
@@ -40,13 +60,13 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
     there are 4 infinity's in complex numbers
      1:          infinity  (positive real)
      2: -1 *     infinity  (negative real)
-     3:      i * infinity  (positive imaginary real)
-     4: -1 * i * infinity  (negative imaginary real)
+     3:      i * infinity  (positive imaginary)
+     4: -1 * i * infinity  (negative imaginary)
     """
 
     def _firstInfinity():
       """
-      Return the first infinity variable found  (not an expression)
+      Return the first infinity variable found
       """
       if symExpr.symType == '*':
         # by * only 1 type exist
@@ -102,7 +122,6 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
     # Main
     # ----
     if self.checkExpression( symExpr, action ) != True:
-      # print( "Afgekeurd: " + symExpr.symType )
       return result
 
     # search for first infinity
@@ -117,11 +136,10 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
       sameInfinity = []
       diffInfinity = []
 
-      for iCnt in range( 0, len( symExpr.elements ) ) :
+      for iCnt, elem in enumerate( symExpr.elements ) :
         # skip first found
         if iCnt == firstInfinity:
           continue
-        elem = symExpr.elements[ iCnt ]
         if isinstance( elem, symexpress3.SymVariable ):
           if elem.name == "infinity":
             if elem.powerSign == startInfinity.powerSign:
@@ -134,9 +152,6 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
           dVars = elem.getVariables()
           if 'infinity' in dVars :
             return result # <<<
-
-          # TODO functions, out a function can come an infinity
-
 
       # print( f"sameInfinity: {sameInfinity}" )
       # print( f"diffInfinity: {diffInfinity}" )
@@ -155,30 +170,35 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
         for iCnt in diffInfinity:
           symExpr.elements[ iCnt ] = symexpress3.SymNumber()
 
-      # at this point max 2 infinity's exist and if there are 2 they have different power signs
-      # this make there value 1
+      # At this point max 2 infinity's exist and if there are 2, they have different power signs
+      # This make there value 1 (infinity / infinity = 1)
       if otherInfinity >= 0:
         result = True
         symExpr.elements[ otherInfinity ] = symexpress3.SymNumber()
         symExpr.elements[ firstInfinity ] = symexpress3.SymNumber()
         return result # <<<
 
-      # 1 infinity found, delete all the numbers
+      # 1 infinity found, delete all the numbers ( = making them 1)
       iCnt = len( symExpr.elements )
       while iCnt > 0:
         iCnt -= 1
         elem = symExpr.elements[ iCnt ]
         if isinstance( elem, symexpress3.SymNumber ):
-          # symExpr.elements.pop( iCnt )
           if elem.factSign == -1 and elem.powerDenominator > 1:
             # this is an imaginary number do not change it
             pass
           else:
-            symExpr.elements[ iCnt ] = symexpress3.SymNumber( elem.factSign ) # make it 1, multiply will delete it
-          result = True
+            if not elem.factor in [ -1, 1 ] :
+              symExpr.elements[ iCnt ] = symexpress3.SymNumber( elem.factSign ) # make it 1, multiply will delete it
+              result = True
+        elif isinstance( elem, symexpress3.SymVariable ):
+          if elem.name in [ 'e', 'pi' ]:
+            symExpr.elements[ iCnt ] = symexpress3.SymNumber( ) # make it 1, multiply will delete it
+            result = True
+
 
       # get infinity out of the power
-      if symExpr.powerCounter > 1 or symExpr.powerDenominator > 1:
+      if ( symExpr.powerCounter > 1 or symExpr.powerDenominator > 1):
         elemCopy = symExpr.copy()
 
         symExpr.powerCounter     = 1
@@ -196,7 +216,7 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
 
       return result
 
-    elif symExpr.symType == '+':
+    if symExpr.symType == '+':
       # type of infinity needed
       # - imaginary
       # - small    (= 1/infinity)
@@ -228,12 +248,11 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
         if iCnt == firstInfinity:
           continue
 
-        # TODO functions
-
         if isImag == True:
           # search for imaginary expressions
           if isinstance( elem, symexpress3.SymVariable ) and elem.name == 'i':
             symExpr.elements[ iCnt ] = symexpress3.SymNumber( 1, 0, 1, 1 ) # change i into zero
+            result = True
           elif isinstance( elem, symexpress3.SymExpress ) and elem.symType == '*' and elem.power == 1:
             iFound     = 0
             numFound   = 0
@@ -242,6 +261,8 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
               if isinstance( elemSub, symexpress3.SymVariable ):
                 if elemSub.name == 'i':
                   iFound += 1
+                elif elemSub.name in [ 'e', 'pi' ]:
+                  numFound += 1
                 else:
                   otherFound += 1
                   break
@@ -257,9 +278,10 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
             if otherFound == 0 and iFound == 1:
               # imaginary number found, so set it to zero
               symExpr.elements[ iCnt ] = symexpress3.SymNumber( 1, 0, 1, 1 ) # change i into zero
+              result = True
         else:
           if isinstance( elem, symexpress3.SymNumber ):
-            if elem.factSign == 1 or elem.powerDenominator == 1:
+            if elem.factCounter != 0 and (elem.factSign == 1 or elem.powerDenominator == 1):
               # this is a real number and can never be a imaginary number, so make it zero (0)
               elem.factSign         = 1
               elem.factCounter      = 0
@@ -268,9 +290,12 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
               elem.powerCounter     = 1
               elem.powerDenominator = 1
               result = True
+          elif isinstance( elem, symexpress3.SymVariable ):
+            if elem.name in [ 'e', 'pi' ]:
+              symExpr.elements[ iCnt ] = symexpress3.SymNumber( 1, 0, 1, 1 ) # change var into zero
+              result = True
 
-
-
+    # print( f"Result infinity: {result}" )
     return result
 
 #
