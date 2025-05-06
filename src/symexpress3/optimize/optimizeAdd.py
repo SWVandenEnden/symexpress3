@@ -155,12 +155,35 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             elemnew.powerDenominator = elemexp.powerDenominator
 
             # print( "elemnew stap 1: {}".format( elemnew ))
+            isinfinity = False
+            if "infinity" in elemexp.getVariables():
+              isinfinity = True
+              # print( "!! Infinity: " + str( elemexp ) )
 
             # elemexp is now the symexpress
-            lOnlyOne = True
+            lOnlyOne  = True
+            lFoundOne = True
             for iCnt3 in range( 0, elemexp.numElements()):
               elemsub = elemexp.elements[ iCnt3 ]
               if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+
+                if isinfinity == True:
+                  #
+                  # infinity + infinity - infinity = infinity - infinity = 0
+                  # see optimzeInfinity.py
+                  #
+                  # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
+
+                  # pylint: disable=chained-comparison
+                  if elemnum.factSign < 0 and elemsub.factSign > 0:
+                    lFoundOne = False
+                    continue
+
+                  if elemnum.factSign > 0 and elemsub.factSign < 0:
+                    lFoundOne = False
+                    continue
+
+
                 lOnlyOne = False
                 # print( 'elemsub start: {}, power: {}'.format( str( elemsub ), elemsub.power ))
                 # print( 'elemnum start: {}'.format( str( elemnum )))
@@ -197,6 +220,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
                 elemnew.add( elemsub )
 
             # print( "elemnum add: {}".format( elemnum ))
+            if lFoundOne == False:
+              continue
 
             elemnew.add( elemnum )
             symExpr.elements[ iCnt ] = elemnew
@@ -209,6 +234,10 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             break
 
           if ( elem1.power != 1 and elem2.power != 1 ):
+            # cannot add power of infinity, see optimizeInfinity.py
+            if "infinity" in elem1.getVariables():
+              continue
+
             # 2 expression with powers
             elemnew = symexpress3.SymExpress( '*' )
             elemnew.add( symexpress3.SymNumber( 1, 2, 1, 1,1,1 ))
@@ -220,6 +249,10 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             lFound = True
             result = True
           elif ( elem1.power != 1 or elem2.power != 1 ):
+            # cannot add power of infinity, see optimizeInfinity.py
+            if "infinity" in elem1.getVariables():
+              continue
+
             # 2 expression, 1 with power and 1 without
             if elem1.power == 1 :
               elemnew = elem1
@@ -260,6 +293,11 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             # print( 'totaal: {}'.format( dVal1 + dVal2 ))
 
             elemexp = elem1
+
+            isinfinity = False
+            if "infinity" in elemexp.getVariables():
+              isinfinity = True
+
             # take all the numbers form elem2
             for iCnt3 in range( 0, elem2.numElements()):
               elemsub = elem2.elements[ iCnt3 ]
@@ -325,6 +363,20 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             # second had no number so it is 1
             if elemnum2 == None:
               elemnum2 = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
+
+            if isinfinity == True:
+              #
+              # infinity + infinity - infinity = infinity - infinity = 0
+              # see optimzeInfinity.py
+              #
+              # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
+
+              # pylint: disable=chained-comparison
+              if elemnum.factSign < 0 and elemnum2.factSign > 0:
+                continue
+
+              if elemnum.factSign > 0 and elemnum2.factSign < 0:
+                continue
 
             elem3 = symexpress3.SymNumber()
             elem3.factSign        = elemnum.factSign

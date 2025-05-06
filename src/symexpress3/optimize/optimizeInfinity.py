@@ -217,6 +217,123 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
       return result
 
     if symExpr.symType == '+':
+      # print( "Infinity check plus: " + str(symExpr) )
+      #
+      # loop list
+      # if 2 types the same but other sign then make it zero
+      #
+      normalPos = []
+      normalNeg = []
+      imagPos   = []
+      imagNeg   = []
+      for iCnt, elem in enumerate( symExpr.elements ) :
+        if isinstance( elem, symexpress3.SymVariable ):
+          if elem.name == "infinity":
+            if elem.power != 1:
+              return result
+
+            normalPos.append( iCnt )
+        elif isinstance( elem, symexpress3.SymExpress ):
+          if elem.symType == '*':
+            if elem.power != 1:
+              return result
+
+            # print( f"Check elem: {elem}" )
+
+            dVars = elem.getVariables()
+            if 'infinity' in dVars:
+              # max elements = -1 * i * infinity
+              if elem.numElements() > 3:
+                return result
+
+              # ok search for number, and count imaginary and infinity
+              elemFound = None
+              elemImag  = 0
+              elemInfi  = 0
+              for elemNum in elem.elements:
+                if isinstance( elemNum, symexpress3.SymNumber ):
+                  if elemFound != None:
+                    return result
+                  elemFound = elemNum
+
+                  # only want 1 of -1
+                  if elemNum.power != 1:
+                    return result
+                  if elemNum.factCounter != 1:
+                    return result
+                  if elemNum.factDenominator != 1:
+                    return result
+
+                elif not isinstance( elemNum, symexpress3.SymVariable ):
+                  return result
+                else:
+                  # no powers allowed
+                  if elemNum.power != 1:
+                    return result
+
+                  if elemNum.name == 'i':
+                    elemImag += 1
+                  elif elemNum.name == 'infinity':
+                    elemInfi += 1
+                  else:
+                    return result
+
+              # print( f"Check 3 elem: {elem}" )
+
+              # there must always be 1 infinity
+              if elemInfi != 1:
+                return result
+
+              # there may not be more the 1 imaginary
+              if elemImag > 1:
+                return result
+
+              # count all the types (infinity,  -1 * infinity,  i * infinity,  -1 * i * infinity )
+              if 'i' in dVars:
+                if elemFound == None or elemFound.factSign == 1:
+                  imagPos.append( iCnt )
+                else:
+                  imagNeg.append( iCnt )
+              else:
+                if elemFound == None or elemFound.factSign == 1:
+                  normalPos.append( iCnt )
+                else:
+                  normalNeg.append( iCnt )
+
+          elif 'infinity' in elem.getVariables():
+            return result
+        else:
+          # if infinity in sub element, resolve that first
+          if 'infinity' in elem.getVariables():
+            return result
+
+      # print( f"normalPos: {normalPos}, normalNeg: {normalNeg}" )
+      # print( f"imagPos  : {imagPos}  , imagNeg  : {imagNeg}"   )
+
+      # first at the same, so there can be only 1 of each
+      if len( normalPos ) > 1 or len( normalNeg ) > 1:
+        return result
+
+      if len( imagPos ) > 1 or len( imagNeg ) > 1:
+        return result
+
+      if len( normalPos ) == 1 and len( normalNeg ) == 1:
+        symExpr.elements[ normalPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+        symExpr.elements[ normalNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+        # 1 positive and 1 negative found, so make them zero
+
+        result = True
+
+      if len( imagPos ) == 1 and len( imagNeg ) == 1:
+        symExpr.elements[ imagPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+        symExpr.elements[ imagNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+        # 1 positive and 1 negative found, so make them zero
+        result = True
+
+      if result == True:
+        return result
+
+
       # type of infinity needed
       # - imaginary
       # - small    (= 1/infinity)
