@@ -229,13 +229,13 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
       for iCnt, elem in enumerate( symExpr.elements ) :
         if isinstance( elem, symexpress3.SymVariable ):
           if elem.name == "infinity":
-            if elem.power != 1:
+            if not elem.power in [ 1, -1 ]:
               return result
 
             normalPos.append( iCnt )
         elif isinstance( elem, symexpress3.SymExpress ):
           if elem.symType == '*':
-            if elem.power != 1:
+            if not elem.power in [ 1, -1 ]:
               return result
 
             # print( f"Check elem: {elem}" )
@@ -268,7 +268,10 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
                   return result
                 else:
                   # no powers allowed
-                  if elemNum.power != 1:
+                  if elemNum.name == 'infinity' :
+                    if not elemNum.power in [ 1, -1]:
+                      return result
+                  elif elemNum.power != 1:
                     return result
 
                   if elemNum.name == 'i':
