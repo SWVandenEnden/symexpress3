@@ -24,6 +24,7 @@
 """
 
 import math
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -85,7 +86,7 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     if isinstance( dValue, list ):
       return None
 
-    if isinstance( dValue, complex ):
+    if isinstance( dValue, (complex, mpmath.mpc) ):
       return None
 
     dValue  = math.ceil( dValue )
@@ -98,7 +99,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     return elemnew
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return math.ceil( dValue )
+    # return math.ceil( dValue )
+    return mpmath.ceil( dValue )
 
 
 class SymFuncFloor( symFuncBase.SymFuncBase ):
@@ -157,7 +159,7 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     if isinstance( dValue, list ):
       return None
 
-    if isinstance( dValue, complex ):
+    if isinstance( dValue, (complex, mpmath.mpc) ):
       return None
 
     dValue  = math.floor( dValue )
@@ -170,7 +172,8 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     return elemnew
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return math.floor( dValue )
+    # return math.floor( dValue )
+    return mpmath.floor( dValue )
 
 #
 # Test routine (unit test), see testsymexpress3.py
@@ -180,8 +183,8 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
-    dValueCalc = round( dValueCalc, 10 )
+    dValue     = round( float(dValue)    , 10 )
+    dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

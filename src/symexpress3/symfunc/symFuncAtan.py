@@ -23,7 +23,8 @@
     https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
 """
 
-import cmath
+# import cmath
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
@@ -59,7 +60,8 @@ class SymFuncAtan( symFuncTrigonoBase.SymFuncTrigonoBase ):
 
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return cmath.atan( dValue )
+    # return cmath.atan( dValue )
+    return mpmath.atan( dValue )
 
 
 
@@ -87,7 +89,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "1 * 4^^-1 * pi", round( 0.7853981633974483, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "1 * 4^^-1 * pi", round( 0.7853981633974483, 10) )
 
 
   symTest = symexpress3.SymFormulaParser( 'atan( -2 )' )
@@ -96,7 +98,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "(-1) *  atan( 2 )", round( -1.1071487177940904, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "(-1) *  atan( 2 )", round( -1.1071487177940904, 10) )
 
 
 if __name__ == '__main__':

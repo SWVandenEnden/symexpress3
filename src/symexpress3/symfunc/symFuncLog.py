@@ -24,8 +24,9 @@
 
 """
 
-import math
-import cmath
+# import math
+# import cmath
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -296,8 +297,11 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
     return None
 
 
-  def _getValueSingle( self, dValue, dValue2 = math.e ):
-    dResult = cmath.log( dValue, dValue2 )
+  def _getValueSingle( self, dValue, dValue2 = mpmath.e ):
+    # def _getValueSingle( self, dValue, dValue2 = math.e ):
+    # dResult = cmath.log( dValue, dValue2 )
+    dResult = mpmath.log( dValue, dValue2 )
+
     return dResult
 
 
@@ -310,9 +314,9 @@ def Test( display = False):
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
     if dValue != None:
-      dValue = round( dValue, 10 )
+      dValue = round( float(dValue), 10 )
     if dValueCalc != None:
-      dValueCalc = round( dValueCalc, 10 )
+      dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

@@ -23,6 +23,8 @@
     https://en.wikipedia.org/wiki/Absolute_value
 """
 
+import mpmath
+
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 
@@ -89,7 +91,7 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
         if isinstance( calcValue, list ): # just to be sure
           return None
 
-        if not isinstance( calcValue, complex ):
+        if not isinstance( calcValue, (complex, mpmath.mpc) ):
           elemnew = symexpress3.SymExpress( '*' )
           elemnew.powerSign        = elem.powerSign
           elemnew.powerCounter     = elem.powerCounter
@@ -128,7 +130,8 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
     return elemnew
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return abs( dValue )
+    # return abs( dValue )
+    return mpmath.fabs( dValue )
 
 
 #

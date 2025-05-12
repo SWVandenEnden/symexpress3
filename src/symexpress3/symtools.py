@@ -135,7 +135,7 @@ def ConvertToSymexpress3String( varData ):
   if isinstance( varData, float ):
     frac, whole = math.modf( varData )
 
-    frac = round( frac, 15 ) # python use 17 digits, 15 for correct rounding
+    frac = round( float(frac), 15 ) # python use 17 digits, 15 for correct rounding
 
     factStr = str( frac )
     iPoint  = factStr.find('.')

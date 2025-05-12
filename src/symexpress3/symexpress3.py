@@ -81,7 +81,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20250501001" # build number
+__buildnumber__ = "20250511001" # build number
 
 
 import sys
@@ -94,6 +94,9 @@ from threading import Thread
 # from multiprocessing import Process
 # import multiprocessing as mp
 # from queue     import Queue
+
+import mpmath  # use mpmath for more precision, see also the functions
+
 
 from symexpress3 import symtables
 
@@ -414,7 +417,7 @@ class SymBasePower( SymBase ):
     Get the power in decimal format (powerSign * powerCounter / powerDenominator )
     """
     if self.powerDenominator != 1:
-      return self.powerSign * self.powerCounter / self.powerDenominator
+      return mpmath.mpf( self.powerSign * self.powerCounter ) / self.powerDenominator
 
     return self.powerSign * self.powerCounter
 
@@ -429,14 +432,14 @@ class SymBasePower( SymBase ):
       dResult = []
       for dValEnum in dValue:
         dValSub = dValEnum ** self.power
-        if isinstance( dValSub, complex ):
-          if round( abs( dValSub.imag ), 14 ) == 0:
+        if isinstance( dValSub, (complex, mpmath.mpc) ):  # https://mpmath.org/doc/current/basics.html
+          if round( abs( float(dValSub.imag )), 14 ) == 0:
             dValSub = dValSub.real
         dResult.append( dValSub )
     else:
       dResult = dValue ** self.power
-      if isinstance( dResult, complex ):
-        if round( abs( dResult.imag ), 14 ) == 0:
+      if isinstance( dResult, (complex, mpmath.mpc) ):   # https://mpmath.org/doc/current/basics.html
+        if round( abs( float(dResult.imag )), 14 ) == 0:
           dResult = dResult.real
 
     return dResult
@@ -669,7 +672,7 @@ class SymNumber( SymBasePower ):
     Get the factor in decimal format (factSign * factCounter / factDenominator )
     """
     if self.factDenominator != 1:
-      return self.factSign * self.factCounter / self.factDenominator
+      return mpmath.mpf( self.factSign * self.factCounter ) / self.factDenominator
 
     return self.factSign * self.factCounter
 

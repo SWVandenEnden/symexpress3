@@ -21,6 +21,8 @@
 
 """
 
+import mpmath
+
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 
@@ -238,7 +240,7 @@ class OptimizeRootOfImagNumToCosISin( optimizeBase.OptimizeBase ):
       if isinstance( calcReal, list ):
         return False
 
-      if isinstance( calcReal, complex ):
+      if isinstance( calcReal, (complex, mpmath.mpc) ):
         return False
 
       if calcReal >= 0:
@@ -308,10 +310,10 @@ class OptimizeRootOfImagNumToCosISin( optimizeBase.OptimizeBase ):
       if iMax == None:
         iMax = iCalc
         iId  = iCnt2
-        if not isinstance( iMax, complex ):
+        if not isinstance( iMax, (complex, mpmath.mpc) ):
           iMax = complex( iMax, 0 )
       else:
-        if not isinstance( iCalc, complex ):
+        if not isinstance( iCalc, (complex, mpmath.mpc) ):
           iCalc = complex( iCalc, 0 )
 
         if iCalc.real > iMax.real :

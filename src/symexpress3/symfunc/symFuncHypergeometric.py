@@ -39,11 +39,24 @@
 
     Kummer's transformation
 
+
+    https://functions.wolfram.com/PDF/Hypergeometric2F1.pdf
+
+    ChatGP2: Written the same as Wolfram but with 2F1 in steeds of sums
+    2F1(a,b;c;z) = (Γ(b)Γ(c−a)) / (Γ(c)Γ(b−a)) * (−z)^−a * 2F1(a,a−c+1;a−b+1;1/z) + (Γ(a)Γ(c−b)) / (Γ(c)Γ(a−b)) * (−z)^−b * 2F1(b,b−c+1;b−a+1;1/z)
+    This is valid when:
+    z∉[0,1]z∈/[0,1]
+    arg(−z)arg(−z) is defined (usually −π<arg (−z)<π−π<arg(−z)<π)
+    c, a−b, and b−a are not integers to avoid poles in the Gamma functions
+
 """
+
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 from symexpress3         import symtools
+
 
 class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
   """
@@ -150,10 +163,6 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     elemTot = len( elem.elements )
     elemZ   = elem.elements[ elemTot - 1 ]
 
-    #
-    # TODO The below transformation is only valid if abs( elemZ ) < 1
-    #
-
     if not isinstance( elemP, symexpress3.SymNumber ):
       dVars = elemP.getVariables()
       if len( dVars ) != 0:
@@ -187,6 +196,15 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
     if valP + valQ + 3 != elemTot:
       return None
+
+    # below transformation is only valid if abs(z) < 1
+    try:
+      valZ = elemZ.getValue()
+      if abs( valZ ) >= 1:
+        return None
+    except: # pylint: disable=bare-except
+      return None
+
 
     elemPQ  = symexpress3.SymExpress( '*' )
     varName = symtools.VariableGenerateGet()
@@ -238,11 +256,78 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     # convert to an optimize function with functionToValue()
     # and use that for calculation the value
     #
-    elemNew = self.functionToValue( elemFunc )
-    if elemNew == None:
+
+    # elemNew = self.functionToValue( elemFunc )
+    # if elemNew == None:
+    #   return None
+    elem = elemFunc
+    arrA = []
+    arrB = []
+    z    = None
+
+    elemTot = len( elem.elements )
+    if elemTot < 2:
       return None
 
-    dValue = elemNew.getValue( dDict )
+    elemP   = elem.elements[ 0 ]
+    elemQ   = elem.elements[ 1 ]
+
+    elemTot = len( elem.elements )
+    elemZ   = elem.elements[ elemTot - 1 ]
+
+    if not isinstance( elemP, symexpress3.SymNumber ):
+      dVars = elemP.getVariables()
+      if len( dVars ) != 0:
+        return None
+    else:
+      if elemP.power != 1:
+        return None
+      if elemP.factDenominator != 1:
+        return None
+
+    if not isinstance( elemQ, symexpress3.SymNumber):
+      dVars = elemQ.getVariables()
+      if len( dVars ) != 0:
+        return None
+    else:
+      if elemQ.power != 1:
+        return None
+      if elemQ.factDenominator != 1:
+        return None
+
+    try:
+      valP = elemP.getValue( dDict )
+      valQ = elemQ.getValue( dDict )
+    except: # pylint: disable=bare-except
+      return None
+
+    if not isinstance(valP, int):
+      return None
+    if not isinstance(valQ, int):
+      return None
+
+    if valP + valQ + 3 != elemTot:
+      return None
+
+    z = elemZ.getValue( dDict )
+
+    for iCntVal in range( 2, valP + 2):
+      elemA    = elem.elements[ iCntVal ]
+      arrA.append( elemA.getValue( dDict ) )
+
+    for iCntVal in range( valP + 2, valP + valQ + 2):
+      elemB    = elem.elements[ iCntVal ]
+      arrB.append( elemB.getValue( dDict ) )
+
+    # print( f"arrA: {arrA}" )
+    # print( f"arrB: {arrB}" )
+    # print( f"z: {z}" )
+
+    dValue = mpmath.hyper( arrA, arrB, z )
+
+    # print( f"dValue: {dValue}" )
+
+    # dValue = elemNew.getValue( dDict )
 
     return dValue
 
@@ -255,9 +340,9 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue = round( dValue, 10 )
+    dValue = round( float(dValue), 10 )
     if dValueCalc != None:
-      dValueCalc = round( dValueCalc, 10 )
+      dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )
@@ -276,7 +361,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289327016   )
+  _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289353331 )
 
 if __name__ == '__main__':
   Test( True )

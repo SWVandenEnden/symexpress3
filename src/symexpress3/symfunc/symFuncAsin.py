@@ -23,7 +23,8 @@
     https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
 """
 
-import cmath
+# import cmath
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
@@ -58,7 +59,8 @@ class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
 
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return cmath.asin( dValue )
+    # return cmath.asin( dValue )
+    return mpmath.asin( dValue )
 
 
 
@@ -86,7 +88,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "1 * 2^^-1 * pi", round( 1.5707963268, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "1 * 2^^-1 * pi", round( 1.5707963268, 10) )
 
 
   symTest = symexpress3.SymFormulaParser( 'asin( -1 )' )
@@ -95,7 +97,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "(-1) *  asin( 1 )", round( -1.5707963268, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "(-1) *  asin( 1 )", round( -1.5707963268, 10) )
 
 
 if __name__ == '__main__':

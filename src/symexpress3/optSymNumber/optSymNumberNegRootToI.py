@@ -23,6 +23,8 @@
 
 """
 
+import mpmath
+
 from  symexpress3 import symexpress3
 from  symexpress3 import optTypeBase
 
@@ -120,10 +122,10 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
       if iMax == None:
         iMax = iCalc
         iId  = iCnt2
-        if not isinstance( iMax, complex ):
+        if not isinstance( iMax, (complex, mpmath.mpc) ):
           iMax = complex( iMax, 0 )
       else:
-        if not isinstance( iCalc, complex ):
+        if not isinstance( iCalc, (complex, mpmath.mpc) ):
           iCalc = complex( iCalc, 0 )
 
         if iCalc.real > iMax.real :

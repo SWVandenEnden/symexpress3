@@ -24,7 +24,8 @@
 
 """
 
-import math
+# import math
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -74,8 +75,8 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
     except: # pylint: disable=bare-except
       return None
 
-    if ( isinstance( elem1, ( list, complex, symexpress3.SymArray ) ) or
-         isinstance( elem2, ( list, complex, symexpress3.SymArray ) )   ) :
+    if ( isinstance( elem1, ( list, complex, symexpress3.SymArray, mpmath.mpc ) ) or
+         isinstance( elem2, ( list, complex, symexpress3.SymArray, mpmath.mpc ) )   ) :
       return None
 
     newelem = symexpress3.SymExpress( '*' )
@@ -116,7 +117,8 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
     return None
 
   def _getValueSingle( self, dValue, dValue2 = None):
-    return math.atan2( dValue, dValue2 )
+    # return math.atan2( dValue, dValue2 )
+    return mpmath.atan2( dValue, dValue2 )
 
 
 
@@ -128,8 +130,8 @@ def Test( display = False):
   Unit test
   """
   def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
-    dValueCalc = round( dValueCalc, 10 )
+    dValue     = round( float(dValue)    , 10 )
+    dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

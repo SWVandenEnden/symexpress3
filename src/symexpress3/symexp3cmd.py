@@ -22,6 +22,7 @@
 """
 
 import sys
+import mpmath
 import symexpress3
 
 def OptimzeFunction( cExpress, outputFormat, optimizeActions ):
@@ -190,6 +191,8 @@ def DisplayHelp():
   print( "                 c - Calculated value " )
   print( "                 t - tree view" )
   print( "                 h - html, formula in string and MathMl format" )
+  print( " -dps <number> : Calculation precision, default is 20" )
+  print( " " )
   print( "arg:" )
   print( "<formula>" )
   print( " " )
@@ -202,6 +205,9 @@ def CommandLine( argv ):
   """
   outputFormat    = ""
   optimizeActions = []
+
+  mpmath.mp.dps = 20 # precision for calculations, https://mpmath.org/doc/current/basics.html
+
 
   nrarg = len( argv )
 
@@ -229,6 +235,10 @@ def CommandLine( argv ):
       mode = ""
       continue
 
+    if mode == "precision":
+      mpmath.mp.dps = int( cArg )
+      mode = ""
+      continue
 
 
     if cArg == "-h" :
@@ -245,6 +255,9 @@ def CommandLine( argv ):
 
     elif cArg == "-a":
       mode = "optimize"
+
+    elif cArg == "-dps":
+      mode = "precision"
 
     else:
       if cArg.startswith( "-" ):

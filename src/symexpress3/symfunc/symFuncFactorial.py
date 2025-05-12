@@ -86,6 +86,7 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
   def _getValueSingle( self, dValue, dValue2 = None ):
     return math.factorial( dValue )
 
+
 #
 # Test routine (unit test), see testsymexpress3.py
 #
@@ -94,9 +95,9 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
+    dValue     = round( float(dValue)    , 10 )
     if dValueCalc != None:
-      dValueCalc = round( dValueCalc, 10 )
+      dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

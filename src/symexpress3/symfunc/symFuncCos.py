@@ -24,7 +24,8 @@
     https://en.wikipedia.org/wiki/Trigonometric_functions
 """
 
-import cmath
+# import cmath
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
@@ -69,7 +70,9 @@ class SymFuncCos( symFuncTrigonoBase.SymFuncTrigonoBase ):
 
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return cmath.cos( dValue )
+    # return cmath.cos( dValue )
+    return mpmath.cos( dValue )
+
 
 
 #
@@ -80,9 +83,9 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( dValue    , 10 )
+    dValue     = round( float(dValue)    , 10 )
     if dValueCalc != None:
-      dValueCalc = round( dValueCalc, 10 )
+      dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

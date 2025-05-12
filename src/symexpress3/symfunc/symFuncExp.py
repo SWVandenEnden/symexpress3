@@ -165,9 +165,9 @@ def Test( display = False):
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
     if dValue != None:
-      dValue = round( dValue, 10 )
+      dValue = round( float(dValue), 10 )
     if dValueCalc != None:
-      dValueCalc = round( dValueCalc, 10 )
+      dValueCalc = round( float(dValueCalc), 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

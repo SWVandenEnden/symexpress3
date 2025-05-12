@@ -16,7 +16,9 @@ path = "src/symexpress3/version.py"
 name = "symexpress3"
 dynamic = ['version']
 dependencies = [
-  'sympy >= 1.13.2'
+  'sympy >= 1.13.2',
+  'mpmath >= 1.3.0' 
+  
 ]
 authors = [
   { name ="Gien van den Enden"},

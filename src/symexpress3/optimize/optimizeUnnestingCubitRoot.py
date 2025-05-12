@@ -21,6 +21,8 @@
 
 """
 
+import mpmath
+
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 from symexpress3          import primefactor
@@ -371,13 +373,13 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
       valueCheck = symCheck.getValue()
       valueOrg   = symExpr.getValue()
 
-      if isinstance( valueCheck, complex ):
+      if isinstance( valueCheck, (complex, mpmath.mpc) ):
         valueCheck = valueCheck.real
 
-      if isinstance( valueOrg, complex ):
+      if isinstance( valueOrg, (complex, mpmath.mpc) ):
         valueOrg = valueOrg.real
 
-      if round( valueCheck, 10 ) != round( valueOrg, 10 ):
+      if round( float(valueCheck), 10 ) != round( float(valueOrg), 10 ):
         # ok, not the principal, take the next root
         # print( f"keyCache: {keyCache}" )
         # print( f"valueCheck: {valueCheck}, valueOrg: {valueOrg}" )
@@ -395,13 +397,13 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
         valueCheck = symCheck.getValue()
         # valueOrg   = symExpr.getValue()
 
-        if isinstance( valueCheck, complex ):
+        if isinstance( valueCheck, (complex, mpmath.mpc) ):
           valueCheck = valueCheck.real
 
         # if isinstance( valueOrg, complex ):
         #   valueOrg = valueOrg.real
 
-        if round( valueCheck, 10 ) != round( valueOrg, 10 ):
+        if round( float(valueCheck), 10 ) != round( float(valueOrg), 10 ):
 
           # 2e rotate
           symRotate.add( symexpress3.SymFormulaParser( "(( -1 + i (3)^^(1/2) ) / 2)" ))
@@ -412,13 +414,13 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
           valueCheck = symCheck.getValue()
           # valueOrg   = symExpr.getValue()
 
-          if isinstance( valueCheck, complex ):
+          if isinstance( valueCheck, (complex, mpmath.mpc) ):
             valueCheck = valueCheck.real
 
           # if isinstance( valueOrg, complex ):
           #   valueOrg = valueOrg.real
 
-          if round( valueCheck, 10 ) != round( valueOrg, 10 ):
+          if round( float(valueCheck), 10 ) != round( float(valueOrg), 10 ):
 
             globalCacheCubicRoot[ keyCache ] = None
             return False

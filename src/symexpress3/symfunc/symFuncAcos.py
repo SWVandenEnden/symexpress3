@@ -23,7 +23,8 @@
     https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
 """
 
-import cmath
+# import cmath
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
@@ -58,7 +59,8 @@ class SymFuncAcos( symFuncTrigonoBase.SymFuncTrigonoBase ):
 
 
   def _getValueSingle( self, dValue, dValue2 = None ):
-    return cmath.acos( dValue )
+    # return cmath.acos( dValue )
+    return mpmath.acos( dValue )
 
 
 
@@ -86,7 +88,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "1 * 3^^-1 * pi", round( 1.0471975512, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "1 * 3^^-1 * pi", round( 1.0471975512, 10) )
 
 
   symTest = symexpress3.SymFormulaParser( 'acos( -1/2 )' )
@@ -95,7 +97,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( dValue, 10), "pi + (-1) *  acos( 1 * (1/2) )", round( 2.0943951024, 10) )
+  _Check(  testClass, symTest, value, round( float(dValue), 10), "pi + (-1) *  acos( 1 * (1/2) )", round( 2.0943951024, 10) )
 
 
 if __name__ == '__main__':

@@ -21,6 +21,8 @@
 
 """
 
+import mpmath
+
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 
@@ -56,7 +58,7 @@ class OptimizePower( optimizeBase.OptimizeBase ):
         if isinstance( calcReal, list ):
           return False
 
-        if isinstance( calcReal, complex ):
+        if isinstance( calcReal, (complex, mpmath.mpc) ):
           return False
 
         if calcReal < 0:
