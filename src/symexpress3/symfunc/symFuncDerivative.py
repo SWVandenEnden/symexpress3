@@ -717,6 +717,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     else:
       dValue = (valFirst - valLast) / h
 
+    dValue = elemFunc.valuePow( dValue )
+
     return dValue
 
 #

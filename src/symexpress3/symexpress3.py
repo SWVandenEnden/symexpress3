@@ -432,12 +432,19 @@ class SymBasePower( SymBase ):
       dResult = []
       for dValEnum in dValue:
         dValSub = dValEnum ** self.power
+
         if isinstance( dValSub, (complex, mpmath.mpc) ):  # https://mpmath.org/doc/current/basics.html
           if round( abs( float(dValSub.imag )), 14 ) == 0:
             dValSub = dValSub.real
         dResult.append( dValSub )
     else:
+      # if self.power < 0 or isinstance( dValue, (mpmath.mpf, mpmath.mpc) ) or isinstance( self.power, (mpmath.mpf, mpmath.mpc) ):
+      #  dResult = mpmath.root( dValue, self.power)
+      #  # dResult = dValue ** mpmath.mpf( self.power )
+      #else:
+      #  dResult = dValue ** self.power
       dResult = dValue ** self.power
+
       if isinstance( dResult, (complex, mpmath.mpc) ):   # https://mpmath.org/doc/current/basics.html
         if round( abs( float(dResult.imag )), 14 ) == 0:
           dResult = dResult.real
@@ -976,17 +983,23 @@ class SymVariable( SymBasePower ):
     # print( "GetValue: {}, value: {}".format( self.name, dValue ))
     if dValue == None:
       if self.name == 'pi':
-        dValue = math.pi
+        dValue = mpmath.pi
       elif self.name == 'i':
         dValue = complex( 0, 1 )
       elif self.name == 'e':
-        dValue = math.e
+        dValue = mpmath.e
       elif self.name == 'infinity':
         dValue = globalInfinityDefault # infinity is most time used in sun and product functions, so max iteration default to 20
       else:
         raise NameError( f'getValue, for variable "{self.name}" is no value given.' )
     # print( "dValue before: {}".format( dValue ))
+
+    if isinstance( dValue, str ):
+      dValue = float( dValue )
+    #   print( f"dValue is string: {dValue}" )
+
     dValue = dValue ** self.power
+    # dValue = mpmath.root( dValue, self.power )
     # print( "dValue after: {}, factor: {}, power: {}".format( dValue, self.factor, self.power ))
 
     # print ( "getValue: {}, value: {}".format( str( self), dValue ))
@@ -1935,6 +1948,7 @@ class SymExpress( SymBaseList ):
             dValue += dValSub
           else:
             dValue *= dValSub
+          # print( f"Express {self.symType}, dValue: {dValue}, dValSub: {dValSub}" )
 
     dValue = self.valuePow( dValue  )
 
@@ -2642,6 +2656,7 @@ class SymToHtml():
 
     except NameError as exceptInfo:
       self.writeLine( cLabel + " error: " + str( exceptInfo ))
+
     except Exception as exceptAll: # pylint: disable=broad-exception-caught
       self.writeLine( cLabel + " error sys: " + str( exceptAll ) )
 

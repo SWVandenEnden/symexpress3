@@ -1102,6 +1102,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     else:
       dValue = result
 
+    dValue = elemFunc.valuePow( dValue )
+
     return dValue
 
 

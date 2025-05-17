@@ -122,17 +122,7 @@ def ConvertToSymexpress3String( varData ):
   """
   Convert given data into a symexpress3 string
   """
-
-  # print( f"Start varData: {varData}" )
-
-  if isinstance( varData, str ):
-    if '.' in varData :
-      try:
-        varData = float( varData )
-      except: # pylint: disable=bare-except)
-        pass # so not a float
-
-  if isinstance( varData, float ):
+  def _floatToString( varData ):
     frac, whole = math.modf( varData )
 
     frac = round( float(frac), 15 ) # python use 17 digits, 15 for correct rounding
@@ -147,6 +137,35 @@ def ConvertToSymexpress3String( varData ):
     varData = str( int(whole) )
     if len( factStr ) > 0:
       varData += factStr + "/1" + "0" * len( factStr )
+
+    return varData
+
+  # print( f"Start varData: {varData}" )
+
+  if isinstance( varData, str ):
+    if '.' in varData :
+      try:
+        varData = float( varData )
+      except: # pylint: disable=bare-except)
+        pass # so not a float
+
+  if isinstance( varData, str ):
+    if 'j' in varData :
+      try:
+        varData = complex( varData.replace( ' ', '' ) )
+      except: # pylint: disable=bare-except)
+        pass # so not a float
+
+  if isinstance( varData, complex ):
+    real = varData.real
+    imag = varData.imag
+
+    varData = _floatToString( real ) + '+(' + _floatToString( imag ) + ')i'
+
+    print( f"Complex string: {varData}" )
+
+  if isinstance( varData, float ):
+    varData = _floatToString( varData )
 
   if isinstance( varData, int ):
     varData = str( varData )

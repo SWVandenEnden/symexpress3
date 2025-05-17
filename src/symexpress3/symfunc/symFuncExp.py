@@ -24,7 +24,7 @@
 
 """
 
-import math
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -151,8 +151,9 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     return elemnew
 
 
-  def _getValueSingle( self, dValue, dValue2 = math.e ):
+  def _getValueSingle( self, dValue, dValue2 = mpmath.e ):
     dResult = dValue2 ** dValue
+    # dResult = mpmath.root( dValue2, dValue )
     return dResult
 
 

@@ -329,6 +329,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
     # dValue = elemNew.getValue( dDict )
 
+    # print( f"HyperGeometric: {elemFunc}, value: {dValue}")
+    dValue = elemFunc.valuePow( dValue )
     return dValue
 
 

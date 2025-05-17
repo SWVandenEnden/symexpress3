@@ -130,6 +130,8 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
 
     dValue = elemUpper.getValue(dDict) - elemLower.getValue(dDict)
 
+    dValue = elemFunc.valuePow( dValue )
+
     return dValue
 
 
