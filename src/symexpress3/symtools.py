@@ -18,7 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-import math
+
+import mpmath
 
 from symexpress3 import symtables
 from symexpress3 import symexpress3
@@ -123,49 +124,85 @@ def ConvertToSymexpress3String( varData ):
   Convert given data into a symexpress3 string
   """
   def _floatToString( varData ):
-    frac, whole = math.modf( varData )
+    # print( f"Start: {varData}" )
 
-    frac = round( float(frac), 15 ) # python use 17 digits, 15 for correct rounding
+    varData = str( varData )
+    varData = varData.replace( '(', '' )
+    varData = varData.replace( ')', '' )
+    varData = varData.replace( ' ', '' )
 
-    factStr = str( frac )
-    iPoint  = factStr.find('.')
-    if iPoint >= 0:
-      factStr = factStr[ (iPoint + 1): ]
+    iplusmin = varData.rfind('+')
+    if iplusmin < 0:
+      iplusmin = varData.rfind('-')
+
+    if iplusmin > 0:
+      realPart = varData[ :(iplusmin) ]
+      imagPart = varData[ (iplusmin): ]
     else:
-      factStr = ""
+      if 'j' in varData:
+        realPart = ""
+        imagPart = varData
+      else:
+        realPart = varData
+        imagPart = ""
 
-    varData = str( int(whole) )
-    if len( factStr ) > 0:
-      varData += factStr + "/1" + "0" * len( factStr )
+    realPart = realPart.replace( '+', ''  )
+    imagPart = imagPart.replace( '+', ''  )
+    imagPart = imagPart.replace( 'j', ''  )
+
+    # print( f"1 realPart: {realPart}, imagPart: {imagPart}" )
+
+    if realPart != "":
+      iPoint = realPart.find('.')
+      if iPoint >= 0:
+        iLen = len( realPart )
+        realPart += '/1'
+        realPart += "0" * ( iLen - iPoint - 1)
+        realPart = realPart.replace( '.', '' )
+
+    # print( f"2 realPart: {realPart}, imagPart: {imagPart}" )
+
+    if imagPart != "":
+      iPoint = imagPart.find('.')
+      if iPoint >= 0:
+        iLen = len( imagPart )
+        imagPart += '/1'
+        imagPart += "0" * ( iLen - iPoint - 1 )
+        imagPart = imagPart.replace( '.', '' )
+
+      imagPart = 'i * ' + imagPart
+
+    # print( f"3 realPart: {realPart}, imagPart:{imagPart}" )
+
+    varData = ""
+    if realPart != "":
+      varData += realPart
+
+    if imagPart != "":
+      if varData != '':
+        varData += ' + '
+      varData += imagPart
+
+    # print( f"varData: {varData}" )
 
     return varData
 
-  # print( f"Start varData: {varData}" )
-
   if isinstance( varData, str ):
-    if '.' in varData :
+    # only numbers (complex to)
+    # print( f"Check: {varData}" )
+    # if not any( checkChar in varData for checkChar in '.1234567890-+j ' ) :
+    # if any( checkChar in varData for checkChar in '.j' ) :
+    if (not '(' in varData ) and ('j' in varData or '.' in varData):
       try:
-        varData = float( varData )
+        varData = mpmath.mpmathify( varData )
+        # print( f"Is number: {varData}" )
       except: # pylint: disable=bare-except)
         pass # so not a float
 
-  if isinstance( varData, str ):
-    if 'j' in varData :
-      try:
-        varData = complex( varData.replace( ' ', '' ) )
-      except: # pylint: disable=bare-except)
-        pass # so not a float
-
-  if isinstance( varData, complex ):
-    real = varData.real
-    imag = varData.imag
-
-    varData = _floatToString( real ) + '+(' + _floatToString( imag ) + ')i'
-
-    print( f"Complex string: {varData}" )
-
-  if isinstance( varData, float ):
+  if isinstance( varData, (float, mpmath.mpf, complex, mpmath.mpc) ):
     varData = _floatToString( varData )
+
+    # print( f"Complex string: {varData}" )
 
   if isinstance( varData, int ):
     varData = str( varData )

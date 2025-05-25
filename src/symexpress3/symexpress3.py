@@ -88,6 +88,8 @@ import sys
 import math
 import warnings
 
+# import traceback
+
 from abc       import ABC, abstractmethod
 from threading import Thread
 # multi process is not working with this solutions
@@ -119,6 +121,43 @@ colorfuncbad   = "#b30000"  # red, for function with wrong number of parameters
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
 globalUseThreads      = False # use thread, see _optSubThread()
 globalInfinityDefault = 20
+
+#
+# rounding
+#
+def SymRound( value, decimals = None):
+  """
+  Round a number to the given decimals, it not given use the default
+  It also round complex number
+  """
+  if isinstance( value, int ):
+    return value
+
+  if decimals == None:
+    decimals = mpmath.mp.dps - 2
+
+  # Check if the value is a complex number
+  if isinstance(value, (mpmath.mpc, complex) ):
+    # Round both the real and imaginary parts
+    realPart = SymRound( value.real, decimals )
+    imagPart = SymRound( value.imag, decimals )
+    return mpmath.mpc(realPart, imagPart)
+
+  if isinstance(value, (mpmath.mpf, float) ):
+    # Scale the value to the desired decimal places
+    scaledValue = value * ( 10 ** decimals )
+
+    # Round to the nearest integer
+    roundedScaledValue = mpmath.nint( scaledValue )
+
+    # Scale back to the original range
+    roundedValue = roundedScaledValue / (10 ** decimals)
+
+    return roundedValue
+
+  raise NameError( f"SymRound: {value} is not a number" )
+
+
 
 #
 # base class for the SymExpress2 module
@@ -431,22 +470,31 @@ class SymBasePower( SymBase ):
     if isinstance( dValue, list ):
       dResult = []
       for dValEnum in dValue:
-        dValSub = dValEnum ** self.power
+        if self.power < 0:
+          dValSub = dValEnum ** mpmath.mpf( self.power )
+        else:
+          dValSub = dValEnum ** self.power
 
         if isinstance( dValSub, (complex, mpmath.mpc) ):  # https://mpmath.org/doc/current/basics.html
-          if round( abs( float(dValSub.imag )), 14 ) == 0:
+          # if round( abs( float(dValSub.imag )), 14 ) == 0:
+          if SymRound( dValSub.imag ) == 0:
             dValSub = dValSub.real
         dResult.append( dValSub )
     else:
+      # print( f"valuePow: {dValue}  power: {self.power}" )
       # if self.power < 0 or isinstance( dValue, (mpmath.mpf, mpmath.mpc) ) or isinstance( self.power, (mpmath.mpf, mpmath.mpc) ):
-      #  dResult = mpmath.root( dValue, self.power)
-      #  # dResult = dValue ** mpmath.mpf( self.power )
-      #else:
-      #  dResult = dValue ** self.power
-      dResult = dValue ** self.power
+      #   dResult = mpmath.root( dValue, self.power)
+      #   # dResult = dValue ** mpmath.mpf( self.power )
+      # else:
+      #   dResult = dValue ** self.power
+      if self.power < 0:
+        dResult = dValue ** mpmath.mpf( self.power )
+      else:
+        dResult = dValue ** self.power
 
       if isinstance( dResult, (complex, mpmath.mpc) ):   # https://mpmath.org/doc/current/basics.html
-        if round( abs( float(dResult.imag )), 14 ) == 0:
+        # if round( abs( float(dResult.imag )), 14 ) == 0:
+        if SymRound( dResult.imag ) == 0:
           dResult = dResult.real
 
     return dResult
@@ -724,7 +772,10 @@ class SymNumber( SymBasePower ):
     dValue = self.factor
 
     # print( "dValue before: {}".format( dValue ))
-    dValue = dValue ** self.power
+    if self.power < 0:
+      dValue = dValue ** mpmath.mpf( self.power )
+    else:
+      dValue = dValue ** self.power
     # print( "dValue after: {}, factor: {}, power: {}".format( dValue, self.factor, self.power ))
 
     # print ( "getValue: {}, value: {}".format( str( self), dValue ))
@@ -994,11 +1045,18 @@ class SymVariable( SymBasePower ):
         raise NameError( f'getValue, for variable "{self.name}" is no value given.' )
     # print( "dValue before: {}".format( dValue ))
 
+    # This can be a string with an expression
+    # Do not evaluate the expression but convert it to a float/complex
     if isinstance( dValue, str ):
-      dValue = float( dValue )
+      complex( dValue )  # mpf does conversion with +,-,/ etc. This is not wanted so complex first for the errors
+      mpmath.mpf( dValue )
+
     #   print( f"dValue is string: {dValue}" )
 
-    dValue = dValue ** self.power
+    if self.power < 0:
+      dValue = dValue ** mpmath.mpf( self.power )
+    else:
+      dValue = dValue ** self.power
     # dValue = mpmath.root( dValue, self.power )
     # print( "dValue after: {}, factor: {}, power: {}".format( dValue, self.factor, self.power ))
 
@@ -1910,6 +1968,7 @@ class SymExpress( SymBaseList ):
       # print( type( elem1 ) )
       # print( dDict )
       dValSub = elem1.getValue( dDict )
+      # print( f"elem1: {str(elem1)} dValSub:{dValSub} " )
       if iCnt == 0:
         dValue = dValSub
       else:
@@ -2658,6 +2717,8 @@ class SymToHtml():
       self.writeLine( cLabel + " error: " + str( exceptInfo ))
 
     except Exception as exceptAll: # pylint: disable=broad-exception-caught
+      # print( cLabel + " error sys: " + str( exceptAll ) )
+      # print( traceback.format_exc() )
       self.writeLine( cLabel + " error sys: " + str( exceptAll ) )
 
 
