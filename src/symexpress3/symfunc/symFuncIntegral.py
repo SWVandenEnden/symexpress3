@@ -75,7 +75,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     output += elem.elements[ 0 ].mathMl()
     output += "</mfenced>"
 
-    output += "<mi>d</mi>"
+    output += "<mi>d&nbsp;</mi>"
     output += elem.elements[ 1 ].mathMl()
 
     return [ '()' ], output
@@ -382,6 +382,10 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemPart2.add( elemInt2 )
 
       elemNew.add( elemPart2 )
+
+      elemNew.powerSign        = elem.powerSign
+      elemNew.powerCounter     = elem.powerCounter
+      elemNew.powerDenominator = elem.powerDenominator
 
       return elemNew
 

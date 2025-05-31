@@ -154,6 +154,170 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
 
   def functionToValue( self, elem ):
+    # pylint: disable=unused-argument
+
+    def _transPPlusQPlus( valP, valQ, startP, startQ, elemZ ):
+      # p+1 F q+1 => gamma * integral( ... * pFq )
+      if valP <= 0 or valQ <= 0:
+        return None
+
+      # below transformation is only valid if abs(z) < 1
+      try:
+        valZ = elemZ.getValue()
+        if abs( valZ ) >= 1:
+          return None
+      except: # pylint: disable=bare-except
+        return None
+
+      strC = str( elem.elements[ startP + valP - 1] )
+      strD = str( elem.elements[ startQ + valQ - 1] )
+
+      fLower = elem.copy()
+      fLower.powerSign        = elem.powerSign
+      fLower.powerCounter     = elem.powerCounter
+      fLower.powerDenominator = elem.powerDenominator
+
+      del fLower.elements[ startQ + valQ - 1 ]
+      del fLower.elements[ startP + valP - 1 ]
+
+      fLower.elements[ 0 ].factCounter -= 1
+      fLower.elements[ 1 ].factCounter -= 1
+
+      varName = symtools.VariableGenerateGet()
+      elemNewZ = symexpress3.SymExpress( '*' )
+      elemNewZ.add( elemZ )
+      elemNewZ.add( symexpress3.SymVariable( varName ))
+
+      fLower.elements[ -1 ] = elemNewZ
+
+      strfLower = str( fLower )
+
+      strElem = f"(gamma( {strD}) / ( gamma({strC}) * gamma( ({strD}) - ({strC}) ) ))"
+      strElem += f"integral(  exp( ({strC}) - 1, {varName}) * exp( ({strD}) - ({strC}) - 1, 1 - {varName})  * {strfLower}, {varName}, 0,1)"
+
+      elemNew = symexpress3.SymFormulaParser( strElem )
+
+      elemNew.powerSign        = elem.powerSign
+      elemNew.powerCounter     = elem.powerCounter
+      elemNew.powerDenominator = elem.powerDenominator
+
+      return elemNew
+
+
+
+    def _trans1F0( valP, valQ, startP, startQ, elemZ ):
+      # 1F0 = (1 - z)^^(-p)
+      if valP != 1 or valQ != 0:
+        return None
+
+      strZ = str( elemZ )
+      strP = str( elem.elements[ startP ] )
+
+      strElem = f"exp( -1 * ({strP}), 1 - ({strZ} ))"
+
+      elemNew = symexpress3.SymFormulaParser( strElem )
+
+      elemNew.powerSign        = elem.powerSign
+      elemNew.powerCounter     = elem.powerCounter
+      elemNew.powerDenominator = elem.powerDenominator
+
+      return elemNew
+
+
+    def _trans0F0( valP, valQ, startP, startQ, elemZ ):
+      # 0F0 = e^^z
+      if valP != 0 or valQ != 0:
+        return None
+
+      elemNew = symexpress3.SymFunction( 'exp' )
+      elemNew.add( elemZ )
+
+      elemNew.powerSign        = elem.powerSign
+      elemNew.powerCounter     = elem.powerCounter
+      elemNew.powerDenominator = elem.powerDenominator
+
+      return elemNew
+
+
+    def _equalPQ( valP, valQ, startP, startQ, elemZ ):
+      # if a P is equal to a Q then this give a 1 (p/q = 1)
+      if valP <= 0 or valQ <= 0:
+        return None
+
+      for iCntP in range( startP, valP + startP):
+        elemP = elem.elements[ iCntP ]
+
+        for iCntQ in range( startQ, startQ + valQ):
+          elemQ = elem.elements[ iCntQ ]
+
+          if elemP.isEqual( elemQ ):
+            # ok found equal items, delete equals
+            elemNew = elem.copy()
+            del elemNew.elements[ iCntQ ]
+            del elemNew.elements[ iCntP ]
+
+            elemNew.elements[ 0 ].factCounter -= 1
+            elemNew.elements[ 1 ].factCounter -= 1
+
+            return elemNew
+
+      return None
+
+    def _transAbsZSmall( valP, valQ, startP, startQ, elemZ ):
+      # below transformation is only valid if abs(z) < 1
+      try:
+        valZ = elemZ.getValue()
+        if abs( valZ ) >= 1:
+          return None
+      except: # pylint: disable=bare-except
+        return None
+
+
+      elemPQ  = symexpress3.SymExpress( '*' )
+      varName = symtools.VariableGenerateGet()
+      symVarN = symexpress3.SymVariable( varName )
+
+      for iCntVal in range( startP, valP + startP):
+        elemA    = elem.elements[ iCntVal ]
+        elemFunc = symexpress3.SymFunction( "risingfactorial" )
+        elemFunc.add( elemA   )
+        elemFunc.add( symVarN )
+
+        elemPQ.add( elemFunc )
+
+      for iCntVal in range( startQ, startQ + valQ):
+        elemB    = elem.elements[ iCntVal ]
+        elemFunc = symexpress3.SymFunction( "risingfactorial", -1, 1, 1 )
+        elemFunc.add( elemB   )
+        elemFunc.add( symVarN )
+
+        elemPQ.add( elemFunc )
+
+      elemZExp = symexpress3.SymFunction( "exp" )
+      elemZExp.add( symVarN )
+      elemZExp.add( elemZ   ) # z^^n
+
+      elemNFact = symexpress3.SymFunction( 'factorial', -1, 1, 1 )
+      elemNFact.add( symVarN )
+
+      elemParam = symexpress3.SymExpress( '*' )
+      elemParam.add( elemPQ    )
+      elemParam.add( elemZExp  )
+      elemParam.add( elemNFact )
+
+      elemProduct = symexpress3.SymFunction( 'sum' )
+      elemProduct.add( symVarN )
+      elemProduct.add( symexpress3.SymNumber( 1, 0, 1, 1, 1, 1, 1 ) )
+      elemProduct.add( symexpress3.SymVariable( 'infinity' ))
+      elemProduct.add( elemParam )
+
+      elemProduct.powerSign        = elem.powerSign
+      elemProduct.powerCounter     = elem.powerCounter
+      elemProduct.powerDenominator = elem.powerDenominator
+
+      return elemProduct
+
+
     if self._checkCorrectFunction( elem ) != True:
       return None
 
@@ -197,59 +361,47 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if valP + valQ + 3 != elemTot:
       return None
 
+    # valP = number of p elements
+    # valQ = number of q elements
+
+    startP = 2              # first element of p
+    startQ = startP + valP  # first element of q
+
+    # multiple solutions
+    # 0F0 = e^^z
+    # 0F1 = ?
+    # 1F0 = (1 - z)^^(-p)
+    #
+    # 1F1 => integral * 0F0
+    # nFm => integral * n(-1)F(m-1)
+    #
+
+    elemNew = _equalPQ( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
+
+    # 0F0 = e^^z
+    elemNew = _trans0F0( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
+
+    # 1F0 = (1 - z)^^(-p)
+    elemNew = _trans1F0( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
+
+    # p+1 F q+1 => gamma * integral( ... * pFq )
+    elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
+
+
     # below transformation is only valid if abs(z) < 1
-    try:
-      valZ = elemZ.getValue()
-      if abs( valZ ) >= 1:
-        return None
-    except: # pylint: disable=bare-except
-      return None
+    elemNew = _transAbsZSmall( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
 
-
-    elemPQ  = symexpress3.SymExpress( '*' )
-    varName = symtools.VariableGenerateGet()
-    symVarN = symexpress3.SymVariable( varName )
-
-    for iCntVal in range( 2, valP + 2):
-      elemA    = elem.elements[ iCntVal ]
-      elemFunc = symexpress3.SymFunction( "risingfactorial" )
-      elemFunc.add( elemA   )
-      elemFunc.add( symVarN )
-
-      elemPQ.add( elemFunc )
-
-    for iCntVal in range( valP + 2, valP + valQ + 2):
-      elemB    = elem.elements[ iCntVal ]
-      elemFunc = symexpress3.SymFunction( "risingfactorial", -1, 1, 1 )
-      elemFunc.add( elemB   )
-      elemFunc.add( symVarN )
-
-      elemPQ.add( elemFunc )
-
-    elemZExp = symexpress3.SymFunction( "exp" )
-    elemZExp.add( symVarN )
-    elemZExp.add( elemZ   ) # z^^n
-
-    elemNFact = symexpress3.SymFunction( 'factorial', -1, 1, 1 )
-    elemNFact.add( symVarN )
-
-    elemParam = symexpress3.SymExpress( '*' )
-    elemParam.add( elemPQ    )
-    elemParam.add( elemZExp  )
-    elemParam.add( elemNFact )
-
-    elemProduct = symexpress3.SymFunction( 'sum' )
-    elemProduct.add( symVarN )
-    elemProduct.add( symexpress3.SymNumber( 1, 0, 1, 1, 1, 1, 1 ) )
-    elemProduct.add( symexpress3.SymVariable( 'infinity' ))
-    elemProduct.add( elemParam )
-
-    elemProduct.powerSign        = elem.powerSign
-    elemProduct.powerCounter     = elem.powerCounter
-    elemProduct.powerDenominator = elem.powerDenominator
-
-    return elemProduct
-
+    return None
 
   def getValue( self, elemFunc, dDict = None ):
     #
@@ -363,7 +515,35 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289353331 )
+  # _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289353331 )
+  _Check( testClass, symTest, value, dValue, "gamma( 4 ) * ( gamma( 3 ) *  gamma( 4 + (-1) * 3 ))^^-1 *  integral(  exp( 3 + (-1) * 1,n2 ) *  exp( 4 + (-1) * 3 + (-1) * 1,1 + (-1) * n2 ) *  hypergeometric( 1,0,2,1 * 2^^-1 * n2 ),n2,0,1 )", 2.7289353331 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'hypergeometric( 3, 2, 1, 2, 3, 4, 3, 1/2 )' )
+  symTest.optimize()
+  testClass = SymFuncHypergeometric()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "hypergeometric( 2,1,1,2,4,(1/2) )", 1.3644676666 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'hypergeometric( 0, 0, 1/2 )' )
+  symTest.optimize()
+  testClass = SymFuncHypergeometric()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "exp( (1/2) )", 1.6487212707  )
+
+
+  symTest = symexpress3.SymFormulaParser( 'hypergeometric( 1, 0, 1/3, 1/2 )' )
+  symTest.optimize()
+  testClass = SymFuncHypergeometric()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "exp( (-1) * 1 * 3^^-1,1 + (-1) * 1 * 2^^-1 )", 1.2599210499 )
 
 if __name__ == '__main__':
   Test( True )

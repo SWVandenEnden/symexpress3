@@ -36,7 +36,7 @@ globalCacheCubicRoot = {}
 class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
   """
   Unnesting of cubic roots of format (a * b^^(1/2) + c)^^(1/3)
-  \n a, b and c are numbers, a can also be an imaginair number (a * i)
+  \n a, b and c are numbers, a can also be an imaginary number (a * i)
   """
   def __init__( self ):
     super().__init__()
@@ -251,8 +251,8 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     # print( f"expressCheck: {expressCheck}" )
 
 
-    # no walk all the factorCounter and factDenominator
-    # check on + and - if theck gives 0 (zero)
+    # now walk all the factorCounter and factDenominator
+    # check on + and - if the check gives 0 (zero)
     #
     exprFndA = None
     exprFndB = None
@@ -401,9 +401,6 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
         if isinstance( valueCheck, (complex, mpmath.mpc) ):
           valueCheck = valueCheck.real
 
-        # if isinstance( valueOrg, complex ):
-        #   valueOrg = valueOrg.real
-
         # if round( float(valueCheck), 10 ) != round( float(valueOrg), 10 ):
         if symexpress3.SymRound( valueCheck, 10 ) != symexpress3.SymRound( valueOrg, 10 ):
 
@@ -418,9 +415,6 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
 
           if isinstance( valueCheck, (complex, mpmath.mpc) ):
             valueCheck = valueCheck.real
-
-          # if isinstance( valueOrg, complex ):
-          #   valueOrg = valueOrg.real
 
           # if round( float(valueCheck), 10 ) != round( float(valueOrg), 10 ):
           if symexpress3.SymRound( valueCheck, 10 ) != symexpress3.SymRound( valueOrg, 10 ):
@@ -553,8 +547,6 @@ def Test( display = False):
   testClass.optimize( symTest, "unnestingCubicRoot" )
 
   _Check( testClass, symOrg, symTest, "(1 * 3 * 1^^-1 + 2 * 5^^(1/2) * i)" )
-
-
 
 
 

@@ -81,7 +81,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20250511001" # build number
+__buildnumber__ = "20250525001" # build number
 
 
 import sys
@@ -127,14 +127,26 @@ globalInfinityDefault = 20
 #
 def SymRound( value, decimals = None):
   """
-  Round a number to the given decimals, it not given use the default
+  Round a number to the given decimals, if not given use the default (mpmath.mp.dps - 2)
   It also round complex number
   """
-  if isinstance( value, int ):
-    return value
+  if isinstance(value, (mpmath.mpf, float) ):
+    if decimals == None:
+      decimals = mpmath.mp.dps - 2
 
-  if decimals == None:
-    decimals = mpmath.mp.dps - 2
+    # TODO mpmath.nint is slow for rounding, something else?
+
+    # Scale the value to the desired decimal places
+    shiftNumber = 10 ** decimals
+    scaledValue = value * shiftNumber
+
+    # Round to the nearest integer
+    roundedScaledValue = mpmath.nint( scaledValue )
+
+    # Scale back to the original range
+    roundedValue = mpmath.fdiv( roundedScaledValue, shiftNumber )
+
+    return roundedValue
 
   # Check if the value is a complex number
   if isinstance(value, (mpmath.mpc, complex) ):
@@ -143,24 +155,16 @@ def SymRound( value, decimals = None):
     imagPart = SymRound( value.imag, decimals )
     return mpmath.mpc(realPart, imagPart)
 
-  if isinstance(value, (mpmath.mpf, float) ):
-    # Scale the value to the desired decimal places
-    scaledValue = value * ( 10 ** decimals )
+  # integers never rounded...
+  if isinstance( value, int ):
+    return value
 
-    # Round to the nearest integer
-    roundedScaledValue = mpmath.nint( scaledValue )
-
-    # Scale back to the original range
-    roundedValue = roundedScaledValue / (10 ** decimals)
-
-    return roundedValue
-
-  raise NameError( f"SymRound: {value} is not a number" )
+  raise NameError( f"SymRound: {value} is not a number ({type(value)})" )
 
 
 
 #
-# base class for the SymExpress2 module
+# base class for the SymExpress3 module
 #
 class SymBase( ABC ):
   """
@@ -2253,7 +2257,13 @@ class SymExpress( SymBaseList ):
     """
     def _printCalc():
       if ( extra != None and "calculation" in extra ):
-        dValue = self.getValue( varDict )
+        # dValue = self.getValue( varDict )
+
+        try:
+          dValue = self.getValue( varDict )
+        except Exception as err: # pylint: disable=broad-exception-caught
+          dValue = str( err )
+
         if output != None:
           output.writeLine( f'Calculated: {str( dValue )}' )
         if filehandle != None:
@@ -2363,7 +2373,12 @@ class SymExpress( SymBaseList ):
 
     def _printCalc( cTekst, iCnt, iCntBig ):
       if ( extra != None and "calculation" in extra ):
-        dValue = self.getValue( varDict )
+
+        try:
+          dValue = self.getValue( varDict )
+        except Exception as err: # pylint: disable=broad-exception-caught
+          dValue = str( err )
+
         if output != None:
           output.writeLine( f'Calculated {cTekst} {iCnt}/{iCntBig}: value:{str( dValue )}' )
         if filehandle != None:
