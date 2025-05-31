@@ -218,6 +218,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     iCountOrg = iCounter
     iDenomOrg = iDenominator
 
+    # print( f"funcname: {funcname}, dFactor: {dFactor}" )
+
     # pylint: disable=chained-comparison
     if funcname == 'sin':
       if ( dFactor >= 0 and dFactor <= 0.5 ):
@@ -266,7 +268,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
          ):
         continue
 
-      elemnew = symexpress3.SymFormulaParser( cMultiple + tri[ 4 ] )
+      # print( f"funcname: {funcname}, iSign: {iSign}, iCounter: {iCounter}, iDenominator:{iDenominator}, cMultiple: {cMultiple} " )
+      elemnew = symexpress3.SymFormulaParser( cMultiple + "(" + tri[ 4 ] + ")" )
       # this radicals can only have one (positive) solution (in the trigonometricdata all the radicals are onlyone)
 
       # print( "elemnew: " + str(elemnew))
