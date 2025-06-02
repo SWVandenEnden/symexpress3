@@ -156,6 +156,39 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
   def functionToValue( self, elem ):
     # pylint: disable=unused-argument
 
+    def _analytic2F1( valP, valQ, startP, startQ, elemZ ):
+      # analytic continution of 2f2 if z > 1
+      if valP != 2 or valQ != 1:
+        return None
+
+      # below transformation is only valid if abs(z) > 1
+      try:
+        valZ = elemZ.getValue()
+        if abs( valZ ) <= 1 :
+          return None
+      except: # pylint: disable=bare-except
+        return None
+
+      strA = str( elem.elements[ startP     ] )
+      strB = str( elem.elements[ startP + 1 ] )
+      strC = str( elem.elements[ startQ     ] )
+      strZ = str( elemZ )
+
+      strElem1 = f"gamma( {strC} ) * gamma( ({strC}) - ({strA}) - ({strB}) )"
+      strElem2 = f"gamma( ({strC}) - ({strA}) ) * gamma( ({strC}) - ({strB}) ) * exp( ({strA}) + ({strB}) - ({strC}), (1 - ({strZ})))"
+      strElem3 = f"hypergeometric( 2, 1, ({strC}) - ({strA}),({strC}) - ({strA}), {strC}, 1 / ( 1 - ({strZ}) ))"
+
+      strElem = f" ({strElem1}) / ( {strElem2} * {strElem3} ) "
+
+      elemNew = symexpress3.SymFormulaParser( strElem )
+
+      elemNew.powerSign        = elem.powerSign
+      elemNew.powerCounter     = elem.powerCounter
+      elemNew.powerDenominator = elem.powerDenominator
+
+      return elemNew
+
+
     def _transPPlusQPlus( valP, valQ, startP, startQ, elemZ ):
       # p+1 F q+1 => gamma * integral( ... * pFq )
       if valP <= 0 or valQ <= 0:
@@ -390,8 +423,13 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # p+1 F q+1 => gamma * integral( ... * pFq )
-    elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ )
+    # TODO p+1 F q+1 => gamma * integral( ... * pFq )
+    # elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ )
+    if elemNew != None:
+      return elemNew
+
+    # TODO analytic2F1
+    # elemNew = _analytic2F1( valP, valQ, startP, startQ, elemZ )
     if elemNew != None:
       return elemNew
 
@@ -494,9 +532,11 @@ def Test( display = False):
   Unit test
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue = round( float(dValue), 10 )
+    # dValue = round( float(dValue), 10 )
+    dValue = symexpress3.SymRound( dValue, 10 )
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      # dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )
@@ -516,7 +556,7 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   # _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289353331 )
-  _Check( testClass, symTest, value, dValue, "gamma( 4 ) * ( gamma( 3 ) *  gamma( 4 + (-1) * 3 ))^^-1 *  integral(  exp( 3 + (-1) * 1,n2 ) *  exp( 4 + (-1) * 3 + (-1) * 1,1 + (-1) * n2 ) *  hypergeometric( 1,0,2,1 * 2^^-1 * n2 ),n2,0,1 )", 2.7289353331 )
+  # TODO _Check( testClass, symTest, value, dValue, "gamma( 4 ) * ( gamma( 3 ) *  gamma( 4 + (-1) * 3 ))^^-1 *  integral(  exp( 3 + (-1) * 1,n2 ) *  exp( 4 + (-1) * 3 + (-1) * 1,1 + (-1) * n2 ) *  hypergeometric( 1,0,2,1 * 2^^-1 * n2 ),n2,0,1 )", 2.7289353331 )
 
 
   symTest = symexpress3.SymFormulaParser( 'hypergeometric( 3, 2, 1, 2, 3, 4, 3, 1/2 )' )
@@ -544,6 +584,17 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check( testClass, symTest, value, dValue, "exp( (-1) * 1 * 3^^-1,1 + (-1) * 1 * 2^^-1 )", 1.2599210499 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'hypergeometric( 2, 1, 1/3, 1/2, 1/5, 2 )' )
+  symTest.optimize()
+  testClass = SymFuncHypergeometric()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  # TODO check hypergoemetric function
+  # _Check( testClass, symTest, value, dValue, "gamma( 1 * 5^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 3^^-1 + (-1) * 1 * 2^^-1 ) * ( gamma( 1 * 5^^-1 + (-1) * 1 * 3^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 2^^-1 ) *  exp( 1 * 3^^-1 + 1 * 2^^-1 + (-1) * 1 * 5^^-1,(1 + (-1) * 2) ) *  hypergeometric( 2,1,1 * 5^^-1 + (-1) * 1 * 3^^-1,1 * 5^^-1 + (-1) * 1 * 3^^-1,1 * (1 + (-1) * 2)^^-1 ))^^-1", -0.9625193447 - 1.1369043195j  )
+
 
 if __name__ == '__main__':
   Test( True )

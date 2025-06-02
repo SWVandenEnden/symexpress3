@@ -29,6 +29,7 @@
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
+from symexpress3         import symtools
 
 class SymFuncIntegral( symFuncBase.SymFuncBase ):
   """
@@ -342,6 +343,16 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemInt1 = symexpress3.SymFunction( 'integral' )
       elemInt1.add( elemGx )
       elemInt1.add( elem.elements[ 1 ] )
+      if elem.numElements() >= 4:
+        elemInt1.add( elem.elements[ 2 ] )
+        elemInt1.add( elem.elements[ 3 ] )
+
+      # give integral a new variable
+      varName = symtools.VariableGenerateGet()
+      varDict = {}
+      varDict[ elem.elements[ 1 ].name ] = varName
+      elemInt1.replaceVariable( varDict )
+
       elemPart1.add( elemInt1 )
 
       if elem.numElements() >= 4:
@@ -370,6 +381,16 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemInt21 = symexpress3.SymFunction( 'integral' )
       elemInt21.add( elemGx )
       elemInt21.add( elem.elements[ 1 ] )
+      if elem.numElements() >= 4:
+        elemInt21.add( elem.elements[ 2 ] )
+        elemInt21.add( elem.elements[ 3 ] )
+
+      # give integral a new variable
+      varName = symtools.VariableGenerateGet()
+      varDict = {}
+      varDict[ elem.elements[ 1 ].name ] = varName
+      elemInt21.replaceVariable( varDict )
+
       elemExp2.add( elemInt21 )
 
       elemInt2.add( elemExp2 )
@@ -1015,8 +1036,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # integral by parts
-    elemNew = _integralByParts()
+    # TODO integral by parts
+    # elemNew = _integralByParts()
     if elemNew != None:
       return elemNew
 
@@ -1031,8 +1052,9 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     # print( "Calc integral" )
 
     # need lower and upper to calculate integral
-    if elemFunc.numElements() != 4:
-      return None
+    # if elemFunc.numElements() != 4:
+    #  # print( f"integral getValue number of parameters: {elemFunc.numElements()}" )
+    #  return None
 
     if dDict == None:
       dDictSum = {}
@@ -1047,19 +1069,31 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     # delta must always a variable
     cVar = self.getVarname( elemFunc.elements[1] )
     if cVar == None:
+      # print( f"integral no varname: { str(elemFunc.elements[1]) }  elemFunc: {str(elemFunc)}" )
       return None
 
-    startVal = elemFunc.elements[2].getValue( dDict )
-    if isinstance( startVal, list ):
-      listStart = startVal
+    if elemFunc.numElements() >= 3:
+      startVal = elemFunc.elements[2].getValue( dDict )
+      if isinstance( startVal, list ):
+        listStart = startVal
+      else:
+        listStart.append( startVal )
     else:
-      listStart.append( startVal )
+      # not given use infinity
+      listStart.append( symexpress3.SymFormulaParser( '-1 * infinity').getValue(dDict) )
 
-    endVal = elemFunc.elements[3].getValue( dDict )
-    if isinstance( endVal, list ):
-      listEnd = endVal
+    if elemFunc.numElements() >= 4:
+      endVal = elemFunc.elements[3].getValue( dDict )
+      if isinstance( endVal, list ):
+        listEnd = endVal
+      else:
+        listEnd.append( endVal )
     else:
-      listEnd.append( endVal )
+      # not given use infinity
+      listEnd.append( symexpress3.SymFormulaParser( 'infinity').getValue(dDict) )
+
+    # print( f"listStart: {listStart}" )
+    # print( f"listEnd  : {listEnd}"   )
 
     elemExpress = elemFunc.elements[0]
 
