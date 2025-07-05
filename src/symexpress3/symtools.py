@@ -92,7 +92,7 @@ def GetAllOptimizeActions():
 
 def GetAllFunctions():
   """
-  Get all the functions in a dictionary [key]=description
+  Get all the calculation functions in a dictionary [key]=description
   """
   result = {}
   for objFunc in symtables.functionTable.values():
@@ -100,6 +100,26 @@ def GetAllFunctions():
     if key == None:
       key = objFunc.name
     result[ key ] = objFunc.description
+
+  return result
+
+def GetSpecialFunctions():
+  """
+  Get all the special functions in a dictionary [key]=description
+  """
+  result = {}
+  checkFunc = []
+  
+  for objFunc in symtables.functionTable.values():
+    checkFunc.append( objFunc.name )
+  
+  for objFunc in symtables.optSymFunctionTable.values():
+    name = objFunc.functionName 
+    
+    if name in checkFunc:
+      continue
+    
+    result[ name ] = objFunc.description
 
   return result
 

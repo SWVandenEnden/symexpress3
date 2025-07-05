@@ -81,7 +81,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20250525001" # build number
+__buildnumber__ = "20250609001" # build number
 
 
 import sys
@@ -114,9 +114,11 @@ from symexpress3 import symtables
 
 
 # mathml colors
-colorposroot   = "#429e00"  # green, for roots with only one positive value
-colorallroot   = "#000000"  # black, for roots with multiple values
-colorfuncbad   = "#b30000"  # red, for function with wrong number of parameters
+colorposroot     = "#429e00"  # green, for roots with only one positive value
+colorallroot     = "#000000"  # black, for roots with multiple values
+colorfuncbad     = "#b30000"  # red, for function with wrong number of parameters
+colorfuncspec    = "#2e86c1"  # blue, functions without calculations
+colorfuncspecbad = "#e67e22"  # orange, functions without calculations but with wrong parameters
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
 globalUseThreads      = False # use thread, see _optSubThread()
@@ -1733,7 +1735,16 @@ class SymFunction( SymBaseList ):
         if funcDef.checkCorrectFunction( self ) != True:
           colorBad = ' mathcolor="' + colorfuncbad + '"'
       else:
-        colorBad = ' mathcolor="' + colorfuncbad + '"'
+        # check if function is a special (one without a calculation method)
+        func2 = symtables.optSymFunctionTable.get( self.name )
+        if func2 == None:
+          colorBad = ' mathcolor="' + colorfuncbad + '"'
+        else:
+          if func2.checkType( self, self.name ) == False:
+            colorBad = ' mathcolor="' + colorfuncspecbad + '"' # correct special function but without correct number of parameters
+          else:
+            colorBad = ' mathcolor="' + colorfuncspec + '"'
+
 
       output += '<mi' + colorBad + '>' + self.name + '</mi>'
       # output += "<mfenced separators=''>"

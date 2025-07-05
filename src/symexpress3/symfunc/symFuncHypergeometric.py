@@ -157,7 +157,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     # pylint: disable=unused-argument
 
     def _analytic2F1( valP, valQ, startP, startQ, elemZ ):
-      # analytic continution of 2f2 if z > 1
+      # analytic continuation of 2f1 if z > 1
       if valP != 2 or valQ != 1:
         return None
 
@@ -169,10 +169,19 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       except: # pylint: disable=bare-except
         return None
 
+      # https://www.sciencedirect.com/science/article/pii/S0377042700002673
+
       strA = str( elem.elements[ startP     ] )
       strB = str( elem.elements[ startP + 1 ] )
       strC = str( elem.elements[ startQ     ] )
       strZ = str( elemZ )
+
+      # https://functions.wolfram.com/PDF/Hypergeometric2F1.pdf
+      #  
+      # ChatGP2: Written the same as Wolfram but with 2F1 in steeds of sums
+      # 2F1(a,b;c;z) = (Γ(b)Γ(c−a)) / (Γ(c)Γ(b−a)) * (−z)^−a * 2F1(a,a−c+1;a−b+1;1/z) + (Γ(a)Γ(c−b)) / (Γ(c)Γ(a−b)) * (−z)^−b * 2F1(b,b−c+1;b−a+1;1/z)
+      # 
+
 
       strElem1 = f"gamma( {strC} ) * gamma( ({strC}) - ({strA}) - ({strB}) )"
       strElem2 = f"gamma( ({strC}) - ({strA}) ) * gamma( ({strC}) - ({strB}) ) * exp( ({strA}) + ({strB}) - ({strC}), (1 - ({strZ})))"

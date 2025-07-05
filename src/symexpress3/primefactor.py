@@ -39,6 +39,7 @@ import sympy   # use it for prime factorization and divisors
 
 globalCachePrimeFactors = {}
 globalCacheAllFactors   = {}
+globalMaxDigits         = 60 # 90 # max number of digits for factorization TODO
 
 #
 # only factor positive odd numbers
@@ -237,11 +238,55 @@ def FactorizationDict(n):
     # pass
 
   # print( f"FactorizationDict: {n}" )
+  if len( str( n )) > globalMaxDigits:
+    factorDict = {}
 
-  factorDict = sympy.ntheory.factorint( n )
+    # some low level
+    modRest = n % 2
+    while modRest == 0:
+      if 2 not in factorDict:
+        factorDict[ 2 ] = 1
+      else:
+        factorDict[ 2 ] += 1
 
-  # sympy (mpmath) give gmpy2 integers back, but I want Python integers
-  factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
+      n //= 2
+      modRest = n % 2
+
+    modRest = n % 3
+    while modRest == 0:
+      if 3 not in factorDict:
+        factorDict[ 3 ] = 1
+      else:
+        factorDict[ 3 ] += 1
+
+      n //= 3
+      modRest = n % 3
+
+    modRest = n % 5
+    while modRest == 0:
+      if 5 not in factorDict:
+        factorDict[ 5 ] = 1
+      else:
+        factorDict[ 5 ] += 1
+
+      n //= 5
+      modRest = n % 5
+
+    # number not factorized, to big to do it
+    if n > 1:
+      if len( str( n )) > globalMaxDigits:    
+        factorDict[ n ] = 1
+      else:
+        factorDict += sympy.ntheory.factorint( n )
+        # sympy (mpmath) give gmpy2 integers back, but I want Python integers
+        factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
+        
+
+  else:
+    factorDict = sympy.ntheory.factorint( n )
+
+    # sympy (mpmath) give gmpy2 integers back, but I want Python integers
+    factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
 
   # print( f'After factorDict: {factorDict}' )
 
