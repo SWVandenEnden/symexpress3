@@ -177,10 +177,10 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       strZ = str( elemZ )
 
       # https://functions.wolfram.com/PDF/Hypergeometric2F1.pdf
-      #  
+      #
       # ChatGP2: Written the same as Wolfram but with 2F1 in steeds of sums
       # 2F1(a,b;c;z) = (Γ(b)Γ(c−a)) / (Γ(c)Γ(b−a)) * (−z)^−a * 2F1(a,a−c+1;a−b+1;1/z) + (Γ(a)Γ(c−b)) / (Γ(c)Γ(a−b)) * (−z)^−b * 2F1(b,b−c+1;b−a+1;1/z)
-      # 
+      #
 
 
       strElem1 = f"gamma( {strC} ) * gamma( ({strC}) - ({strA}) - ({strB}) )"

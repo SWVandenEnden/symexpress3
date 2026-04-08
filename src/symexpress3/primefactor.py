@@ -274,13 +274,13 @@ def FactorizationDict(n):
 
     # number not factorized, to big to do it
     if n > 1:
-      if len( str( n )) > globalMaxDigits:    
+      if len( str( n )) > globalMaxDigits:
         factorDict[ n ] = 1
       else:
         factorDict += sympy.ntheory.factorint( n )
         # sympy (mpmath) give gmpy2 integers back, but I want Python integers
         factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
-        
+
 
   else:
     factorDict = sympy.ntheory.factorint( n )

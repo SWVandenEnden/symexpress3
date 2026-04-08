@@ -109,16 +109,16 @@ def GetSpecialFunctions():
   """
   result = {}
   checkFunc = []
-  
+
   for objFunc in symtables.functionTable.values():
     checkFunc.append( objFunc.name )
-  
+
   for objFunc in symtables.optSymFunctionTable.values():
-    name = objFunc.functionName 
-    
+    name = objFunc.functionName
+
     if name in checkFunc:
       continue
-    
+
     result[ name ] = objFunc.description
 
   return result
