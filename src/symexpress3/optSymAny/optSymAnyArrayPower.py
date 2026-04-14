@@ -44,11 +44,11 @@ class OptSymAnyArrayPower( optTypeBase.OptTypeBase ):
     if elem.power == 1 and elem.onlyOneRoot == 1 :
       return None
 
-    # print( "Array start: " + str( elem ))  
-      
+    # print( "Array start: " + str( elem ))
+
     newArray = symexpress3.SymArray()
-    
-    for iCnt, elemsub in enumerate( elem.elements ):
+
+    for _, elemsub in enumerate( elem.elements ):
       symSub = symexpress3.SymExpress( '*' )
       symSub.powerCounter     = elem.powerCounter
       symSub.powerDenominator = elem.powerDenominator
@@ -56,9 +56,9 @@ class OptSymAnyArrayPower( optTypeBase.OptTypeBase ):
       symSub.onlyOneRoot      = elem.onlyOneRoot
       symSub.add( elemsub )
       newArray.add( symSub )
-      
+
     # print( "Array end: " + str( newArray ))
-    
+
     return newArray
 
 #

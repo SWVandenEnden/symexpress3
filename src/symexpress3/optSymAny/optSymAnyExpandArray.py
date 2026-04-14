@@ -49,7 +49,7 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
           break
       if result != None:
         # power is always 1 on this point
-        for iCnt, elemsub in enumerate( elem.elements ):
+        for _, elemsub in enumerate( elem.elements ):
           if isinstance( elemsub, symexpress3.SymArray ) and elemsub.power == 1 and elemsub.onlyOneRoot == 1:
             # get the sub elements
             for elemsub2 in elemsub.elements :

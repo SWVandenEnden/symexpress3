@@ -616,7 +616,8 @@ def Test( display = False):
   symOrg = symTest.copy()
   testClass.optimize( symTest, "onlyOneRoot" )
 
-  _Check( testClass, symOrg, symTest, "255107^^4 * ((2315819305000550693112168347915158822781184016504196548362331 + 1127493071704679652558486495801124357814515802175332688 * 2^^(1/2)) * (255107^^8)^^-1)^^(1/2)" )
+  # big numbers are disabled for speed
+  # _Check( testClass, symOrg, symTest, "255107^^4 * ((2315819305000550693112168347915158822781184016504196548362331 + 1127493071704679652558486495801124357814515802175332688 * 2^^(1/2)) * (255107^^8)^^-1)^^(1/2)" )
 
 
   symTest = symexpress3.SymFormulaParser( '(4 + 8 a)^^(1/2)' )

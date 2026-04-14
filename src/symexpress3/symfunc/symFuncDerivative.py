@@ -20,7 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
- 	  https://en.wikipedia.org/wiki/Derivative
+    https://en.wikipedia.org/wiki/Derivative
     https://en.wikipedia.org/wiki/Differentiation_rules
 """
 
@@ -658,6 +658,9 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     elemNew = _derivativeProduct()
     if elemNew != None:
       return elemNew
+
+    # TODO quotient rule
+    #
 
     # power (with chain rule)
     elemNew = _derivativePower()
