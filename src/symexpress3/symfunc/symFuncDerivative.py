@@ -490,6 +490,67 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       return elemNew
 
+    def _derivativeQuotient():
+      """
+      derivative( x / y, x ) =  ( derivative ( x ) * y - x * derivative ( y ) ) / ( y^^2 )
+      """
+      elemFunc = elem.elements[ 0 ]
+      elemVar  = elem.elements[ 1 ]
+      if not isinstance( elemFunc, symexpress3.SymExpress ) :
+        return None
+
+      if elemFunc.numElements() <= 1:
+        return None
+
+      # only do 1 / y now
+      if (   elemFunc.powerSign        != -1
+          or elemFunc.onlyOneRoot      != 1
+         ):
+        return None
+
+      elemX = symexpress3.SymNumber( 1, 1, 1 ) # 1
+      elemY = elemFunc.copy()
+      elemY.powerSign = 1
+
+      # ( derivative ( x ) * y - x * derivative ( y ) ) / ( y^^2 )
+
+
+      # derivative ( x )
+      elemDerX = symexpress3.SymFunction( "derivative" )
+      elemDerX.add( elemX   )
+      elemDerX.add( elemVar )
+
+      # derivative ( y )
+      elemDerY = symexpress3.SymFunction( "derivative" )
+      elemDerY.add( elemY )
+      elemDerY.add( elemVar )
+
+      # derivative ( x ) * y
+      elemMultX  = symexpress3.SymExpress( '*' )
+      elemMultX.add( elemDerX )
+      elemMultX.add( elemY    )
+
+      # - x * derivative ( y )
+      elemMultY  = symexpress3.SymExpress( '*' )
+      elemMultY.add( elemDerY )
+      elemMultY.add( elemX    )
+      elemMultY.add( symexpress3.SymNumber( -1, 1, 1 )  )
+
+      # ( derivative ( x ) * y - x * derivative ( y ) )
+      elemMin = symexpress3.SymExpress( '+' )
+      elemMin.add( elemMultX )
+      elemMin.add( elemMultY )
+
+      # 1 / ( y^^2 )
+      elemKwdraat = symexpress3.SymExpress( '*', -1, 2, 1 )
+      elemKwdraat.add( elemY )
+
+      # ( derivative ( x ) * y - x * derivative ( y ) ) / ( y^^2 )
+      elemNew = symexpress3.SymExpress( '*' )
+      elemNew.add( elemMin     )
+      elemNew.add( elemKwdraat )
+
+      return elemNew
 
     def _derivativeProduct():
       """
@@ -659,8 +720,10 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # TODO quotient rule
-    #
+    # quotient rule
+    elemNew = _derivativeQuotient()
+    if elemNew != None:
+      return elemNew
 
     # power (with chain rule)
     elemNew = _derivativePower()
