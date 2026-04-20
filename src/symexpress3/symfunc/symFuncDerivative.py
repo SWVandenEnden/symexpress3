@@ -852,6 +852,14 @@ def Test( display = False):
 
   _Check( testClass, symTest, value, 'derivative(  sin( x ),x ) *  cos( x ) +  sin( x ) *  derivative(  cos( x ),x )' )
 
+  # quotient
+  symTest = symexpress3.SymFormulaParser( ' derivative( (1+x)^^-1, x)')
+  symTest.optimize()
+  testClass = SymFuncDerivative()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, '( derivative( 1,x ) * (1 + x) +  derivative( 1 + x,x ) * 1 * (-1)) * ((1 + x))^^-2' )
+
   # sin
   symTest = symexpress3.SymFormulaParser( 'derivative( sin(x), x )')
   symTest.optimize()

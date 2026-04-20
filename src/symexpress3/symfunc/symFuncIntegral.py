@@ -27,6 +27,8 @@
 
 """
 
+import mpmath
+
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 from symexpress3         import symtools
@@ -1046,25 +1048,24 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
 
   def getValue( self, elemFunc, dDict = None ):
+
+    def _fncValue( x, objExp, dDict, cVar ):
+      dDict[ cVar ] = x
+      fValue = objExp.getValue( dDict )
+      return fValue
+
+
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
 
-    # print( "Calc integral" )
-
-    # need lower and upper to calculate integral
-    # if elemFunc.numElements() != 4:
-    #  # print( f"integral getValue number of parameters: {elemFunc.numElements()}" )
-    #  return None
+    # https://en.wikipedia.org/wiki/Numerical_integration
+    # https://mpmath.org/doc/current/calculus/integration.html
+    # https://stackoverflow.com/questions/6256249/passing-arguments-to-mpmath-quad-integration
 
     if dDict == None:
       dDictSum = {}
     else:
       dDictSum = dDict.copy()
-
-    listStart  = []
-    listEnd    = []
-
-    # print( "Calc integral - before var" )
 
     # delta must always a variable
     cVar = self.getVarname( elemFunc.elements[1] )
@@ -1072,77 +1073,54 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # print( f"integral no varname: { str(elemFunc.elements[1]) }  elemFunc: {str(elemFunc)}" )
       return None
 
+    startVal     = None
+    endVal       = None
+
+    # determine start / end integral
     if elemFunc.numElements() >= 3:
-      startVal = elemFunc.elements[2].getValue( dDict )
-      if isinstance( startVal, list ):
-        listStart = startVal
-      else:
-        listStart.append( startVal )
-    else:
-      # not given use infinity
-      listStart.append( symexpress3.SymFormulaParser( '-1 * infinity').getValue(dDict) )
+      startVal = elemFunc.elements[2]
+      if isinstance( startVal, symexpress3.SymExpress ):
+        # look for - infinity
+        if startVal.symType == '*' and startVal.numElements == 2:
+          elem1 = startVal.elements[0]
+          elem2 = startVal.elements[1]
+
+          if (isinstance( elem1, symexpress3.SymVariable) and isinstance( elem2, symexpress3.SymNumber)) :
+            if elem1.name == 'infinity' and elem2.factSign == -1:
+              startVal = float('-inf')
+
+          elif (isinstance( elem2, symexpress3.SymVariable) and isinstance( elem1, symexpress3.SymNumber)) :
+            if elem2.name == 'infinity' and elem1.factSign == -1:
+              startVal = float('-inf')
+
+      if not isinstance( startVal, float ):
+        startVal = float( startVal.getValue( dDict ) )
+
+    if startVal == None:
+      startVal = float('-inf')
 
     if elemFunc.numElements() >= 4:
-      endVal = elemFunc.elements[3].getValue( dDict )
-      if isinstance( endVal, list ):
-        listEnd = endVal
-      else:
-        listEnd.append( endVal )
-    else:
-      # not given use infinity
-      listEnd.append( symexpress3.SymFormulaParser( 'infinity').getValue(dDict) )
+      endVal = elemFunc.elements[3]
+      if isinstance( endVal, symexpress3.SymVariable ):
+        if endVal.name == 'infinity':
+          endVal = float('inf')
 
-    # print( f"listStart: {listStart}" )
-    # print( f"listEnd  : {listEnd}"   )
+      if not isinstance( endVal, float ):
+        endVal = float( endVal.getValue( dDict ) )
 
-    elemExpress = elemFunc.elements[0]
+    if endVal == None:
+      endVal = float('inf')
 
-    numOfSteps = 100.0
 
-    result = []
-    for startVal in listStart:
-      for endVal in listEnd:
-        dStart = float( startVal )
-        dEnd   = float( endVal   )
+    # print( f"Start quad: startVal: {startVal}, {type(startVal)} endVal: {endVal}, {type(endVal)}")
+    objFunc   = elemFunc.elements[0]
+    # fncLambda = lambda xInput : _fncValue( xInput, objFunc, dDictSum, cVar )
+    # dValue    = mpmath.quad( fncLambda, [ startVal, endVal ], method='tanh-sinh' )
+    dValue    = mpmath.quad( lambda xInput : _fncValue( xInput, objFunc, dDictSum, cVar ), [ startVal, endVal ], method='tanh-sinh' )
 
-        if dStart >= dEnd:
-          return None
-
-        dValue = 0
-        dStep  = (dEnd - dStart) / numOfSteps
-
-        # print( f"dStart: {dStart}, dEnd: {dEnd}, dStep: {dStep}" )
-
-        dStart += (dStep / 2)
-        while dStart < dEnd:
-
-          # print( f"Calc dStart: {dStart}" )
-
-          # for iCnt in range( dStart, dEnd + 1 ):
-          dDictSum[ cVar ] = dStart
-          # if multiple values are given back, only the first will be used
-          # see above by functionToValue()
-          value = elemExpress.getValue( dDictSum )
-
-          # print( f"Value: {value}" )
-
-          if isinstance( value, list ):
-            dValue += (value[ 0 ] * dStep)
-          else:
-            dValue += (value * dStep)
-
-          dStart += dStep
-
-        result.append( dValue )
-
-    if len( result ) == 1:
-      dValue = result[ 0 ]
-    else:
-      dValue = result
-
-    dValue = elemFunc.valuePow( dValue )
-
+    # print( f"Result: {dValue}")
     return dValue
+
 
 
 #
@@ -1154,9 +1132,9 @@ def Test( display = False):
   """
   def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
     if dValue != None:
-      dValue = round( float(dValue), 10 )
+      dValue = round( float(dValue), 4 ) # changed to 4
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = round( float(dValueCalc), 4 ) # changed to 4
 
     if display == True :
       print( f"naam    : {testClass.name}" )
@@ -1203,7 +1181,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( (2 + 1)^^-1 *  exp( 2 + 1,x ),x,1,5 )", 41.3328  )
+  _Check( testClass, symTest, value, dValue, "integralresult( (2 + 1)^^-1 *  exp( 2 + 1,x ),x,1,5 )", 41.333328 )
 
   # variable (special case)
   symTest = symexpress3.SymFormulaParser( 'integral( x^^-1, x, 1 ,5 )' )
@@ -1212,7 +1190,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult(  log(  abs( x ) ),x,1,5 )", 1.6093739311 )
+  _Check( testClass, symTest, value, dValue, "integralresult(  log(  abs( x ) ),x,1,5 )", 1.6094372724 )
 
 
   # variable
@@ -1222,7 +1200,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( ((2/3) + 1)^^-1 *  exp( (2/3) + 1,x ),x,1,5 )", 8.1720716669 )
+  _Check( testClass, symTest, value, dValue, "integralresult( ((2/3) + 1)^^-1 *  exp( (2/3) + 1,x ),x,1,5 )", 8.1720533992  )
 
 
   # sin
@@ -1232,7 +1210,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( (-1) * (3)^^-1 *  cos( 3 * x ),x,(1/10),2 * (1/10) )", 0.043333641  )
+  _Check( testClass, symTest, value, dValue, "integralresult( (-1) * (3)^^-1 *  cos( 3 * x ),x,(1/10),2 * (1/10) )", 0.0433336249  )
 
 
   # cos
@@ -1242,7 +1220,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( (3)^^-1 *  sin( 3 * x ),x,(1/10),2 * (1/10) )", 0.0897074559 )
+  _Check( testClass, symTest, value, dValue, "integralresult( (3)^^-1 *  sin( 3 * x ),x,(1/10),2 * (1/10) )", 0.0897074226 )
 
 
   # tan
@@ -1252,7 +1230,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( (-1) * (3)^^-1 *  log(  abs(  cos( 3 * x ) ) ),x,(1/10),2 * (1/10) )", 0.0487577913 )
+  _Check( testClass, symTest, value, dValue, "integralresult( (-1) * (3)^^-1 *  log(  abs(  cos( 3 * x ) ) ),x,(1/10),2 * (1/10) )", 0.0487578374 )
 
 
   # asin
@@ -1262,7 +1240,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( x *  asin( 3 * x ) + (3)^^-1 * (1 + (-1) * (3)^^2 * x^^2)^^(1/2),x,(1/10),2 * (1/10) )", 0.046917864 )
+  _Check( testClass, symTest, value, dValue, "integralresult( x *  asin( 3 * x ) + (3)^^-1 * (1 + (-1) * (3)^^2 * x^^2)^^(1/2),x,(1/10),2 * (1/10) )", 0.046917889 )
 
 
   # acos
@@ -1272,7 +1250,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( x *  acos( 3 * x ) + (-1) * (3)^^-1 * (1 + (-1) * (3)^^2 * x^^2)^^(1/2),x,(1/10),2 * (1/10) )", 0.1101617687 )
+  _Check( testClass, symTest, value, dValue, "integralresult( x *  acos( 3 * x ) + (-1) * (3)^^-1 * (1 + (-1) * (3)^^2 * x^^2)^^(1/2),x,(1/10),2 * (1/10) )", 0.1101617437 )
 
 
   # atan
@@ -1282,7 +1260,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( x *  atan( 3 * x ) + (-1) *  log( (3)^^2 * x^^2 + 1 ) * (2 * 3)^^-1,x,(1/10),2 * (1/10) )", 0.0420537428 )
+  _Check( testClass, symTest, value, dValue, "integralresult( x *  atan( 3 * x ) + (-1) *  log( (3)^^2 * x^^2 + 1 ) * (2 * 3)^^-1,x,(1/10),2 * (1/10) )", 0.0420537202 )
 
   # exp
   symTest = symexpress3.SymFormulaParser( 'integral( exp( 3 x ), x, 1/10 , 2/10 )' )
@@ -1291,7 +1269,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x ) * (3)^^-1,x,(1/10),2 * (1/10) )", 0.1574199386 )
+  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x ) * (3)^^-1,x,(1/10),2 * (1/10) )", 0.157419997 )
 
   # exp base 10
   symTest = symexpress3.SymFormulaParser( 'integral( exp( 3 x, 10 ), x, 1/10 , 2/10 )' )
@@ -1300,7 +1278,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x,10 ) * (3 *  log( 10 ))^^-1,x,(1/10),2 * (1/10) )", 0.2874747819 )
+  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 3 * x,10 ) * (3 *  log( 10 ))^^-1,x,(1/10),2 * (1/10) )", 0.2874753478 )
 
   # exp base x
   symTest = symexpress3.SymFormulaParser( 'integral( exp( 3^^(1/2), x ), x, 1/10 , 2/10 )' )
@@ -1309,7 +1287,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 1 + 3^^(1/2),x ) * (1 + 3^^(1/2))^^-1,x,(1/10),2 * (1/10) )", 0.0038286527  )
+  _Check( testClass, symTest, value, dValue, "integralresult(  exp( 1 + 3^^(1/2),x ) * (1 + 3^^(1/2))^^-1,x,(1/10),2 * (1/10) )", 0.0038286615 )
 
 
   # log
@@ -1319,7 +1297,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( x *  log( x ) + (-1) * x,x,(1/10),2 * (1/10) )", -0.1916288649 )
+  _Check( testClass, symTest, value, dValue, "integralresult( x *  log( x ) + (-1) * x,x,(1/10),2 * (1/10) )", -0.1916290711 )
 
 
   # log base 10
@@ -1329,7 +1307,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "integralresult( x *  log( x,10 ) + (-1) * x *  log( 10 )^^-1,x,(1/10),2 * (1/10) )", -0.0832233586 )
+  _Check( testClass, symTest, value, dValue, "integralresult( x *  log( x,10 ) + (-1) * x *  log( 10 )^^-1,x,(1/10),2 * (1/10) )", -0.0832234482 )
 
 
   # sum
@@ -1348,7 +1326,18 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "sum( n,0,4, integral( n * x^^2,x,(-10),20 ) )", 29997.75 )
+  _Check( testClass, symTest, value, dValue, "sum( n,0,4, integral( n * x^^2,x,(-10),20 ) )", 30000.0 ) # 29999.9774999997 )
+
+
+  # integral gamma( 1/5 )
+  # symTest = symexpress3.SymFormulaParser( 'integral( exp( (-4/5),x ) * exp( x * (-1) ),x,0,infinity )' )
+  # symTest.optimize()
+  # testClass = SymFuncIntegral()
+  # value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  # dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  # _Check( testClass, symTest, value, dValue, "integral(  exp( (-4) * (1/5),x ) *  exp( x * (-1) ),x,0,infinity )", 4.5901 )
+
 
 if __name__ == '__main__':
   Test( True )

@@ -81,7 +81,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20250609001" # build number
+__buildnumber__ = "20260420001" # build number
 
 
 import sys
@@ -122,7 +122,6 @@ colorfuncspecbad = "#e67e22"  # orange, functions without calculations but with 
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
 globalUseThreads      = False # use thread, see _optSubThread()
-globalInfinityDefault = 20
 
 #
 # rounding
@@ -1046,7 +1045,7 @@ class SymVariable( SymBasePower ):
       elif self.name == 'e':
         dValue = mpmath.e
       elif self.name == 'infinity':
-        dValue = globalInfinityDefault # infinity is most time used in sun and product functions, so max iteration default to 20
+        dValue = float( 'inf')
       else:
         raise NameError( f'getValue, for variable "{self.name}" is no value given.' )
     # print( "dValue before: {}".format( dValue ))

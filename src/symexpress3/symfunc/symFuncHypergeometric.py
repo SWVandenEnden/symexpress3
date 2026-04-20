@@ -178,16 +178,63 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
       # https://functions.wolfram.com/PDF/Hypergeometric2F1.pdf
       #
-      # ChatGP2: Written the same as Wolfram but with 2F1 in steeds of sums
-      # 2F1(a,b;c;z) = (Γ(b)Γ(c−a)) / (Γ(c)Γ(b−a)) * (−z)^−a * 2F1(a,a−c+1;a−b+1;1/z) + (Γ(a)Γ(c−b)) / (Γ(c)Γ(a−b)) * (−z)^−b * 2F1(b,b−c+1;b−a+1;1/z)
+      # ChatGP5
+      # e^{-iπ a} z^{-a} Γ(c) Γ(b−a) / (Γ(b) Γ(c−a)) · 2F1(a,1−c+a;1−b+a;1/z) + e^{-iπ b} z^{-b} Γ(c) Γ(a−b) / (Γ(a) Γ(c−b)) · 2F1(b,1−c+b;1−a+b;1/z).
+      #
+      # e^{-iπ a} = exp(−iπ a)
+      # z^{-a}    = exp(−a Log z)
       #
 
+      # print( f"z: {strZ}")
 
-      strElem1 = f"gamma( {strC} ) * gamma( ({strC}) - ({strA}) - ({strB}) )"
-      strElem2 = f"gamma( ({strC}) - ({strA}) ) * gamma( ({strC}) - ({strB}) ) * exp( ({strA}) + ({strB}) - ({strC}), (1 - ({strZ})))"
-      strElem3 = f"hypergeometric( 2, 1, ({strC}) - ({strA}),({strC}) - ({strA}), {strC}, 1 / ( 1 - ({strZ}) ))"
 
-      strElem = f" ({strElem1}) / ( {strElem2} * {strElem3} ) "
+      # e^{-iπ a} z^{-a} Γ(c) Γ(b−a) / (Γ(b) Γ(c−a)) · 2F1(a,1−c+a;1−b+a;1/z) + e^{-iπ b} z^{-b} Γ(c) Γ(a−b) / (Γ(a) Γ(c−b)) · 2F1(b,1−c+b;1−a+b;1/z).
+
+      # e^{-iπ a}
+      elemEpowerA = f"exp( -1 * i * pi * ({strA}))"
+
+      # z^{-a}
+      elemZpowerA = f"exp( -1 * ({strA}), {strZ})"
+
+      # Γ(c) Γ(b−a)
+      elemGammaCBA = f"gamma( {strC}) * gamma( ({strB}) - ({strA}) )"
+
+      # (Γ(b) Γ(c−a)
+      elemGammaBCA = f"gamma( {strB}) * gamma( ({strC}) - ({strA}) )"
+
+      # 2F1(a,1−c+a;1−b+a;1/z)
+      elemHyperA = f"hypergeometric( 2, 1, {strA}, 1 - ({strC}) + ({strA}), 1 - ({strB}) + ({strA}) , 1 / ({strZ}))"
+
+
+      # e^{-iπ a} z^{-a} Γ(c) Γ(b−a) / (Γ(b) Γ(c−a)) · 2F1(a,1−c+a;1−b+a;1/z)
+      elemPart1 = f"{elemEpowerA} * {elemZpowerA} * {elemGammaCBA} / ({elemGammaBCA}) * ({elemHyperA})"
+
+
+
+      # e^{-iπ b}
+      elemEpowerB = f"exp( -1 * i * pi * ({strB}))"
+
+      # z^{-b}
+      elemZpowerB = f"exp( -1 * ({strB}), {strZ})"
+
+      # Γ(c) Γ(a−b)
+      elemGammaCAB = f"gamma( {strC}) * gamma( ({strA}) - ({strB}) )"
+
+      # Γ(a) Γ(c−b))
+      elemGammaACB = f"gamma( {strA}) * gamma( ({strC}) - ({strB}) )"
+
+      # 2F1(b,1−c+b;1−a+b;1/z)
+      elemHyperB = f"hypergeometric( 2, 1, {strB}, 1 - ({strC}) + ({strB}), 1 - ({strA}) + ({strB}) , 1 / ({strZ}))"
+
+
+      # e^{-iπ b} z^{-b} Γ(c) Γ(a−b) / (Γ(a) Γ(c−b)) · 2F1(b,1−c+b;1−a+b;1/z).
+      elemPart2 = f"{elemEpowerB} * {elemZpowerB} * {elemGammaCAB} / ({elemGammaACB}) * ({elemHyperB})"
+
+
+      strElem  = f"({elemPart1}) + ({elemPart2})"
+
+      # print( "analic conversion")
+      # print( strElem )
 
       elemNew = symexpress3.SymFormulaParser( strElem )
 
@@ -403,6 +450,9 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if valP + valQ + 3 != elemTot:
       return None
 
+    # print( f"Start hyper p:{valP}  q:{valQ}")
+    # print( f"function: {str(elem)}")
+
     # valP = number of p elements
     # valQ = number of q elements
 
@@ -437,8 +487,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # TODO analytic2F1
-    # elemNew = _analytic2F1( valP, valQ, startP, startQ, elemZ )
+    # analytic2F1
+    elemNew = _analytic2F1( valP, valQ, startP, startQ, elemZ )
     if elemNew != None:
       return elemNew
 
@@ -448,6 +498,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
+    # print( "end hyper nothing to do")
     return None
 
   def getValue( self, elemFunc, dDict = None ):
@@ -601,8 +652,8 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  # TODO check hypergoemetric function
-  # _Check( testClass, symTest, value, dValue, "gamma( 1 * 5^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 3^^-1 + (-1) * 1 * 2^^-1 ) * ( gamma( 1 * 5^^-1 + (-1) * 1 * 3^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 2^^-1 ) *  exp( 1 * 3^^-1 + 1 * 2^^-1 + (-1) * 1 * 5^^-1,(1 + (-1) * 2) ) *  hypergeometric( 2,1,1 * 5^^-1 + (-1) * 1 * 3^^-1,1 * 5^^-1 + (-1) * 1 * 3^^-1,1 * (1 + (-1) * 2)^^-1 ))^^-1", -0.9625193447 - 1.1369043195j  )
+  # check hypergoemetric function
+  _Check( testClass, symTest, value, dValue, "exp( (-1) * i * pi * 1 * 3^^-1 ) *  exp( (-1) * 1 * 3^^-1,2 ) *  gamma( 1 * 5^^-1 ) *  gamma( 1 * 2^^-1 + (-1) * 1 * 3^^-1 ) * ( gamma( 1 * 2^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 3^^-1 ))^^-1 *  hypergeometric( 2,1,1 * 3^^-1,1 + (-1) * 1 * 5^^-1 + 1 * 3^^-1,1 + (-1) * 1 * 2^^-1 + 1 * 3^^-1,1 * (2)^^-1 ) +  exp( (-1) * i * pi * 1 * 2^^-1 ) *  exp( (-1) * 1 * 2^^-1,2 ) *  gamma( 1 * 5^^-1 ) *  gamma( 1 * 3^^-1 + (-1) * 1 * 2^^-1 ) * ( gamma( 1 * 3^^-1 ) *  gamma( 1 * 5^^-1 + (-1) * 1 * 2^^-1 ))^^-1 *  hypergeometric( 2,1,1 * 2^^-1,1 + (-1) * 1 * 5^^-1 + 1 * 2^^-1,1 + (-1) * 1 * 3^^-1 + 1 * 2^^-1,1 * (2)^^-1 )", -0.9625193447 - 1.1369043195j  )
 
 
 if __name__ == '__main__':

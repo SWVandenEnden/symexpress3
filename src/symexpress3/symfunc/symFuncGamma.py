@@ -22,6 +22,8 @@
 
     https://en.wikipedia.org/wiki/Gamma_function
 
+    see also optSymFunctionGammaToIntegral.py
+
 """
 
 import mpmath
@@ -91,36 +93,6 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _toIntegral( elem1 ):
-      """
-      Convert gamma to integral if the real part is positive
-      """
-      try:
-        val = elem1.getValue()
-      except: # pylint: disable=bare-except
-        return None
-
-      if isinstance( val, (float, mpmath.mpf )):
-        if val <= 0:
-          return None
-      elif isinstance( val, (complex, mpmath.mpc)):
-        if val.real <= 0:
-          return None
-      else:
-        return None
-
-      varName = symtools.VariableGenerateGet()
-      varElem = str( elem1 )
-      cElem = f"integral(exp( ({varElem} - 1),  {varName}) * exp({varName} * -1), {varName}, 0,infinity )"
-
-      elemNew = symexpress3.SymFormulaParser( cElem )
-
-      elemNew.powerSign        = elem.powerSign
-      elemNew.powerCounter     = elem.powerCounter
-      elemNew.powerDenominator = elem.powerDenominator
-
-      return elemNew
-
     def _convNegative( elem1 ):
       """
       Convert negative gamma to positive gamma for non integer values
@@ -173,10 +145,6 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    elemNew = _toIntegral( elem1 )
-    if elemNew != None:
-      return elemNew
-
     elemNew = _convNegative( elem1 )
     if elemNew != None:
       return elemNew
@@ -221,15 +189,6 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check(  testClass, symTest, value, dValue, "factorial( 7 + (-1) )", 720 )
-
-
-  symTest = symexpress3.SymFormulaParser( 'gamma( 1/2 )' )
-  symTest.optimize()
-  testClass = SymFuncGamma()
-  value     = testClass.functionToValue( symTest.elements[ 0 ] )
-  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
-
-  _Check(  testClass, symTest, value, dValue, "integral(  exp( (1 * 2^^-1 + (-1) * 1),n1 ) *  exp( n1 * (-1) ),n1,0,infinity )", 1.7724538509 )
 
 
   symTest = symexpress3.SymFormulaParser( 'gamma( -1/2 )' )

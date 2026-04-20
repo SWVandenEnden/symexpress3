@@ -38,6 +38,8 @@ from symexpress3.optSymFunction import optSymFunctionNumberToPrimeFactors
 from symexpress3.optSymFunction import optSymFunctionNumberToDivisors
 from symexpress3.optSymFunction import optSymFunctionAsinToSum
 from symexpress3.optSymFunction import optSymFunctionAcosToSum
+from symexpress3.optSymFunction import optSymFunctionGammaToIntegral
+
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -62,6 +64,8 @@ def SymRegisterOptimize():
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToDivisors.OptSymFunctionNumberToDivisors()         )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAsinToSum.OptSymFunctionAsinToSum()                       )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAcosToSum.OptSymFunctionAcosToSum()                       )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaToIntegral.OptSymFunctionGammaToIntegral()           )
+
 
 #
 # Get all the modules from the optSymNumber, used in testsymexpress3.py
@@ -88,6 +92,7 @@ def SymRegisterGetModuleNames():
   symModules.append( optSymFunctionNumberToDivisors     )
   symModules.append( optSymFunctionAsinToSum            )
   symModules.append( optSymFunctionAcosToSum            )
+  symModules.append( optSymFunctionGammaToIntegral      )
 
   return symModules
 
