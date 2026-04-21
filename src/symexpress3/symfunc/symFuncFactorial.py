@@ -84,6 +84,7 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
     return elemnew
 
   def _getValueSingle( self, dValue, dValue2 = None ):
+    dValue = int( dValue )
     return math.factorial( dValue )
 
 

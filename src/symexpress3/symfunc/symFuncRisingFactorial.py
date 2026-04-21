@@ -24,6 +24,8 @@
 
 """
 
+import mpmath
+
 from symexpress3          import symexpress3
 from symexpress3.symfunc  import symFuncBase
 from symexpress3          import symtools
@@ -49,28 +51,47 @@ class SymFuncRisingFactorial( symFuncBase.SymFuncBase ):
     elemFunc  = elem.elements[ 0 ]
     elemEnd   = elem.elements[ 1 ]
 
+    lGamma = False
+
     if not isinstance( elemEnd, symexpress3.SymNumber):
       dVars = elemEnd.getVariables()
       if len( dVars ) != 0:
-        return None
+        lGamma = True
+        # return None
     else:
       if elemEnd.power != 1:
-        return None
+        lGamma = True
+        # return None
       if elemEnd.factDenominator != 1:
+        lGamma = True
         return None
 
-    try:
-      endVal   = elemEnd.getValue()
-    except: # pylint: disable=bare-except
-      return None
+    if lGamma == False:
+      try:
+        endVal   = elemEnd.getValue()
+      except: # pylint: disable=bare-except
+        lGamma = True
+        # return None
 
-    if not isinstance(endVal, int):
-      return None
+      if not isinstance(endVal, int):
+        lGamma = True
+        # return None
 
-    if endVal < 0 :
-      return None
+      if endVal < 0 :
+        lGamma = True
+        # return None
 
-    if endVal == 0:
+    if lGamma == True:
+      elemStr = "gamma( xRisingFactorial + nRisingFactorial ) / gamma( xRisingFactorial )"
+      elemSym = symexpress3.SymFormulaParser( elemStr )
+
+      dDict = {}
+      dDict[ 'xRisingFactorial' ] = str( elemFunc )
+      dDict[ 'nRisingFactorial' ] = str( elemEnd  )
+
+      elemSym.replaceVariable( dDict )
+
+    elif endVal == 0:
       elemSym = symexpress3.SymFormulaParser( "1" )
     else:
       # if function is a hole number then special case
@@ -110,12 +131,20 @@ class SymFuncRisingFactorial( symFuncBase.SymFuncBase ):
 
   def _getValueSingle( self, dValue, dValue2 = None ):
     # product(k, 1, n, <fnc> + k - 1)"
+    # gamma( dValue + dValue2 ) / gamma( dValue 2)
 
-    result = 1
-    for k in range( 1, dValue2 + 1):
-      result *= (dValue + k - 1)
+    # print( f"RisingFactorial: {dValue},  {dValue2}")
+    result = mpmath.gamma( dValue + dValue2 ) / mpmath.gamma( dValue )
+
+    # print( f"Antwoord: {result}")
 
     return result
+
+    # result = 1
+    # for k in range( 1, dValue2 + 1):
+    #   result *= (dValue + k - 1)
+
+    # return result
 
 #
 # Test routine (unit test), see testsymexpress3.py
@@ -159,6 +188,17 @@ def Test( display = False):
   dValue    = None # testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check( testClass, symTest, value, dValue, "product( n1,1,4,x + n1 + (-1) * 1 )", None )
+
+
+  symtools.VariableGenerateReset()
+
+  symTest = symexpress3.SymFormulaParser( 'risingfactorial( 1/3,12/53 )' )
+  symTest.optimize()
+  testClass = SymFuncRisingFactorial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "gamma( 1 * 3^^-1 + 12 * 1 * 53^^-1 ) *  gamma( 1 * 3^^-1 )^^-1", 0.5932644620678025829 )
 
 
 

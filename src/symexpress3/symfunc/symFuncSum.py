@@ -25,7 +25,7 @@
 
 """
 
-import math
+import mpmath
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -152,6 +152,14 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
 
 
   def getValue( self, elemFunc, dDict = None ):
+
+    def _fncValue( x, objExp, dDict, cVar ):
+      dDict[ cVar ] = x
+      fValue = objExp.getValue( dDict )
+      if isinstance( fValue, list ):
+        fValue = fValue[ 0 ]
+      return fValue
+
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
 
@@ -186,26 +194,9 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     for startVal in listStart:
       for endVal in listEnd:
 
-        if math.isinf( startVal ):
-          dStart = -20  # must choose something
-        else:
-          dStart = int( startVal )
+        # https://mpmath.org/doc/current/calculus/sums_limits.html
+        dValue = mpmath.nsum( lambda xInput : _fncValue( xInput, elemExpress, dDictSum, cVar ), [ startVal, endVal ] )
 
-        if math.isinf( endVal ):
-          dEnd = 20 # must choose something
-        else:
-          dEnd = int( endVal   )
-
-        dValue = 0
-        for iCnt in range( dStart, dEnd + 1 ):
-          dDictSum[ cVar ] = iCnt
-          # if multiple values are given back, only the first will be used
-          # see above by functionToValue()
-          value = elemExpress.getValue( dDictSum )
-          if isinstance( value, list ):
-            dValue += value[ 0 ]
-          else:
-            dValue += value
         result.append( dValue )
 
     if len( result ) == 1:

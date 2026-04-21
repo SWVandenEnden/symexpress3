@@ -45,7 +45,7 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
         symExpr.powerSign       != -1 or
         symExpr.powerDenominator >  1 or
         symExpr.onlyOneRoot     !=  1 or
-        symExpr.numElements()    <  1
+        symExpr.numElements()    <  2
       ) :
       return result
 

@@ -24,6 +24,8 @@
 
 """
 
+import mpmath
+
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 from symexpress3         import symtools
@@ -49,28 +51,47 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
     elemFunc  = elem.elements[ 0 ]
     elemEnd   = elem.elements[ 1 ]
 
+    lGamma = False
+
     if not isinstance( elemEnd, symexpress3.SymNumber):
       dVars = elemEnd.getVariables()
       if len( dVars ) != 0:
-        return None
+        lGamma = True
+        # return None
     else:
       if elemEnd.power != 1:
-        return None
+        lGamma = True
+        # return None
       if elemEnd.factDenominator != 1:
-        return None
+        lGamma = True
+        # return None
 
-    try:
-      endVal   = elemEnd.getValue()
-    except: # pylint: disable=bare-except
-      return None
+    if lGamma == False:
+      try:
+        endVal   = elemEnd.getValue()
+      except: # pylint: disable=bare-except
+        lGamma = True
+        # return None
 
-    if not isinstance(endVal, int):
-      return None
+      if not isinstance(endVal, int):
+        lGamma = True
+        # return None
 
-    if endVal < 0 :
-      return None
+      if endVal < 0 :
+        lGamma = True
+        # return None
 
-    if endVal == 0:
+    if lGamma == True:
+      elemStr = "gamma( xFallingFactorial + 1 ) / gamma( xFallingFactorial - nFallingFactorial + 1)"
+      elemSym = symexpress3.SymFormulaParser( elemStr )
+
+      dDict = {}
+      dDict[ 'xFallingFactorial' ] = str( elemFunc )
+      dDict[ 'nFallingFactorial' ] = str( elemEnd  )
+
+      elemSym.replaceVariable( dDict )
+
+    elif endVal == 0:
       elemSym = symexpress3.SymFormulaParser( "1" )
     else:
       # if function is a hole number then special case
@@ -111,10 +132,14 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
   def _getValueSingle( self, dValue, dValue2 = None ):
     # product(k, 1, n, <fnc> - k + 1)"
 
-    result = 1
-    for k in range( 1, dValue2 + 1):
-      result *= (dValue - k + 1)
+    # result = 1
+    # for k in range( 1, dValue2 + 1):
+    #   result *= (dValue - k + 1)
+    # print( f"faillinffactorial: dValue: {dValue} {dValue2}")
 
+    result = mpmath.gamma( dValue + 1 ) / mpmath.gamma( dValue - dValue2 + 1)
+
+    # print( f"faillinffactorial: {result}")
     return result
 
 #
@@ -162,6 +187,18 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check( testClass, symTest, value, dValue, " factorial( 6 ) *  factorial( 6 + (-1) * 4 )^^-1", 360 )
+
+
+  symtools.VariableGenerateReset()
+
+  symTest = symexpress3.SymFormulaParser( 'fallingfactorial( 7/5, 13/3 )' )
+  symTest.optimize()
+  testClass = SymFuncFallingFactorial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "gamma( 7 * 1 * 5^^-1 + 1 ) *  gamma( 7 * 1 * 5^^-1 + (-1) * 13 * 1 * 3^^-1 + 1 )^^-1", 0.154741569 )
+
 
 if __name__ == '__main__':
   Test( True )

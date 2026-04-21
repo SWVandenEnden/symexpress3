@@ -1052,6 +1052,9 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     def _fncValue( x, objExp, dDict, cVar ):
       dDict[ cVar ] = x
       fValue = objExp.getValue( dDict )
+      if isinstance( fValue, list ):
+        fValue = fValue[ 0 ]
+
       return fValue
 
 
