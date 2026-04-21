@@ -2352,6 +2352,8 @@ class SymExpress( SymBaseList ):
       _optimizeAction( [ "multiply"       ], "Multiply elements"      , 10 )
       _optimizeAction( [ "i"              ], "Write out i"            ,  1 )
       _optimizeAction( [ "add"            ], "Add elements"           , 10 )
+      _optimizeAction( [ "divideDivide"   ], "Divide divide"          ,  1 )
+
 
       if iCntBig < maxBig:
         cTestBig  = str( self )

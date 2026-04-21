@@ -38,6 +38,7 @@ from symexpress3.optimize import optimizeRootOfImagNumToCosISin
 from symexpress3.optimize import optimizePowerArrays
 from symexpress3.optimize import optimizeUnnestingCubitRoot
 from symexpress3.optimize import optimizeInfinity
+from symexpress3.optimize import optimizeDivideDivide
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -61,6 +62,7 @@ def SymRegisterOptimize():
   symtables.RegisterTableEntry( 'optimize', optimizePowerArrays.OptimizePowerArrays()                       )
   symtables.RegisterTableEntry( 'optimize', optimizeUnnestingCubitRoot.OptimizeUnnestingCubitRoot()         )
   symtables.RegisterTableEntry( 'optimize', optimizeInfinity.OptimizeInfinity()                             )
+  symtables.RegisterTableEntry( 'optimize', optimizeDivideDivide.OptimizeDivideDivide()                     )
 
 
 #
@@ -88,7 +90,7 @@ def SymRegisterGetModuleNames():
   symModules.append( optimizePowerArrays            )
   symModules.append( optimizeUnnestingCubitRoot     )
   symModules.append( optimizeInfinity               )
-
+  symModules.append( optimizeDivideDivide           )
 
   return symModules
 

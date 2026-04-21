@@ -25,6 +25,8 @@
 
 """
 
+import math
+
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
 
@@ -183,8 +185,17 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
     result = []
     for startVal in listStart:
       for endVal in listEnd:
-        dStart = int( startVal )
-        dEnd   = int( endVal   )
+
+        if math.isinf( startVal ):
+          dStart = -20  # must choose something
+        else:
+          dStart = int( startVal )
+
+        if math.isinf( endVal ):
+          dEnd = 20 # must choose something
+        else:
+          dEnd = int( endVal   )
+
         dValue = 0
         for iCnt in range( dStart, dEnd + 1 ):
           dDictSum[ cVar ] = iCnt
