@@ -114,10 +114,10 @@ from symexpress3 import symtables
 
 
 # mathml colors
-colorposroot     = "#429e00"  # green, for roots with only one positive value
-colorallroot     = "#000000"  # black, for roots with multiple values
-colorfuncbad     = "#b30000"  # red, for function with wrong number of parameters
-colorfuncspec    = "#2e86c1"  # blue, functions without calculations
+colorposroot     = "#429e00"  # green , for roots with only one positive value
+colorallroot     = "#000000"  # black , for roots with multiple values
+colorfuncbad     = "#b30000"  # red   , for function with wrong number of parameters
+colorfuncspec    = "#2e86c1"  # blue  , functions without calculations
 colorfuncspecbad = "#e67e22"  # orange, functions without calculations but with wrong parameters
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
