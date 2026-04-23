@@ -2346,9 +2346,9 @@ class SymExpress( SymBaseList ):
       iCntBig   += 1
 
       _optimizeAction( []                  , "Optimize expression"    ,  1 )
-      _optimizeAction( [ "power"          ], "Eliminate powers"       ,  1 )
+      # _optimizeAction( [ "power"          ], "Eliminate powers"       , 10 )
       _optimizeAction( [ "onlyOneRoot"    ], "Simplify only one roots",  1 )
-      _optimizeAction( [ "power"          ], "Eliminate powers"       ,  1 )
+      _optimizeAction( [ "power"          ], "Eliminate powers"       , 10 )
       _optimizeAction( [ "multiply"       ], "Multiply elements"      , 10 )
       _optimizeAction( [ "i"              ], "Write out i"            ,  1 )
       _optimizeAction( [ "add"            ], "Add elements"           , 10 )

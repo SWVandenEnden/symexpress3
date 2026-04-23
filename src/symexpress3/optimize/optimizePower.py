@@ -45,38 +45,81 @@ class OptimizePower( optimizeBase.OptimizeBase ):
       # print( "Afgekeurd: " + symExpr.symType )
       return result
 
-    if symExpr.powerCounter > 1 :
-      if (symExpr.powerDenominator > 1 and symExpr.onlyOneRoot == 1):
-        # (x+2)^^(2/3)
-        # first calc the 1/3 principal root then the power
-        # if number >= 0 you can do the power
-        try:
-          calcReal = symExpr.getValue()
-        except: # pylint: disable=bare-except
-          return False
+    # auto set onlyOneRoot
+    if symExpr.powerDenominator == 1 and symExpr.onlyOneRoot != 1:
+      symExpr.onlyOneRoot = 1
 
-        if isinstance( calcReal, list ):
-          return False
+    if ( symExpr.powerCounter  < 2 or
+         symExpr.onlyOneRoot  != 1 or
+         symExpr.numElements() < 2
+       ):
+      return result
 
-        if isinstance( calcReal, (complex, mpmath.mpc) ):
-          return False
+    if (symExpr.powerDenominator > 1 and symExpr.onlyOneRoot == 1):
+      # (x+2)^^(2/3)
+      # first calc the 1/3 principal root then the power
+      # if number >= 0 you can do the power
+      try:
+        calcReal = symExpr.getValue()
+      except: # pylint: disable=bare-except
+        return False
 
-        if calcReal < 0:
-          return False
+      if isinstance( calcReal, list ):
+        return False
 
-      copysymExpr = symExpr.copy()
-      copysymExpr.powerSign        = 1
-      copysymExpr.powerCounter     = 1
-      copysymExpr.powerDenominator = 1
+      if isinstance( calcReal, (complex, mpmath.mpc) ):
+        return False
 
-      elemClone = []
-      for _ in range( 0, symExpr.powerCounter ) :
-        elemClone.append( copysymExpr.copy() )
+      if calcReal < 0:
+        return False
+
+    # https://en.wikipedia.org/wiki/Binomial_theorem
+    if symExpr.symType == '+' :
+
+      elemX = symExpr.elements[0]
+      elemY = symexpress3.SymExpress( '+' )
+      for iCnt in range( 1, symExpr.numElements() ):
+        elemY.elements.append( symExpr.elements[iCnt] )
+
+      elemPlus = symexpress3.SymExpress( '+' )
+
+      numN = symExpr.powerCounter
+      for iCnt in range( 0, numN + 1 ):
+        bioNum      = int( mpmath.binomial(numN,iCnt) )
+        symBiominal = symexpress3.SymNumber( 1, bioNum, 1)
+
+        elemXBio = symexpress3.SymExpress( '*')
+        elemXBio.add( elemX )
+        elemXBio.powerCounter = numN - iCnt
+
+        elemYBio = symexpress3.SymExpress( '*')
+        elemYBio.add( elemY )
+        elemYBio.powerCounter = iCnt
+
+        elemAdd = symexpress3.SymExpress( '*')
+        elemAdd.elements.append( symBiominal )
+        elemAdd.elements.append( elemXBio    )
+        elemAdd.elements.append( elemYBio    )
+
+        elemPlus.add( elemAdd )
+
+      symExpr.elements     = elemPlus.elements
+      symExpr.powerCounter = 1
+
+    else:
+      # multiply
+      elemNew = symexpress3.SymExpress( '*' )
+      for elem in symExpr.elements :
+        elemClone = symexpress3.SymExpress( '*' )
+        elemClone.powerCounter = symExpr.powerCounter
+        elemClone.add( elem )
+        elemNew.elements.append( elemClone )
 
       symExpr.symType      = '*'
-      symExpr.elements     = elemClone
+      symExpr.elements     = elemNew.elements
       symExpr.powerCounter = 1
-      result               = True
+
+    result               = True
 
     return result
 
@@ -98,7 +141,7 @@ def Test( display = False):
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
   result = False
-  symTest = symexpress3.SymFormulaParser( '(a + b)^2' )
+  symTest = symexpress3.SymFormulaParser( '(a + b)^^2' )
   symTest.optimize()
   symTest = symTest.elements[ 0 ]
   # symexpress3.SymExpressTree( symTest )
@@ -107,10 +150,10 @@ def Test( display = False):
   testClass = OptimizePower()
   result |= testClass.optimize( symTest, "power" )
 
-  _Check( testClass, symOrg, symTest, "(a + b) * (a + b)" )
+  _Check( testClass, symOrg, symTest, "1 * (a)^^2 * (b)^^0 + 2 * a * b + 1 * (a)^^0 * (b)^^2" )
 
 
-  symTest = symexpress3.SymFormulaParser( '(a * b)^2' )
+  symTest = symexpress3.SymFormulaParser( '(a * b)^^2' )
   symTest.optimize()
   symTest = symTest.elements[ 0 ]
   # symexpress3.SymExpressTree( symTest )
@@ -119,7 +162,18 @@ def Test( display = False):
   testClass = OptimizePower()
   testClass.optimize( symTest, "power" )
 
-  _Check( testClass, symOrg, symTest, "a * b * a * b" )
+  _Check( testClass, symOrg, symTest, "(a)^^2 * (b)^^2" )
+
+
+  symTest = symexpress3.SymFormulaParser( '(a + b)^^3' )
+  symTest.optimize()
+  symTest = symTest.elements[ 0 ]
+  symOrg = symTest.copy()
+
+  testClass = OptimizePower()
+  result |= testClass.optimize( symTest, "power" )
+
+  _Check( testClass, symOrg, symTest, "1 * (a)^^3 * (b)^^0 + 3 * (a)^^2 * b + 3 * a * (b)^^2 + 1 * (a)^^0 * (b)^^3" )
 
 
 if __name__ == '__main__':
