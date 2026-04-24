@@ -39,7 +39,7 @@ import sympy   # use it for prime factorization and divisors
 
 globalCachePrimeFactors = {}
 globalCacheAllFactors   = {}
-globalMaxDigits         = 60 # 90 # max number of digits for factorization TODO
+globalMaxDigits         = 60 # 90 # TODO max number of digits for factorization
 
 #
 # only factor positive odd numbers
@@ -277,7 +277,8 @@ def FactorizationDict(n):
       if len( str( n )) > globalMaxDigits:
         factorDict[ n ] = 1
       else:
-        factorDict += sympy.ntheory.factorint( n )
+        # factorDict += sympy.ntheory.factorint( n )
+        factorDict = factorDict | sympy.ntheory.factorint( n )
         # sympy (mpmath) give gmpy2 integers back, but I want Python integers
         factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
 
