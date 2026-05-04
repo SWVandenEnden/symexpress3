@@ -61,14 +61,13 @@ class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
       if ( elem.onlyOneRoot == 0 or symExpr.powerDenominator == 1 or symExpr.powerCounter < symExpr.powerDenominator ):
         lFoundFactor = False
 
-        if isinstance( elem, symexpress3.SymNumber ):
-          lFoundFactor = False
+        # always get radicals out
+        if lFoundFactor == False and elem.powerDenominator > 1:
+          lFoundFactor = True
+
+        if lFoundFactor == False and isinstance( elem, symexpress3.SymNumber ):
 
           # print( f"Check number: { str(elem) }")
-
-          # always get radicals out
-          if lFoundFactor == False and elem.powerDenominator > 1:
-            lFoundFactor = True
 
           # check if number contains powers
           if lFoundFactor == False and elem.factCounter > 1:

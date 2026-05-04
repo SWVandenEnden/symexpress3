@@ -81,18 +81,18 @@
 
 
     Incorrect calculation:
+    ----------------------
       mpmath (1.3.0)
       By a precision of 150 (and greater) there are calculcation errors.
       Try: (-1) * 3^^(1/2) + 1 * 2^^-1 * 3^^(1/2) + 1 * 2^^-1 * (3 * 3^^(1/2))^^(1/3)
-      This must give 0 as answer... but if gives 7.6373...
-      5 april 2026
-
+      This should give 0 as answer... but if gives 7.6373...
+      4 may 2026
 
 
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20260426001" # build number
+__buildnumber__ = "20260504001" # build number
 
 
 import sys
