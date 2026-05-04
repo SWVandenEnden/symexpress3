@@ -23,8 +23,11 @@
 
 """
 
-from symexpress3          import symexpress3
-from symexpress3.optimize import optimizeBase
+import math
+
+from symexpress3           import symexpress3
+from symexpress3.optimize  import optimizeBase
+from symexpress3           import primefactor
 
 class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
   """
@@ -55,10 +58,40 @@ class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
     elemRadicals = []
     elemNormal   = []
     for elem in symExpr.elements :
-      if ( elem.onlyOneRoot == 0 or symExpr.powerDenominator == 1 ):
-        elemNormal.append( elem )
+      if ( elem.onlyOneRoot == 0 or symExpr.powerDenominator == 1 or symExpr.powerCounter < symExpr.powerDenominator ):
+        lFoundFactor = False
+
+        if isinstance( elem, symexpress3.SymNumber ):
+          lFoundFactor = False
+
+          # print( f"Check number: { str(elem) }")
+
+          # always get radicals out
+          if lFoundFactor == False and elem.powerDenominator > 1:
+            lFoundFactor = True
+
+          # check if number contains powers
+          if lFoundFactor == False and elem.factCounter > 1:
+            dDict = primefactor.factorint( elem.factCounter )
+            for iFactor in dDict.values() :
+              if iFactor >= symExpr.powerDenominator:
+                lFoundFactor = True
+                break
+          if lFoundFactor == False and elem.factDenominator > 1:
+            dDict = primefactor.factorint( elem.factDenominator )
+            for iFactor in dDict.values() :
+              if iFactor >= symExpr.powerDenominator:
+                lFoundFactor = True
+                break
+
+        if lFoundFactor == True:
+          elemRadicals.append( elem )
+        else:
+          elemNormal.append( elem )
+
       else:
         elemRadicals.append( elem )
+
     if len(elemRadicals ) == 0:
       return result
     if len(elemNormal) == 0:
@@ -125,7 +158,9 @@ def Test( display = False):
   testClass = OptimizeNestedRadicals()
   testClass.optimize( symTest, "nestedRadicals" )
 
-  _Check( testClass, symOrg, symTest, "(1)^^(1/3) * 2^^(1/3) * 5^^(1/9)" )
+  # _Check( testClass, symOrg, symTest, "(1)^^(1/3) * 2^^(1/3) * 5^^(1/9)" )
+  _Check( testClass, symOrg, symTest, "(2)^^(1/3) * 5^^(1/9)" )
+
 
 
 if __name__ == '__main__':

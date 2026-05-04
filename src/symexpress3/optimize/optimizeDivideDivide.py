@@ -41,9 +41,9 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
       return result
 
     # only 1 / (x * y)  accepted
-    if (symExpr.powerCounter     >  1 or
+    if (# symExpr.powerCounter     >  1 or
         symExpr.powerSign       != -1 or
-        symExpr.powerDenominator >  1 or
+        # symExpr.powerDenominator >  1 or
         symExpr.onlyOneRoot     !=  1 or
         symExpr.numElements()    <  2
       ) :

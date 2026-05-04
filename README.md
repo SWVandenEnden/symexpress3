@@ -163,5 +163,7 @@ python -m symexpress3
 - *Help*: python -m symexpress3  -h
 - *Direct optimize*: python -m symexpress3 "cos( pi / 4 )^^(1/3)"
 
-### Graphical user interface
-https://github.com/SWVandenEnden/websym3
+
+### Notes
+- By big numbers set mpmatch precision accordingly (mpmath.mp.dps)
+- Graphical user interface: https://github.com/SWVandenEnden/websym3

@@ -78,10 +78,21 @@
 
     Principal root
              https://math.stackexchange.com/questions/1385255/properties-of-the-principal-square-root-of-a-complex-number
+
+
+    Incorrect calculation:
+      mpmath (1.3.0)
+      By a precision of 150 (and greater) there are calculcation errors.
+      Try: (-1) * 3^^(1/2) + 1 * 2^^-1 * 3^^(1/2) + 1 * 2^^-1 * (3 * 3^^(1/2))^^(1/3)
+      This must give 0 as answer... but if gives 7.6373...
+      5 april 2026
+
+
+
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20260420001" # build number
+__buildnumber__ = "20260426001" # build number
 
 
 import sys
@@ -776,6 +787,8 @@ class SymNumber( SymBasePower ):
   def getValue( self, dDict = None ):
     dValue = self.factor
 
+    # print( f"getValue start: {dValue}")
+
     # print( "dValue before: {}".format( dValue ))
     if self.power < 0:
       dValue = dValue ** mpmath.mpf( self.power )
@@ -783,7 +796,7 @@ class SymNumber( SymBasePower ):
       dValue = dValue ** self.power
     # print( "dValue after: {}, factor: {}, power: {}".format( dValue, self.factor, self.power ))
 
-    # print ( "getValue: {}, value: {}".format( str( self), dValue ))
+    # print ( f"getValue: {str( self)}, value: {dValue}" )
     return dValue
 
   # factor in string format

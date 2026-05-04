@@ -107,6 +107,7 @@ class OptimizePower( optimizeBase.OptimizeBase ):
       symExpr.powerCounter = 1
 
     else:
+
       # multiply
       elemNew = symexpress3.SymExpress( '*' )
       for elem in symExpr.elements :

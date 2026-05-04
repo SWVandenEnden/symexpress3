@@ -439,8 +439,11 @@ testData = [ # 1
              , 'result'     : '0'
              , 'actions'    : [ 'optimizeExtended' ]
              }
-
-
+            , # 75
+             { 'expression' : '(6 * (a * 1 * pi^^-1 * 1 * e^^-1)^^(-2/3))^^(2/3)'
+             , 'result'     : '(6 * (a^^-1 * pi * e)^^(2/3))^^(2/3)'
+             , 'actions'    : [ 'optimizeExtended' ]
+             }
 
            ]
 
