@@ -112,7 +112,8 @@ def Test( display = False):
     print( f"orginal   : {str( symTest )}" )
     print( f"optimized : {str( symNew  )}" )
 
-  if str( symNew ).strip() != "(2 * i)^^-1 * ( cos(  atan( x ) ) + i *  sin(  atan( x ) ))^^(1/5) + (2 * i)^^-1 * (-1) * ( cos(  atan( x ) ) + (-1) * i *  sin(  atan( x ) ))^^(1/5)":
+  # if str( symNew ).strip() != "(2 * i)^^-1 * ( cos(  atan( x ) ) + i *  sin(  atan( x ) ))^^(1/5) + (2 * i)^^-1 * (-1) * ( cos(  atan( x ) ) + (-1) * i *  sin(  atan( x ) ))^^(1/5)":
+  if str( symNew ).strip() != "(-1/2) * ( cos(  atan( x ) ) + i *  sin(  atan( x ) ))^^(1/5) * i + (1/2) * ( cos(  atan( x ) ) + (-1) * i *  sin(  atan( x ) ))^^(1/5) * i":
     print( f"Error unit test {testClass.name} function" )
     raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symNew )}' )
 

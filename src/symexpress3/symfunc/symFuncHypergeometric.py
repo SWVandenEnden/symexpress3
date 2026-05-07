@@ -494,9 +494,10 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
 
     # below transformation is only valid if abs(z) < 1
-    elemNew = _transAbsZSmall( valP, valQ, startP, startQ, elemZ )
-    if elemNew != None:
-      return elemNew
+    # elemNew = _transAbsZSmall( valP, valQ, startP, startQ, elemZ )
+    # moved to optSymFunctionHypergeometricToProduct.py
+    # if elemNew != None:
+    #   return elemNew
 
     # print( "end hyper nothing to do")
     return None
@@ -606,18 +607,6 @@ def Test( display = False):
     if str( value ).strip() != valueCalc.strip() or (dValueCalc != None and dValue != dValueCalc) : # pylint: disable=consider-using-in
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'function {testClass.name}, unit test error: {str( symTest )}, value: {value} <> {valueCalc}, dValue:{dValue} <> {dValueCalc}' )
-
-  # https://reference.wolfram.com/language/ref/Hypergeometric2F1.html
-  # 0.156542+0.150796i
-  symTest = symexpress3.SymFormulaParser( 'hypergeometric( 2, 1, 2, 3, 4, 1/2 )' )
-  symTest.optimize()
-  testClass = SymFuncHypergeometric()
-  value     = testClass.functionToValue( symTest.elements[ 0 ] )
-  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
-
-  # _Check( testClass, symTest, value, dValue, "sum( n2,0,infinity, risingfactorial( 2,n2 ) *  risingfactorial( 3,n2 ) *  risingfactorial( 4,n2 )^^-1 *  exp( n2,(1/2) ) *  factorial( n2 )^^-1 )", 2.7289353331 )
-  # TODO _Check( testClass, symTest, value, dValue, "gamma( 4 ) * ( gamma( 3 ) *  gamma( 4 + (-1) * 3 ))^^-1 *  integral(  exp( 3 + (-1) * 1,n2 ) *  exp( 4 + (-1) * 3 + (-1) * 1,1 + (-1) * n2 ) *  hypergeometric( 1,0,2,1 * 2^^-1 * n2 ),n2,0,1 )", 2.7289353331 )
-
 
   symTest = symexpress3.SymFormulaParser( 'hypergeometric( 3, 2, 1, 2, 3, 4, 3, 1/2 )' )
   symTest.optimize()

@@ -87,6 +87,23 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     if self._checkCorrectFunction( elem ) != True:
       return None
 
+    # exp(a)^^2 = exp( 2 * a )
+    if elem.onlyOneRoot == 1 and (elem.powerSign != 1 or elem.powerCounter != 1 or elem.powerDenominator != 1):
+      elemPower = symexpress3.SymNumber( elem.powerSign, elem.powerCounter, elem.powerDenominator )
+
+      elemNew = elem.copy()
+      elemNew.powerSign        = 1
+      elemNew.powerCounter     = 1
+      elemNew.powerDenominator = 1
+
+      elemNum1 = symexpress3.SymExpress( '*' )
+      elemNum1.add( elemNew.elements[0] )
+      elemNum1.add( elemPower )
+      elemNew.elements[ 0 ] = elemNum1
+
+      return elemNew
+
+
     # (x^2)^y = x^( 2 * y )
     # elem1 = y
     # elem2 = x
@@ -204,6 +221,16 @@ def Test( display = False):
   dValue = None
 
   _Check( exp, symTest, value, dValue, "exp( (2 * n + 1) * 3,x )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( (1/60) * i * pi )^^5' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( (1/60) * i * pi * 5 )", None )
+
 
 if __name__ == '__main__':
   Test( True )

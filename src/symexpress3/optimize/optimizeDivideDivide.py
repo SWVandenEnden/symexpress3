@@ -37,6 +37,8 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
   def optimize( self, symExpr, action ):
     result = False
 
+    # symexpress3.SymExpressTree( symExpr )
+
     if self.checkExpression( symExpr, action ) != True:
       return result
 
@@ -47,8 +49,10 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
         symExpr.onlyOneRoot     !=  1 or
         symExpr.numElements()    <  2
       ) :
+      # print( f"divideDivide, afgekeurd: {str(symExpr)}, powerSign: {symExpr.powerSign}, numElements: {symExpr.numElements()}")
       return result
 
+    # print( f"divideDivide search 1/x: {str(symExpr)}")
     # search if there is a 1/x item
     lFound = False
     for elem in symExpr.elements :
@@ -56,6 +60,7 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
         lFound = True
         break
     if lFound == False:
+      # print( "divideDivide, nothing found")
       return result
 
     # at least 1 1/x exist so make 2 list

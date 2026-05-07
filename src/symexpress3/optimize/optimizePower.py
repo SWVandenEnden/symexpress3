@@ -49,11 +49,26 @@ class OptimizePower( optimizeBase.OptimizeBase ):
     if symExpr.powerDenominator == 1 and symExpr.onlyOneRoot != 1:
       symExpr.onlyOneRoot = 1
 
-    if ( symExpr.powerCounter  < 2 or
-         symExpr.onlyOneRoot  != 1 or
+    if ( symExpr.onlyOneRoot  != 1 or
          symExpr.numElements() < 2
        ):
       return result
+
+    # special case for 1/(a * b) = 1/a * 1/b
+    if symExpr.symType == '*' and symExpr.powerCounter == 1 and symExpr.powerDenominator == 1 and symExpr.powerSign == -1:
+      for elem in symExpr.elements:
+        elem.powerSign = -1 * elem.powerSign
+      symExpr.powerSign = 1
+
+      return True
+
+    if symExpr.powerCounter < 2 :
+      return result
+
+    # for (x+y)^^2/3 no write out is needed, it make it only more difficult to read
+    # adjustment, to write out powers in an radical make it more difficult to read
+    if symExpr.symType == '+' and symExpr.powerDenominator > 1 : # symExpr.powerCounter:
+      return False
 
     if (symExpr.powerDenominator > 1 and symExpr.onlyOneRoot == 1):
       # (x+2)^^(2/3)
@@ -175,6 +190,18 @@ def Test( display = False):
   result |= testClass.optimize( symTest, "power" )
 
   _Check( testClass, symOrg, symTest, "1 * (a)^^3 * (b)^^0 + 3 * (a)^^2 * b + 3 * a * (b)^^2 + 1 * (a)^^0 * (b)^^3" )
+
+
+
+  symTest = symexpress3.SymFormulaParser( '(a * b)^^-1' )
+  symTest.optimize()
+  symTest = symTest.elements[ 0 ]
+  symOrg = symTest.copy()
+
+  testClass = OptimizePower()
+  result |= testClass.optimize( symTest, "power" )
+
+  _Check( testClass, symOrg, symTest, "a^^-1 * b^^-1" )
 
 
 if __name__ == '__main__':

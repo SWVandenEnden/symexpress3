@@ -360,6 +360,10 @@ class SymBase( ABC ):
 
     result = funcDef.functionToValue( elem )
 
+    # if result != None:
+    #   print( f"_funcionToValue: {funcDef.name}, elem: {str(elem)}")
+
+
     return result
 
   def existArray(self):
@@ -1661,6 +1665,14 @@ class SymFunction( SymBaseList ):
           result = True
 
         elif ( isinstance( elem1 , SymVariable ) and elem1.power == 1):
+          elem1.powerSign        *= elem.powerSign
+          elem1.powerCounter     *= elem.powerCounter
+          elem1.powerDenominator *= elem.powerDenominator
+
+          self.elements[ iCnt ]   = elem1
+          result = True
+
+        elif ( isinstance( elem1 , SymExpress ) and elem1.power == 1):
           elem1.powerSign        *= elem.powerSign
           elem1.powerCounter     *= elem.powerCounter
           elem1.powerDenominator *= elem.powerDenominator

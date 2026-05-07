@@ -706,35 +706,68 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
     if symExpr.numElements() <= 1:
       return result
 
+    debug = False
+    # debug = True
+
     # multiply SymNumbers
-    result |= _multiplyNumbers()
+    answer  = _multiplyNumbers()
+    if debug == True and answer == True:
+      print( f"_multiplyNumbers: {str(symExpr)}")
+    result |= answer
 
     # get all sub expressons with power op 1
-    result |= _multiplyElemGetSubPowerOne()
+    answer  = _multiplyElemGetSubPowerOne()
+    if debug == True and answer == True:
+      print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
+    result |= answer
 
     # multiply SymVariable with sympexression of type +
-    result |= _multiplyElemUnitExpress()
+    answer  = _multiplyElemUnitExpress()
+    if debug == True and answer == True:
+      print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
+    result |= answer
 
     # multiply 2 symexpressions (type plus)
-    result |= _multiplyElemExpressExpress()
+    answer  = _multiplyElemExpressExpress()
+    if debug == True and answer == True:
+      print( f"_multiplyElemExpressExpress: {str(symExpr)}")
+    result |= answer
 
     # multiple all SymVariable
-    result |= _multiplyElemVarVar()
+    answer  = _multiplyElemVarVar()
+    if debug == True and answer == True:
+      print( f"_multiplyElemVarVar: {str(symExpr)}")
+    result |= answer
 
     # multiply number with plus expression
-    result |= _multiplyNumberExpress()
+    answer  = _multiplyNumberExpress()
+    if debug == True and answer == True:
+      print( f"_multiplyNumberExpress: {str(symExpr)}")
+    result |= answer
 
     # multiply radicals with onylroots
-    result |= _multplyPlusMultiplyOnlyRoots()
+    answer  = _multplyPlusMultiplyOnlyRoots()
+    if debug == True and answer == True:
+      print( f"_multplyPlusMultiplyOnlyRoots: {str(symExpr)}")
+    result |= answer
 
     # multiply radicals with onlyroots with same power
-    result |= _multplyRadicalsSamePowerOnlyRoots()
+    answer  = _multplyRadicalsSamePowerOnlyRoots()
+    if debug == True and answer == True:
+      print( f"_multplyRadicalsSamePowerOnlyRoots: {str(symExpr)}")
+    result |= answer
 
     # multiply plus with multiply
-    result |= _multplyPlusExpressMultiply()
+    answer  = _multplyPlusExpressMultiply()
+    if debug == True and answer == True:
+      print( f"_multplyPlusExpressMultiply: {str(symExpr)}")
+    result |= answer
 
     # multiply same function = power + 1
-    result |= _multiplyFunctionFunction()
+    answer  = _multiplyFunctionFunction()
+    if debug == True and answer == True:
+      print( f"_multiplyFunctionFunction: {str(symExpr)}")
+    result |= answer
 
     return result
 

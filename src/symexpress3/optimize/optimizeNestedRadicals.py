@@ -23,7 +23,7 @@
 
 """
 
-import math
+# import math
 
 from symexpress3           import symexpress3
 from symexpress3.optimize  import optimizeBase

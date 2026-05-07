@@ -39,6 +39,7 @@ from symexpress3.optSymFunction import optSymFunctionNumberToDivisors
 from symexpress3.optSymFunction import optSymFunctionAsinToSum
 from symexpress3.optSymFunction import optSymFunctionAcosToSum
 from symexpress3.optSymFunction import optSymFunctionGammaToIntegral
+from symexpress3.optSymFunction import optSymFunctionHypergeometricToSum
 
 
 #
@@ -51,20 +52,22 @@ def SymRegisterOptimize():
 
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinToSum.OptSymFunctionSinToSum() )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosToSum.OptSymFunctionCosToSum() )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinAtanDivNToSinICos.OptSymFunctionSinAtanDivNToSinICos() )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosAtanDivNToSinICos.OptSymFunctionCosAtanDivNToSinICos() )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosXplusYtoSinCos.OptSymFunctionCosXplusYtoSinCos()       )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinXplusYtoSinCos.OptSymFunctionSinXplusYtoSinCos()       )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosAtanDiv3.OptSymFunctionCosAtanDiv3()                   )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosToE.OptSymFunctionCosToE()                             )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinToE.OptSymFunctionSinToE()                             )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToCosSin.OptSymFunctionEToCosSin()                       )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToSum.OptSymFunctionEToSum()                             )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToPrimeFactors.OptSymFunctionNumberToPrimeFactors() )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToDivisors.OptSymFunctionNumberToDivisors()         )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAsinToSum.OptSymFunctionAsinToSum()                       )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAcosToSum.OptSymFunctionAcosToSum()                       )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaToIntegral.OptSymFunctionGammaToIntegral()           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinAtanDivNToSinICos.OptSymFunctionSinAtanDivNToSinICos()     )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosAtanDivNToSinICos.OptSymFunctionCosAtanDivNToSinICos()     )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosXplusYtoSinCos.OptSymFunctionCosXplusYtoSinCos()           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinXplusYtoSinCos.OptSymFunctionSinXplusYtoSinCos()           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosAtanDiv3.OptSymFunctionCosAtanDiv3()                       )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosToE.OptSymFunctionCosToE()                                 )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinToE.OptSymFunctionSinToE()                                 )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToCosSin.OptSymFunctionEToCosSin()                           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToSum.OptSymFunctionEToSum()                                 )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToPrimeFactors.OptSymFunctionNumberToPrimeFactors()     )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToDivisors.OptSymFunctionNumberToDivisors()             )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAsinToSum.OptSymFunctionAsinToSum()                           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAcosToSum.OptSymFunctionAcosToSum()                           )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaToIntegral.OptSymFunctionGammaToIntegral()               )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionHypergeometricToSum.OptSymFunctionHypergeometricToSum()       )
+
 
 
 #
@@ -77,22 +80,23 @@ def SymRegisterGetModuleNames():
 
   symModules = []
 
-  symModules.append( optSymFunctionSinToSum             )
-  symModules.append( optSymFunctionCosToSum             )
-  symModules.append( optSymFunctionSinAtanDivNToSinICos )
-  symModules.append( optSymFunctionCosAtanDivNToSinICos )
-  symModules.append( optSymFunctionCosXplusYtoSinCos    )
-  symModules.append( optSymFunctionSinXplusYtoSinCos    )
-  symModules.append( optSymFunctionCosAtanDiv3          )
-  symModules.append( optSymFunctionCosToE               )
-  symModules.append( optSymFunctionSinToE               )
-  symModules.append( optSymFunctionEToCosSin            )
-  symModules.append( optSymFunctionEToSum               )
-  symModules.append( optSymFunctionNumberToPrimeFactors )
-  symModules.append( optSymFunctionNumberToDivisors     )
-  symModules.append( optSymFunctionAsinToSum            )
-  symModules.append( optSymFunctionAcosToSum            )
-  symModules.append( optSymFunctionGammaToIntegral      )
+  symModules.append( optSymFunctionSinToSum               )
+  symModules.append( optSymFunctionCosToSum               )
+  symModules.append( optSymFunctionSinAtanDivNToSinICos   )
+  symModules.append( optSymFunctionCosAtanDivNToSinICos   )
+  symModules.append( optSymFunctionCosXplusYtoSinCos      )
+  symModules.append( optSymFunctionSinXplusYtoSinCos      )
+  symModules.append( optSymFunctionCosAtanDiv3            )
+  symModules.append( optSymFunctionCosToE                 )
+  symModules.append( optSymFunctionSinToE                 )
+  symModules.append( optSymFunctionEToCosSin              )
+  symModules.append( optSymFunctionEToSum                 )
+  symModules.append( optSymFunctionNumberToPrimeFactors   )
+  symModules.append( optSymFunctionNumberToDivisors       )
+  symModules.append( optSymFunctionAsinToSum              )
+  symModules.append( optSymFunctionAcosToSum              )
+  symModules.append( optSymFunctionGammaToIntegral        )
+  symModules.append( optSymFunctionHypergeometricToSum    )
 
   return symModules
 

@@ -231,6 +231,8 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
       # ( a + b * c^^(1/2) )^^(-1/x)
       if symExpr.powerCounter != 1:
         return False
+
+      # print( f"unnesting radicals reporcipals, powercouner: {symExpr.powerCounter}, {str(symExpr)}")
       # if ( symExpr.powerDenominator <= 1 ):
       #   return False
       if symExpr.powerSign != -1:
@@ -248,6 +250,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
         if elem1.powerDenominator > 2:
           return False
         if elem1.powerDenominator == 2:
+          # print( f"Square found a: {str(elem1)}")
           squareFound += 1
 
       elif isinstance( elem1, symexpress3.SymExpress ):
@@ -262,6 +265,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
           if elem1a.powerDenominator > 2:
             return False
           if elem1a.powerDenominator == 2:
+            # print( f"Square found b: {str(elem1a)}")
             squareFound += 1
       else:
         return False
@@ -273,6 +277,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
         if elem2.powerDenominator > 2:
           return False
         if elem2.powerDenominator == 2:
+          # print( f"Square found c: {str(elem2)}")
           squareFound += 1
 
       elif isinstance( elem2, symexpress3.SymExpress ):
@@ -287,6 +292,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
           if elem2a.powerDenominator > 2:
             return False
           if elem2a.powerDenominator == 2:
+            # print( f"Square found d: {str(elem2a)}")
             squareFound += 1
       else:
         return False
@@ -328,12 +334,14 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
     # try square first
     result |= _nextSquare()
     if result != False:
+      # print( "unnestingradicals nextsquare")
       return result
 
     # try reciprocals
     # 1/a * a = 1
     result |= _reprocipals()
     if result != False:
+      # print( "unnestingradicals reprocipals")
       return result
 
     return result
