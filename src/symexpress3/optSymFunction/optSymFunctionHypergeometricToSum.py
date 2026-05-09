@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Hypergeometric to Product for Sym Express 3
+    Hypergeometric to sum for Sym Express 3
 
     Copyright (C) 2026 Gien van den Enden - swvandenenden@gmail.com
 
@@ -61,7 +61,7 @@ from symexpress3 import symtools
 
 class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
   """
-  Convert cos to e
+  Convert hypergemoetric to sum for abs(z) < 1"
   """
   def __init__( self ):
     super().__init__()

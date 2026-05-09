@@ -1122,7 +1122,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     dValue    = mpmath.quad( lambda xInput : _fncValue( xInput, objFunc, dDictSum, cVar ), [ startVal, endVal ], method='tanh-sinh' )
 
     # print( f"Result: {dValue}")
-    return dValue
+    return elemFunc.valuePow( dValue )
 
 
 

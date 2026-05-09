@@ -93,6 +93,83 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
 
       return elemNew
 
+    def _smallestGamma( elem1 ):
+      """
+      Convert gamma to the smallest from ( x * gammy(y) )
+      """
+      if not isinstance( elem1, symexpress3.SymNumber ) :
+        return None
+
+      if elem1.power != 1:
+        return None
+
+      if elem1.factSign != 1:
+        return None
+
+
+      # special case gamm( 1/2 ) = sqrt(pi)
+      if elem1.factDenominator == 2 and elem1.factCounter == 1:
+        elemNew = symexpress3.SymVariable( 'pi', 1, 1, 2, 1)
+
+        elemRet = symexpress3.SymExpress( '*')
+        elemRet.add( elemNew )
+        elemRet.powerSign        = elem.powerSign
+        elemRet.powerCounter     = elem.powerCounter
+        elemRet.powerDenominator = elem.powerDenominator
+
+        return elemRet
+
+
+      if elem1.factDenominator == 1:
+        return None
+
+      if elem1.factCounter <= elem1.factDenominator:
+        return None
+
+      # build: product( n, 1, end, number - n * end) * gamma( module )
+
+      endNumber = elem1.factCounter // elem1.factDenominator
+      elemEnd   = symexpress3.SymNumber( 1, endNumber, 1, 1, 1, 1, 1)
+
+      # variable name
+      varName = symtools.VariableGenerateGet()
+      elemVar = symexpress3.SymVariable( varName )
+
+      # -1 * variable
+      elemPlusVar = symexpress3.SymExpress( '*' )
+      elemPlusVar.add( symexpress3.SymNumber( -1, 1, 1 ) )
+      elemPlusVar.add( elemVar )
+
+      # number + -1 * variable
+      elemPlus = symexpress3.SymExpress( '+' )
+      elemPlus.add( elem1 )
+      elemPlus.add( elemPlusVar )
+
+      # product function
+      elemNew = symexpress3.SymFunction( "product" )
+      elemNew.add( elemVar )
+      elemNew.add( symexpress3.SymNumber( 1, 1, 1, 1, 1, 1, 1 ) )
+      elemNew.add( elemEnd )
+      elemNew.add( elemPlus )
+
+      # new gamma function with only the modulo as parameter
+      elemGamma = elem1.copy()
+      elemGamma.factCounter = elemGamma.factCounter % elemGamma.factDenominator
+      elemGamFunc = symexpress3.SymFunction( 'gamma')
+      elemGamFunc.add( elemGamma )
+
+      # product() * gamma()
+      elemRet = symexpress3.SymExpress( '*')
+      elemRet.add( elemNew   )
+      elemRet.add( elemGamFunc )
+
+      elemRet.powerSign        = elem.powerSign
+      elemRet.powerCounter     = elem.powerCounter
+      elemRet.powerDenominator = elem.powerDenominator
+
+      return elemRet
+
+
     def _convNegative( elem1 ):
       """
       Convert negative gamma to positive gamma for non integer values
@@ -149,6 +226,9 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
+    elemNew = _smallestGamma( elem1 )
+    if elemNew != None:
+      return elemNew
 
     return elemNew
 
@@ -191,6 +271,8 @@ def Test( display = False):
   _Check(  testClass, symTest, value, dValue, "factorial( 7 + (-1) )", 720 )
 
 
+  symtools.VariableGenerateReset()
+
   symTest = symexpress3.SymFormulaParser( 'gamma( -1/2 )' )
   symTest.optimize()
   testClass = SymFuncGamma()
@@ -198,6 +280,27 @@ def Test( display = False):
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check(  testClass, symTest, value, dValue, "1 *  gamma( (-1) * 1 * 2^^-1 * (-1) + 1 )^^-1 * pi *  sin( pi * ((-1) * 1 * 2^^-1 * (-1) + 1) )^^-1", -3.5449077018  )
+
+
+  symtools.VariableGenerateReset()
+
+  symTest = symexpress3.SymFormulaParser( 'gamma( 13/4 )' )
+  symTest.optimizeNormal()
+  testClass = SymFuncGamma()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check(  testClass, symTest, value, dValue, "product( n1,1,3,(13/4) + (-1) * n1 ) *  gamma( (1/4) )", 2.54925696671852928 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'gamma( 1/2 )' )
+  symTest.optimizeNormal()
+  testClass = SymFuncGamma()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check(  testClass, symTest, value, dValue, "pi^^(1/2)", 1.77245385090551602 )
+
 
 if __name__ == '__main__':
   Test( True )

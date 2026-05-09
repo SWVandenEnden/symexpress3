@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    Cos to sum for Sym Express 3
+    Gamma to integral for Sym Express 3
 
     Copyright (C) 2026 Gien van den Enden - swvandenenden@gmail.com
 
@@ -31,7 +31,7 @@ from symexpress3 import symtools
 
 class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
   """
-  Convert cos to e
+  Convert gamma to integral if the real part is positive
   """
   def __init__( self ):
     super().__init__()
