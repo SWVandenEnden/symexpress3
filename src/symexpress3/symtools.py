@@ -238,3 +238,92 @@ def ConvertToSymexpress3String( varData ):
   # print( f"End varData: {varData}" )
 
   return varData
+
+
+def PolynomialCoefficients( oFormula, cVarName ):
+  """
+  Give a dictionary back (key=power,data=coeffient as SymExpress) from the coefficients of the formula.
+  The formula is expected to be a polynomial (example: a x^^3 + b x^^2 + c)
+  """
+  dCoeffients = {}
+
+  if not isinstance( oFormula, symexpress3.SymExpress):
+    raise NameError( f"PolynomialCoefficients, {str(oFormula)} is not a SymExpress object but {type(oFormula)}")
+
+  if not isinstance( cVarName, str):
+    raise NameError( f"PolynomialCoefficients, {str(cVarName)} is not a str but {type(cVarName)}, ({str(oFormula)})")
+
+
+  if oFormula.power != 1:
+    raise NameError( f"PolynomialCoefficients, formula has power {oFormula.power} but only 1 is allowed, ({str(oFormula)})")
+
+  if oFormula.symType != '+':
+    raise NameError( f"PolynomialCoefficients, formula has type {oFormula.symType}. Excepted a '+' formula, ({str(oFormula)})")
+
+  if oFormula.numElements() <= 1 :
+    raise NameError( f"PolynomialCoefficients, formula has {oFormula.numElements()} elements. Excepted at least 2 elements, ({str(oFormula)})")
+
+  dVars = oFormula.getVariables()
+  if cVarName not in dVars:
+    raise NameError( f"PolynomialCoefficients,variable {cVarName} does not exist in the formula ({str(oFormula)})")
+
+  # get all the coefficients
+  for elem in oFormula.elements:
+    dVars    = elem.getVariables()
+    varPower = 0
+    varElem  = None
+    if cVarName in dVars:
+      # search for variable and get its power
+      if isinstance( elem, symexpress3.SymVariable ):
+        if elem.powerSign == -1 or elem.powerDenominator != 1:
+          raise NameError( f"PolynomialCoefficients, only positive and hole number as power are supported, found {str(elem)}, ({str(oFormula)})")
+        varPower = elem.powerCounter
+      else:
+        if not isinstance( elem, symexpress3.SymExpress):
+          raise NameError( f"PolynomialCoefficients, variable inside other statements are not supported, found {str(elem)}, ({str(oFormula)})")
+
+        if elem.symType != '*':
+          raise NameError( f"PolynomialCoefficients, variable inside other statements are not supported, found: {str(elem)}, ({str(oFormula)})")
+
+        if elem.power != 1:
+          raise NameError( f"PolynomialCoefficients, variable inside other statements are not supported, found {str(elem)}, ({str(oFormula)})")
+
+        varElem  = symexpress3.SymExpress( '*' )
+        varFound = False
+        for elemSub in elem.elements:
+          if isinstance( elemSub, symexpress3.SymVariable ):
+            if elemSub.name == cVarName:
+              if elemSub.powerSign == -1 or elemSub.powerDenominator != 1:
+                raise NameError( f"PolynomialCoefficients, only positive and hole number as power are supported, found {str(elemSub)}, ({str(oFormula)})")
+              if varFound == True:
+                raise NameError( f"PolynomialCoefficients, variable {cVarName} found more then 1 time in {str(elemSub)}, ({str(oFormula)})")
+
+              varPower = elemSub.powerCounter
+              varFound = False
+
+            else:
+              varElem.add( elemSub )
+          else:
+            varElem.add( elemSub )
+
+        # safety check variable
+        dVars = varElem.getVariables()
+        if cVarName in dVars:
+          raise NameError( f"PolynomialCoefficients, variable {cVarName} found more then 1 time in {str(elem)}, ({str(oFormula)})")
+
+    else:
+      varPower = 0
+      varElem  =  elem
+
+    if varElem == None:
+      varElem = symexpress3.SymNumber( 1,1,1,1,1,1 )
+
+    if varPower not in dCoeffients:
+      dCoeffients[ varPower ] = symexpress3.SymExpress( '+' )
+
+    dCoeffients[ varPower ].add( varElem )
+
+  # sort dict
+  dCoeffients = dict( sorted( dCoeffients.items() ))
+
+  return dCoeffients

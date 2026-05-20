@@ -525,6 +525,11 @@ class SymBasePower( SymBase ):
     if self.powerDenominator > 1:
       self.onlyOneRoot = 1
       return True
+
+    # forced if it is not set but give false back, nothing change really
+    if self.onlyOneRoot != 1:
+      self.onlyOneRoot = 1
+
     return False
 
 
