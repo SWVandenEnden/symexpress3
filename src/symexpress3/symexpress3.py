@@ -29,7 +29,7 @@
     Math html editor:
             http://mathquill.com/
 
-    Html/MathMl validtor:
+    Html/MathMl validator:
             https://validator.w3.org
 
     Python documentation tools:

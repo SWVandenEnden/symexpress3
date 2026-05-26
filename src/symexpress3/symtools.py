@@ -228,22 +228,27 @@ def ConvertToSymexpress3String( varData ):
     varData = str( varData )
 
   # check on correct symexpress3 string
-  try:
-    symexpress3.SymFormulaParser( varData )
-  except Exception as exceptAll:
-    # pylint: disable=raise-missing-from
-    raise NameError( f"'{varData}' is not a valid symexpress3 string, error: {str(exceptAll)}" )
+  if not isinstance( varData, symexpress3.SymExpress ):
+    try:
+      symexpress3.SymFormulaParser( varData )
+    except Exception as exceptAll:
+      # pylint: disable=raise-missing-from
+      raise NameError( f"'{varData}' is not a valid symexpress3 string, error: {str(exceptAll)}" )
+  else:
+    varData = str( varData )
 
-
-  # print( f"End varData: {varData}" )
+  # print( f"ConvertToSymexpress3String, end varData: {varData}" )
 
   return varData
 
 
-def PolynomialCoefficients( oFormula, cVarName ):
+def PolynomialCoefficients( oFormula, cVarName, insertZeros = False ):
   """
   Give a dictionary back (key=power,data=coeffient as SymExpress) from the coefficients of the formula.
   The formula is expected to be a polynomial (example: a x^^3 + b x^^2 + c)
+
+
+  If insertZeros is true then if a coefficient does not exist then put 0-value in it
   """
   dCoeffients = {}
 
@@ -265,7 +270,10 @@ def PolynomialCoefficients( oFormula, cVarName ):
 
   dVars = oFormula.getVariables()
   if cVarName not in dVars:
-    raise NameError( f"PolynomialCoefficients,variable {cVarName} does not exist in the formula ({str(oFormula)})")
+    # nothing to do
+    dCoeffients[ 0 ] = oFormula
+    return dCoeffients
+    # raise NameError( f"PolynomialCoefficients,variable {cVarName} does not exist in the formula ({str(oFormula)})")
 
   # get all the coefficients
   for elem in oFormula.elements:
@@ -322,6 +330,13 @@ def PolynomialCoefficients( oFormula, cVarName ):
       dCoeffients[ varPower ] = symexpress3.SymExpress( '+' )
 
     dCoeffients[ varPower ].add( varElem )
+
+  # if coefficient not exist put 0-value in it's place
+  if insertZeros == True:
+    maxPower = max( dCoeffients )
+    for iCnt in range( 0, maxPower ):
+      if iCnt not in dCoeffients:
+        dCoeffients[ iCnt ] = symexpress3.SymNumber( 1, 0, 1 ) # zero
 
   # sort dict
   dCoeffients = dict( sorted( dCoeffients.items() ))

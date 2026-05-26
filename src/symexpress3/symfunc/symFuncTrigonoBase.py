@@ -532,8 +532,17 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     # sqrt( 1/4 (  ((i−11/3)/(i+11/3))^(1/2) + 2 + ((i+11/3)/(i−11/3))^(1/2) ))
     #
     # y is a number with power of 1
-    # cos( atan( x ) * y ) = ( 1/4 ( ((i−x)/(i+x))^^(y) + 2 + ((i+x)/(i−x))^^(y) ))^^(1/2)
-    # But this give an another cos( atan( ... )) -> imaginair number in a sqrt
+    # cos( atan( x ) * y ) = ( 1/4 ( ((i -x)/(i+x))^^(y) + 2 + ((i+x)/(i-x))^^(y) ))^^(1/2)
+    # But this give an another cos( atan( ... )) -> imaginary number in a sqrt
+
+    # Example:
+    # -1 = 5^^(1/2) * i * (2/5) + cos( atan( 4 * 5^^(1/2) ) * (1/2) ) * 5^^(1/2) * (-3/5) + i * sin( atan( 4 * 5^^(1/2) ) * (1/2) ) * 5^^(1/2) * (-3/5)
+
+
+    # cos(atan(x)/y) = sqrt( (1 + cos(atan(x)) / (y/2) )
+    # sin(atan(x)/y) = sqrt( (1 - cos(atan(x)) / (y/2) )
+    # replace 2 to a power of 2 and make x atan(y) then that's it
+
 
     if elem.numElements() != 1:
       return None
@@ -565,6 +574,56 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       # print( 'exprResult: {}'.format( str( exprResult ) ))
 
       return exprResult
+
+    if isinstance( elem.elements[ 0 ], symexpress3.SymExpress ):
+      # cos(x/2) = sqrt( (1 + cos(x)) / 2 )
+      # sin(x/2) = sqrt( (1 - cos(x)) / 2 )
+      # replace 2 to a power of 2 and make x atan(y) then that's it
+      elemexpr = elem.elements[ 0 ]
+
+      if elemexpr.symType == '*' and elemexpr.numElements() == 2 and elemexpr.power == 1:
+        if isinstance( elemexpr.elements[ 0 ], symexpress3.SymFunction ):
+          elemFunc = elemexpr.elements[ 0 ]
+          elemNum  = elemexpr.elements[ 1 ]
+        else:
+          elemFunc = elemexpr.elements[ 1 ]
+          elemNum  = elemexpr.elements[ 0 ]
+
+        if (   isinstance( elemFunc, symexpress3.SymFunction )
+            and elemFunc.name       == 'atan'
+            and elemFunc.power      == 1
+            and isinstance( elemNum, symexpress3.SymNumber )
+            and elemNum.power       == 1
+            and elemNum.factSign    == 1
+            and elemNum.factCounter == 1
+           ):
+
+          # ok, found atan(x)/y
+          dictFactors = primefactor.FactorizationDict( elemNum.factDenominator )
+
+          if len( dictFactors ) == 1 and 2 in dictFactors:
+
+            # ok elemNumm is a power of 2 (2^x)
+            factor = elemNum.factDenominator // 2
+
+            if elem.name == 'cos':
+              elemStr = f"( (1 + cos( {str(elemFunc)} / {factor} )) / 2 )^^(1/2)"
+            elif elem.name == 'sin':
+              elemStr = f"( (1 - cos( {str(elemFunc)}/ {factor})) / 2 )^^(1/2)"
+            else:
+              elemStr = ''
+
+            if elemStr != '':
+              exprResult = symexpress3.SymFormulaParser( elemStr )
+              exprResult.powerSign        = elem.powerSign
+              exprResult.powerCounter     = elem.powerCounter
+              exprResult.powerDenominator = elem.powerDenominator
+              exprResult.optimizeNormal()
+
+              return exprResult
+
+
+
 
     if ( isinstance( elem.elements[ 0 ], symexpress3.SymExpress) and elem.name == 'cos' ):
       #
