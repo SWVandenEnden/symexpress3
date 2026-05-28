@@ -49,7 +49,9 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
 
     output = ""
 
-    output += "<mfenced>"
+    # output += "<mfenced>"
+    output += "<mrow><mo>(</mo>"
+
     output += "<mtable>"
 
     output += "<mtr>"
@@ -65,7 +67,8 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     output += "</mtr>"
 
     output += "</mtable>"
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
     return [], output
 

@@ -128,7 +128,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     output += '<mrow></mrow>'                        # <!-- pre-sup-script -->
     output += '</mmultiscripts>'
 
-    output += "<mfenced separators=''>"
+    # output += "<mfenced separators=''>"
+    output += "<mrow><mo>(</mo>"
 
     # print( f"valP {valP}" )
     # print( f"valQ {valQ}" )
@@ -148,7 +149,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
     output += elemZ.mathMl()
 
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
     return [ '()' ], output
 

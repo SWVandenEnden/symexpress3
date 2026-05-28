@@ -21,9 +21,7 @@
 
 
     MathMl: https://www.mathjax.org/
-            https://elsenaju.eu/mathml/MathML-Examples.htm
             https://www.w3.org/TR/MathML3/mathml.pdf
-            https://www.javatpoint.com/mathml-algebra-symbols
             https://developer.mozilla.org/en-US/docs/Web/MathML
 
     Math html editor:
@@ -98,6 +96,7 @@ __buildnumber__ = "20260504001" # build number
 import sys
 import math
 import warnings
+# import gc
 
 # import traceback
 
@@ -583,7 +582,9 @@ class SymBasePower( SymBase ):
         startPower += '<msup>'
         startPower += '<mrow>'
         if self.powerDenominator != 1:
-          startPower += "<mfenced separators=''>"
+          # startPower += "<mfenced separators=''>"
+          startPower += "<mrow>"
+          startPower += "<mo>(</mo>"
 
       if self.powerDenominator != 1:
         startPower += '<mroot' + self.powerMathMlColor() + '>'
@@ -591,8 +592,10 @@ class SymBasePower( SymBase ):
 
 
       if '()' in defaults and self.powerCounter != 1 and self.powerDenominator == 1:
-        startPower += "<mfenced separators=''>"
-        endPower   += "</mfenced>"
+        # startPower += "<mfenced separators=''>"
+        # endPower   += "</mfenced>"
+        startPower += "<mrow><mo>(</mo>"
+        endPower   += "<mo>)</mo></mrow>"
 
 
       if self.powerDenominator != 1:
@@ -607,7 +610,9 @@ class SymBasePower( SymBase ):
 
       if self.powerCounter != 1:
         if self.powerDenominator != 1:
-          endPower   += "</mfenced>"
+          # endPower   += "</mfenced>"
+          endPower += "<mo>)</mo>"
+          endPower += "</mrow>"
 
         endPower += '</mrow>'
         endPower += '<mn>' + str( self.powerCounter )  + '</mn>'
@@ -908,7 +913,7 @@ class SymNumber( SymBasePower ):
 
     return result
 
-  # output in MatMl format
+  # output in MathMl format
   def mathMl( self ):
     """
     Give the unit in MathMl format
@@ -1092,7 +1097,7 @@ class SymVariable( SymBasePower ):
 
 
 
-  # output in MatMl format
+  # output in MathMl format
   def mathMl( self ):
     """
     Give the unit in MathMl format
@@ -1245,7 +1250,9 @@ class SymBaseList( SymBasePower ):
     output = ""
 
     if setOpenClose == True:
-      output += "<mfenced separators=''>"
+      # output += "<mfenced separators=''>"
+      output += "<mrow>"
+      output += "<mo>(</mo>"
 
     for iCnt, elem in enumerate( self.elements ):
 
@@ -1261,7 +1268,8 @@ class SymBaseList( SymBasePower ):
       output += elem.mathMl()
 
     if setOpenClose == True:
-      output += "</mfenced>"
+      # output += "</mfenced>"
+      output += "<mo>)</mo></mrow>"
 
     return output
 
@@ -1549,7 +1557,8 @@ class SymArray( SymBaseList ):
 
     output += startPower
 
-    output += "<mfenced open='[' close=']'>"
+    # output += "<mfenced open='[' close=']'>"
+    output += "<mrow><mo>{</mo>"
     output += '<mtable>'
     for elem in self.elements:
       output += '<mtr>'
@@ -1559,7 +1568,8 @@ class SymArray( SymBaseList ):
       output += '</mtr>'
 
     output += '</mtable>'
-    output += '</mfenced>'
+    # output += '</mfenced>'
+    output += "<mo>}</mo></mrow>"
 
     output += endPower
 
@@ -1729,7 +1739,7 @@ class SymFunction( SymBaseList ):
     """
     Make a copy of this expression
     """
-    copyFunc = SymFunction(  self.name
+    copyFunc = SymFunction( self.name
                           , self.powerSign
                           , self.powerCounter
                           , self.powerDenominator
@@ -2393,6 +2403,9 @@ class SymExpress( SymBaseList ):
     if filehandle != None:
       print( " ", file=filehandle )
 
+    # cleanup memory
+    # does not work...
+    # gc.collect()
 
   # @deprecated(version='1.2.1', reason="You should use another function")
   def optimizeSpecial( self , output = None, filehandle = None, extra = None, varDict = None ):
@@ -2526,10 +2539,10 @@ class SymExpress( SymBaseList ):
       copySymExpress.add( elem )
     return copySymExpress
 
-  # output in MatMl format
+  # output in MathMl format
   def mathMl( self ):
     """
-    Give the expression in MatMl format.
+    Give the expression in MathML format.
     """
     output = ''
 
@@ -2571,9 +2584,13 @@ class SymExpress( SymBaseList ):
             output += '<mspace width="4px"></mspace>'
 
         if ( isinstance( elem, SymExpress ) and elem.symType != '*' and elem.power == 1 ):
-          output += "<mfenced separators=''>"
+          # output += "<mfenced separators=''>"
+          output += "<mrow>"
+          output += "<mo>(</mo>"
           output += elem.mathMl()
-          output += "</mfenced>"
+          output += "<mo>)</mo>"
+          output += "</mrow>"
+          # output += "</mfenced>"
         else:
           output += elem.mathMl()
 
@@ -2727,7 +2744,7 @@ class SymToHtml():
     self.write( '<head>' )
     self.write( '<meta charset="utf-8">' )
     self.write( '<title>' + self.title + '</title>' )
-    self.write( '<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>' )
+    # self.write( '<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>' )
     self.write( '</head>' )
     self.write( '<body>' )
 
@@ -2740,7 +2757,7 @@ class SymToHtml():
 
   def writeSymExpress( self, oSymExpress, cTitle = None ):
     """
-    Write a SymExpress in MatmMl format to the file. If the file is not open, it will be opened.
+    Write a SymExpress in MathMl format to the file. If the file is not open, it will be opened.
     """
     cMath = oSymExpress.mathMl()
     if cTitle != None:

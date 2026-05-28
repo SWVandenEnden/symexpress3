@@ -65,12 +65,14 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
         isExtraClose = False
 
       if isExtraClose == True:
-        output += "<mfenced separators=''>"
+        # output += "<mfenced separators=''>"
+        output += "<mrow><mo>(</mo>"
 
       output += elem.elements[ 1 ].mathMl()
 
       if isExtraClose == True:
-        output += "</mfenced>"
+        # output += "</mfenced>"
+        output += "<mo>)</mo></mrow>"
     else:
       output += '<mi>'
       output += 'e'

@@ -63,9 +63,11 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
 
     output += '</munderover>'
 
-    output += "<mfenced separators=''>"
+    # output += "<mfenced separators=''>"
+    output += "<mrow><mo>(</mo>"
     output += elem.elements[ 3 ].mathMl()
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
     return [ '()' ], output
 

@@ -53,9 +53,11 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
 
     output += '<msubsup>'
 
-    output += "<mfenced separators='' open='|' close='|'>"
+    # output += "<mfenced separators='' open='|' close='|'>"
+    output += "<mrow><mo>|</mo>"
     output += elem.elements[ 0 ].mathMl()
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>|</mo></mrow>"
 
     output += elem.elements[ 2 ].mathMl()
     output += elem.elements[ 3 ].mathMl()

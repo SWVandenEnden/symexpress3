@@ -48,7 +48,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
 
     output = ""
 
-    output += "<mfenced  open='&lceil;' close='&rceil;'>"
+    # output += "<mfenced  open='&lceil;' close='&rceil;'>"
+    output += "<mrow><mo>&lceil;</mo>"
     output += "<mtable>"
 
     output += "<mtr>"
@@ -58,7 +59,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     output += "</mtr>"
 
     output += "</mtable>"
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>&rceil;</mo></mrow>"
 
     return [], output
 

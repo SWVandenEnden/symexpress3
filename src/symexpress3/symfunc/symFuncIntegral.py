@@ -74,9 +74,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       output += '</munderover>'
 
-    output += "<mfenced separators=''>"
+    # output += "<mfenced separators=''>"
+    output += "<mrow><mo>(</mo>"
     output += elem.elements[ 0 ].mathMl()
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
     output += "<mi>d&nbsp;</mi>"
     output += elem.elements[ 1 ].mathMl()

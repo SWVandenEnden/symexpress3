@@ -52,9 +52,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     output += "<mrow>"
     output += "<mi>d</mi>"
 
-    output += "<mfenced separators=''>"
+    # output += "<mfenced separators=''>"
+    output += "<mrow><mo>(</mo>"
     output += elem.elements[ 0 ].mathMl()
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
     output += "</mrow>"
 

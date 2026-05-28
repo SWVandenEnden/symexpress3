@@ -63,9 +63,11 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
 
     output += '</msub>'
 
-    output += "<mfenced separators=''>"
+    # output += "<mfenced separators=''>"
+    output += "<mrow><mo>(</mo>"
     output += elem.elements[ 0 ].mathMl()
-    output += "</mfenced>"
+    # output += "</mfenced>"
+    output += "<mo>)</mo></mrow>"
 
 
     return ['()'], output

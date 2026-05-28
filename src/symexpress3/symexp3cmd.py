@@ -22,6 +22,8 @@
 """
 
 import sys
+from pathlib import Path
+
 import mpmath
 import symexpress3
 
@@ -191,6 +193,7 @@ def DisplayHelp():
   print( "                 c - Calculated value " )
   print( "                 t - tree view" )
   print( "                 h - html, formula in string and MathMl format" )
+  print( "  -f <file>    : Read formula from text file instead of the command line" )
   print( " -dps <number> : Calculation precision, default is 20" )
   print( " " )
   print( "arg:" )
@@ -219,6 +222,11 @@ def CommandLine( argv ):
   expressions = []
   for iCnt in range( 1, nrarg ) :
     cArg = argv[ iCnt ]
+
+    if mode == "file":
+      data = Path( cArg ).read_text( encoding="utf-8" )
+      expressions.append( data )
+      continue
 
     if mode == "list":
       DisplayList( cArg )
@@ -255,6 +263,9 @@ def CommandLine( argv ):
 
     elif cArg == "-a":
       mode = "optimize"
+
+    elif cArg == "-f":
+      mode = "file"
 
     elif cArg == "-dps":
       mode = "precision"
