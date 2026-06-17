@@ -387,7 +387,7 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
                   otherFound += 1
                   break
               elif isinstance( elemSub, symexpress3.SymNumber ):
-                if elem.factSign == 1 or elem.powerDenominator == 1: # only real numbers
+                if elemSub.factSign == 1 or elemSub.powerDenominator == 1: # only real numbers
                   numFound += 1
                 else:
                   otherFound += 1

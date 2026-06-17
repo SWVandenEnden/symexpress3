@@ -216,7 +216,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         # print ('num elements: {}'.format(  len( symExpr.elements )))
 
         for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
-          elem1 = symExpr.elements[ iCnt     ]
+          elem1 = symExpr.elements[ iCnt ]
 
           # only multiple expressions
           if not isinstance( elem1 , symexpress3.SymExpress ):
@@ -230,29 +230,32 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
           iCnt2 = iCnt + 1
           while( lFound == False and iCnt2 < len( symExpr.elements )):
-            elem2 = symExpr.elements[ iCnt2 ]
+            elem2  = symExpr.elements[ iCnt2 ]
             iCnt2 += 1
 
             # only multiply expressions
             if not isinstance( elem2 , symexpress3.SymExpress ):
               continue
-            # only multiply with power of 1
-            if elem2.power != elem1.power:
-              continue
             # only + expressions
             if elem2.symType != '+':
+              continue
+            # only multiply with power of 1
+            if elem2.power != elem1.power:
               continue
 
             # 2 plus expression with power of 1
             # the factors are already one, see loops above
-            elemnew = symexpress3.SymExpress( '+' )
+            elemnew           = symexpress3.SymExpress( '+' )
             elemnew.powerSign = elem2.powerSign
+
             for elemSub1 in elem1.elements:
 
               for elemSub2 in elem2.elements:
                 elem12 = symexpress3.SymExpress( '*' )
-                elem12.add( elemSub1 )
-                elem12.add( elemSub2 )
+                # elem12.add( elemSub1 )
+                elem12.elements.append( elemSub1 )
+                # elem12.add( elemSub2 )
+                elem12.elements.append( elemSub2 )
                 elemnew.add( elem12 )
 
             symExpr.elements[ iCnt ] = elemnew
@@ -382,11 +385,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         elem = symExpr.elements[ iCnt ]
         if not isinstance( elem, symexpress3.SymExpress ):
           continue
-        if elem.power != 1:
-          continue
         if elem.symType != '+':
           continue
         if elem.numElements() <= 1:
+          continue
+        if elem.power != 1:
           continue
         # found a plus expression within a multiply express
         # make it a plus expression
@@ -394,7 +397,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         for iCnt2, elemSub2 in enumerate( symExpr.elements ):
           if iCnt2 == iCnt:
             continue
-          symMulti.add( elemSub2 )
+          # symMulti.add( elemSub2 )
+          symMulti.elements.append( elemSub2 )
 
         # print( 'SymMulti: {}'.format( str( SymMulti )))
 
@@ -406,8 +410,10 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         result           = True
         for elemSub2 in elem.elements :
           symNew = symexpress3.SymExpress( '*' )
-          symNew.add( symMulti )
-          symNew.add( elemSub2 )
+          # symNew.add( symMulti )
+          symNew.elements.append( symMulti )
+          # symNew.add( elemSub2 )
+          symNew.elements.append( elemSub2 )
           symExpr.add( symNew )
 
         # SymExpress is now a plus expression

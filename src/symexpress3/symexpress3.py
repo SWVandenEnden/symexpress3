@@ -90,7 +90,7 @@
 """
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20260504001" # build number
+__buildnumber__ = "20260616001" # build number
 
 
 import sys
@@ -181,6 +181,7 @@ class SymBase( ABC ):
   """
   Abstract class that is the base of all symexpress classes
   """
+  __slots__ = ()
 
   @abstractmethod
   def optimize( self, cAction = None ):
@@ -256,13 +257,17 @@ class SymBase( ABC ):
     # only a expression of type * can has an expression and this type
     if not isinstance( elem, SymExpress ):
       return False
+
     if elem.symType != '*':
       return False
-    if  elem.power != 1:
-      return False
+
     # the expression must has 2 elements, 1 number and 1 variable
     if elem.numElements() != 2:
       return False
+
+    if  elem.power != 1:
+      return False
+
     elem1 = elem.elements[ 0 ]
     elem2 = elem.elements[ 1 ]
 
@@ -378,6 +383,9 @@ class SymBasePower( SymBase ):
   """
   Base class for handling power.
   """
+
+  __slots__ = '_powerSign','_powerCounter','_powerDenominator','_onlyOneRoot'
+
   def __init__( self
               , inPowerSign        = 1
               , inPowerCounter     = 1
@@ -670,6 +678,9 @@ class SymNumber( SymBasePower ):
   """
   Class for handling factor and power.
   """
+
+  __slots__ = '_factSign','_factCounter','_factDenominator'
+
   def __init__( self
               , in_factSign         = 1
               , in_factCounter      = 1
@@ -679,15 +690,15 @@ class SymNumber( SymBasePower ):
               , in_powerDenominator = 1
               , in_onlyOneRoot      = 1 # default principal root
               ):
-    super().__init__()
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
 
     self.factSign         = in_factSign
     self.factCounter      = in_factCounter
     self.factDenominator  = in_factDenominator
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
 
   @property
   def factSign(self):
@@ -976,6 +987,9 @@ class SymVariable( SymBasePower ):
   """
   Handling a variable with power
   """
+
+  __slots__ = ('_name',)
+
   def __init__( self
                , in_name             = ''
                , in_powerSign        = 1
@@ -985,13 +999,12 @@ class SymVariable( SymBasePower ):
 
                ):
 
-    super().__init__()
-
-    self.name             = in_name
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
+    self.name = in_name
 
   @property
   def name(self):
@@ -1171,26 +1184,22 @@ class SymBaseList( SymBasePower ):
   """
   Base class for list (array) support
   """
+  __slots__ = ('elements', )
+
   def __init__( self
-             , in_factSign         = 1
-             , in_factCounter      = 1
-             , in_factDenominator  = 1
-             , in_powerSign        = 1
-             , in_powerCounter     = 1
-             , in_powerDenominator = 1
-             , in_onlyOneRoot      = 1 # default principal root
-             ):
+              , in_powerSign        = 1
+              , in_powerCounter     = 1
+              , in_powerDenominator = 1
+              , in_onlyOneRoot      = 1 # default principal root
+              ):
 
-    super().__init__()
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
+    self.elements = []
 
-    self.factSign         = in_factSign
-    self.factCounter      = in_factCounter
-    self.factDenominator  = in_factDenominator
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
-    self.elements         = []
 
   # add SymExpress or and SymVariable to the list
   def add( self, val ):
@@ -1422,20 +1431,7 @@ class SymArray( SymBaseList ):
   """
   An array of expressions
   """
-  def __init__( self
-              , in_powerSign        = 1
-              , in_powerCounter     = 1
-              , in_powerDenominator = 1
-              , in_onlyOneRoot      = 1 # default principal root
-              ):
-
-    super().__init__()
-
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
-
+  __slots__ = ()
 
   def optimize( self, cAction = None ):
 
@@ -1603,6 +1599,8 @@ class SymFunction( SymBaseList ):
   """
   Handling of a function
   """
+  __slots__ = ('_name',)
+
   def __init__( self
               , in_name             = ""
               , in_powerSign        = 1
@@ -1611,13 +1609,12 @@ class SymFunction( SymBaseList ):
               , in_onlyOneRoot      = 1 # default principal root
               ):
 
-    super().__init__()
-
-    self.name             = in_name
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
+    self.name = in_name
 
   @property
   def name(self):
@@ -1845,6 +1842,8 @@ class SymExpress( SymBaseList ):
   """
   A symbolic expression
   """
+  __slots__ = ('_symType',)
+
   def __init__( self
               , in_symType          = "+"
               , in_powerSign        = 1
@@ -1853,13 +1852,12 @@ class SymExpress( SymBaseList ):
               , in_onlyOneRoot      = 1 # default principal root
               ):
 
-    super().__init__()
-
-    self.symType          = in_symType
-    self.powerSign        = in_powerSign
-    self.powerCounter     = in_powerCounter
-    self.powerDenominator = in_powerDenominator
-    self.onlyOneRoot      = in_onlyOneRoot
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
+    self.symType = in_symType
 
   @property
   def symType(self):
@@ -2190,7 +2188,7 @@ class SymExpress( SymBaseList ):
 
       return result
 
-    # delete all sympressesion with zero elements
+    # delete all sympress with zero elements
     def _optDelZeroElements():
       result = False
 
@@ -2251,7 +2249,8 @@ class SymExpress( SymBaseList ):
           lFound = True
 
           for elem2 in elem.elements:
-            self.add( elem2 )
+            # self.add( elem2 )
+            self.elements.append( elem2 )
 
           break
       return result
