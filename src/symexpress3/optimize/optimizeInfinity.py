@@ -48,6 +48,8 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
   """
   Optimize infinity
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "infinity"

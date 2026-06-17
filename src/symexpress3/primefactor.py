@@ -313,6 +313,8 @@ def FactorizationDict(n):
   """
   globalCachePrimeFactors[ n ] = factorDict.copy()
 
+  # print( f'After factorDict, count: { len(globalCachePrimeFactors)}' )
+
   # print( f"FactorizationDict done: {n} : {factorDict}" )
   # for key in factorDict:
   #   if key > n:
@@ -359,7 +361,7 @@ def FactorAllInt( n ):
 
   globalCacheAllFactors[ n ] = factors.copy()
 
-  # print( f"FactorAllInt done: {n}" )
+  # print( f"FactorAllInt done: {n}  count: { len(globalCacheAllFactors[ n ]) }" )
 
   return factors
 

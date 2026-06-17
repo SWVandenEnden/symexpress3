@@ -31,6 +31,8 @@ class OptimizeRootToPrincipalRoot( optimizeBase.OptimizeBase ):
   """
   Write out all roots into principal roots
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "rootToPrincipalRoot"

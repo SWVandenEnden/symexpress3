@@ -30,6 +30,8 @@ class OptSymFunctionCosToE( optFunctionBase.OptFunctionBase ):
   """
   Convert cos to e
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "cosToE"

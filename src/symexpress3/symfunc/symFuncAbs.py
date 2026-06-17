@@ -32,6 +32,8 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
   """
   Abs function, round to the highest integer
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "abs"

@@ -29,6 +29,8 @@ class OptimizeSplitDenominator( optimizeBase.OptimizeBase ):
   Write out roots in there lowest form
   \n 1 / ( a * b * c ) into 1/a * 1/b * 1/c
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "splitDenominator"

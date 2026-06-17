@@ -34,6 +34,8 @@ class SymFuncSum( symFuncBase.SymFuncBase ):
   """
   Sum function, sum(<variable>,<lower>,<upper>,<function>)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "sum"

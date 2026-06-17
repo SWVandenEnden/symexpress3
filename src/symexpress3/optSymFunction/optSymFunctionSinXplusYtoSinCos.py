@@ -30,6 +30,8 @@ class OptSymFunctionSinXplusYtoSinCos( optFunctionBase.OptFunctionBase ):
   """
   sin(x+y) = sin(x)cos(y) + cos(x)sin(y)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "sinXplusYtoSinCos"

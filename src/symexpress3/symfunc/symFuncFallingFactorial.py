@@ -35,6 +35,8 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
   """
   Falling Factorial function, product( k, 1, n, x - k + 1 )
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "fallingfactorial"

@@ -37,6 +37,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
   """
   Base class for trigonometry functions
   """
+  __slots__ = ()
 
   # sin/cos/tan are all in radius, between 0 and 2 pi
   def _optimizeSinCosTan( self, elemFunc ):

@@ -32,6 +32,8 @@ class OptSymFunctionSinToSum( optFunctionBase.OptFunctionBase ):
   """
   Convert sin to sum
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "sinToSum"

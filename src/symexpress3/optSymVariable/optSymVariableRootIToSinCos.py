@@ -31,6 +31,8 @@ class OptSymVariableRootIToSinCos( optTypeBase.OptTypeBase ):
   """
   Root i to cos + i sin
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "rootIToSinCos"

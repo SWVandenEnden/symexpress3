@@ -36,6 +36,8 @@ class SymFuncTan( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
   Tan function
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "tan"

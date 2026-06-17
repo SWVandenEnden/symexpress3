@@ -29,6 +29,8 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
   """
   Cos^2 + sin^2 = 1 optimization
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "sinTwoCosTwo"

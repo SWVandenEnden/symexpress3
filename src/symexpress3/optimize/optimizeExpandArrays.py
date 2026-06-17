@@ -32,6 +32,8 @@ class OptimizeExpandArrays( optimizeBase.OptimizeBase ):
   If the expression containts at least 1 array then make the hole expression an array element.
   \nExample: 2 + [a|b] -> [2+a|2+b]
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "expandArrays"

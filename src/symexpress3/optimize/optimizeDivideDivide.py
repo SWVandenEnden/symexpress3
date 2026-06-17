@@ -27,6 +27,8 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
   Divide divide = normal
   \n 1 / 1 / x become x
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "divideDivide"

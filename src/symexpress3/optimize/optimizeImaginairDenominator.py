@@ -30,6 +30,8 @@ class OptimizeImaginairDenominator( optimizeBase.OptimizeBase ):
   """
   Set imaginair denominator too the counter, format ( 1 / ( a + bi ))
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "imaginairDenominator"

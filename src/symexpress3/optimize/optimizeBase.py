@@ -34,6 +34,8 @@ class OptimizeBase( ABC ):
   """
   Base class for defining a optimization class
   """
+  __slots__ = ('_name', '_symtype', '_desc' )
+
   def __init__( self ):
     self._name         = None  # must be set by in the real class
     self._symtype      = ""    # symexpression type, use "all" for all expression types

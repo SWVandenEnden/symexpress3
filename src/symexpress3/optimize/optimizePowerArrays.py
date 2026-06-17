@@ -30,6 +30,8 @@ class OptimizePowerArrays( optimizeBase.OptimizeBase ):
   """
   Put the power of the array into the elements
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "powerArrays"

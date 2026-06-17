@@ -33,6 +33,8 @@ class SymFuncAcos( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
   Acos function
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "acos"

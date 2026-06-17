@@ -31,6 +31,8 @@ class OptSymFunctionNumberToPrimeFactors( optFunctionBase.OptFunctionBase ):
   """
   Convert a given number into prime factors
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "numberToPrimeFactors"

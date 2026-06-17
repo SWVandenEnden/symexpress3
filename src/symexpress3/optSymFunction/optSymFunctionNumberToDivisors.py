@@ -31,6 +31,8 @@ class OptSymFunctionNumberToDivisors( optFunctionBase.OptFunctionBase ):
   """
   Convert a given number into all his divisors as an add sum
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "numberToDivisors"

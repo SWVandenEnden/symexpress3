@@ -33,6 +33,8 @@ class SymFuncAtan( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
   Atan function
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "atan"

@@ -32,6 +32,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
   Multiply the elements of this expressions and his sub-expressions
   \n(x+1)(x+1) becomes x^2 + 2x + 1
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "multiply"
@@ -211,9 +213,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       lFound = True
       while( lFound == True and len( symExpr.elements ) > 1 ):
-        lFound  = False
+        lFound = False
 
-        # print ('num elements: {}'.format(  len( symExpr.elements )))
+        # print ( f'num elements: {str(symExpr)}  Aantal: {len( symExpr.elements )}   ' )
 
         for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
           elem1 = symExpr.elements[ iCnt ]
@@ -221,11 +223,13 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           # only multiple expressions
           if not isinstance( elem1 , symexpress3.SymExpress ):
             continue
-          # only multiply with power of 1
-          if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
-            continue
+
           # only + expressions
           if elem1.symType != '+':
+            continue
+
+          # only multiply with power of 1
+          if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
             continue
 
           iCnt2 = iCnt + 1

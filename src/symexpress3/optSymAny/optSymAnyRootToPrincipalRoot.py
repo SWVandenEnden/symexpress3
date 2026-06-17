@@ -29,6 +29,8 @@ class OptSymAnyRootToPrincipalRoot( optTypeBase.OptTypeBase ):
   """
   Put the power of an array into his elements
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "rootToPrincipalRoot"

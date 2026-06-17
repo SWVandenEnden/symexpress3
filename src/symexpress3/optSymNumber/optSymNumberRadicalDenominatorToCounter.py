@@ -30,6 +30,8 @@ class OptSymNumberRadicalDenominatorToCounter( optTypeBase.OptTypeBase ):
   """
   Move the radical from the denominator to the counter (principal root only)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "radicalDenominatorToCounter"

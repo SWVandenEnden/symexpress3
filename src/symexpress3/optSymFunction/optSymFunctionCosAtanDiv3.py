@@ -30,6 +30,8 @@ class OptSymFunctionCosAtanDiv3( optFunctionBase.OptFunctionBase ):
   """
   cos(atan(x)/n) to sin i + cos
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "cosAtanDiv3"

@@ -34,6 +34,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
   """
   Ceil function, round to the highest integer
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "ceil"

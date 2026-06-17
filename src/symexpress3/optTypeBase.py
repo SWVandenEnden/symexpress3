@@ -32,6 +32,8 @@ class OptTypeBase( ABC ):
   """
   Base class for type optimization
   """
+  __slots__ = ( '_name', '_symtype', '_desc')
+
   def __init__( self ):
     self._name         = None  # must be set by in the real class
     self._symtype      = None  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction

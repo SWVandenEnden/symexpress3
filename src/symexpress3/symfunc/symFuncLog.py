@@ -37,6 +37,8 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
   Logarithm function, log( x, y ) = y^^answer = x
   Default for y = e
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "log"

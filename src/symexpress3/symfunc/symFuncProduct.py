@@ -34,6 +34,8 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
   """
   Product function, product(<variable>,<lower>,<upper>,<function>)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "product"

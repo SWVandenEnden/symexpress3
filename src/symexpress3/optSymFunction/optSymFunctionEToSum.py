@@ -32,6 +32,8 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
   """
   Convert e power to sum
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "eToSum"

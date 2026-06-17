@@ -30,6 +30,8 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
   UnnestingRadicals
   /nhttps://en.wikipedia.org/wiki/Nested_radical
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "unnestingRadicals"

@@ -33,6 +33,8 @@ class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
   """
   Convert gamma to integral if the real part is positive
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "gammaToIntegral"

@@ -35,6 +35,8 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
   The result of integral() but the lower and upper value are not inserted.
   This function insert the upper and lower value
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "integralresult"

@@ -32,6 +32,8 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
   Write out roots in there lowest form
   \n 27^^(1/2) = ((3^2)*3)^^(1/2) = 3 * 3^^(1/2)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "onlyOneRoot"

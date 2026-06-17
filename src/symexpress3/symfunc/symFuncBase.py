@@ -33,6 +33,8 @@ class SymFuncBase( ABC ):
   """
   Base class for defining a function
   """
+  __slots__ = ('_name', '_desc', '_minparams', '_maxparams', '_syntax', '_synExplain' )
+
   def __init__( self ):
     self._name         = None  # must be set by in the real class
     self._desc         = ""    # description of the function

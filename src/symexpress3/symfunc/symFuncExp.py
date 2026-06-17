@@ -34,6 +34,8 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
   Exp function, exponent, exp( x, y ) = y^x
   Default for y = e
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name      = "exp"

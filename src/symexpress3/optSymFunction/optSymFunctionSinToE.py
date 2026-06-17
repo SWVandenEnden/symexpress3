@@ -30,6 +30,8 @@ class OptSymFunctionSinToE( optFunctionBase.OptFunctionBase ):
   """
   Convert sin to e
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "sinToE"

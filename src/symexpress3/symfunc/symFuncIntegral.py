@@ -37,6 +37,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
   """
   Integral function, integral( <function>,<delta> [,<lower>,<upper>] )
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "integral"

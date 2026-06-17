@@ -29,6 +29,8 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
   """
   Simplify i
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "i"

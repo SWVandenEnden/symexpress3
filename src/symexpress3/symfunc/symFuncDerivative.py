@@ -31,6 +31,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
   """
   Derivative function, derivative( <function>,<delta> )
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "derivative"

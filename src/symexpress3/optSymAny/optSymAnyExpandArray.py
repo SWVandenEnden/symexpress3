@@ -29,6 +29,8 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
   """
   If the expression contains at least 1 array then make the hole expression an array element.
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "expandArrays"

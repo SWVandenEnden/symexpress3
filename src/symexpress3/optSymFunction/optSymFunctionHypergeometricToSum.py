@@ -63,6 +63,8 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
   """
   Convert hypergemoetric to sum for abs(z) < 1"
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "hypergeometricToSum"

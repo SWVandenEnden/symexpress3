@@ -38,6 +38,8 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
   Unnesting of cubic roots of format (a * b^^(1/2) + c)^^(1/3)
   \n a, b and c are numbers, a can also be an imaginary number (a * i)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "unnestingCubicRoot"

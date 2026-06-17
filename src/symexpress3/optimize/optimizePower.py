@@ -31,6 +31,8 @@ class OptimizePower( optimizeBase.OptimizeBase ):
   Write out all the powers greater then one so that they become one.
   \n (x+1)^2 becomes (x+1)(x+1)
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "power"

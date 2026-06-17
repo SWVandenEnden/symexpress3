@@ -62,6 +62,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
   """
   Hypergeometric function, hypergeometric( p, q, a1,..,ap, b1,..,bq, z )
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name        = "hypergeometric"

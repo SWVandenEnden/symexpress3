@@ -35,6 +35,8 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
   """
   Lower the power of radicals
   """
+  __slots__ = ()
+
   def __init__( self ):
     super().__init__()
     self._name         = "onlyOneRoot"
