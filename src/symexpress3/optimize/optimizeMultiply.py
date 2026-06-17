@@ -134,13 +134,16 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
+      # print ( "_multiplyElemUnitExpress start")
+
       lFound = True
       while( lFound == True and len( symExpr.elements ) > 1 ):
+        # print ( f"_multiplyElemUnitExpress: {len( symExpr.elements )}")
         lFound = False
         iCnt   = 0
         for iCnt, elem1 in enumerate( symExpr.elements ) :
 
-          if not isinstance( elem1 , symexpress3.SymVariable ):
+          if not isinstance( elem1, symexpress3.SymVariable ):
             continue
 
           # a root have multiple solutions, cannot multiply with + expressions
@@ -201,8 +204,10 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             symExpr.add( elemnew )
 
           if lFound == True:
+            # print( f"_multiplyElemUnitExpress found one: {str(symExpr)}")
             break
 
+      # print ( "_multiplyElemUnitExpress end")
       return result
 
     # multiply 2 expressions
@@ -211,11 +216,13 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
+      # print ( "_multiplyElemExpressExpress start")
+
       lFound = True
       while( lFound == True and len( symExpr.elements ) > 1 ):
         lFound = False
 
-        # print ( f'num elements: {str(symExpr)}  Aantal: {len( symExpr.elements )}   ' )
+        # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
 
         for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
           elem1 = symExpr.elements[ iCnt ]
@@ -252,6 +259,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             elemnew           = symexpress3.SymExpress( '+' )
             elemnew.powerSign = elem2.powerSign
 
+            # print ( f'_multiplyElemExpressExpress elem1: {len( elem1.elements )}, elem2: {len(elem2.elements)}' )
+
             for elemSub1 in elem1.elements:
 
               for elemSub2 in elem2.elements:
@@ -269,6 +278,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
           if lFound == True:
             break
+
+      # print ( f"_multiplyElemExpressExpress end: {result}")
+
       return result
 
     # multiply 2 variables

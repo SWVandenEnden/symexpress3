@@ -106,11 +106,13 @@ class OptimizePower( optimizeBase.OptimizeBase ):
         symBiominal = symexpress3.SymNumber( 1, bioNum, 1)
 
         elemXBio = symexpress3.SymExpress( '*')
-        elemXBio.add( elemX )
+        # elemXBio.add( elemX )
+        elemXBio.elements.append( elemX )
         elemXBio.powerCounter = numN - iCnt
 
         elemYBio = symexpress3.SymExpress( '*')
-        elemYBio.add( elemY )
+        # elemYBio.add( elemY )
+        elemYBio.elements.append( elemY )
         elemYBio.powerCounter = iCnt
 
         elemAdd = symexpress3.SymExpress( '*')
@@ -130,7 +132,8 @@ class OptimizePower( optimizeBase.OptimizeBase ):
       for elem in symExpr.elements :
         elemClone = symexpress3.SymExpress( '*' )
         elemClone.powerCounter = symExpr.powerCounter
-        elemClone.add( elem )
+        # elemClone.add( elem )
+        elemClone.elements.append( elem )
         elemNew.elements.append( elemClone )
 
       symExpr.symType      = '*'

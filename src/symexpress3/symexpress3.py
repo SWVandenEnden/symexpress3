@@ -2323,7 +2323,7 @@ class SymExpress( SymBaseList ):
       iCnt     = 0
       bChanged = True
 
-      # print( "optimizeAction: " + cText + " " + str( self ) )
+      # print( f"optimizeAction: {arrAction}"  )
 
       while( iCnt < maxCount and bChanged == True ):
         bChanged = False
@@ -2376,6 +2376,8 @@ class SymExpress( SymBaseList ):
       SymExpressTree( self, filehandle )
     _printCalc()
 
+    # print( "optimizeNormal start")
+
     cStartBig = ''
     iCntBig   = 0
     cTestBig  = str( self )
@@ -2383,6 +2385,8 @@ class SymExpress( SymBaseList ):
     while( iCntBig < maxBig and cStartBig != cTestBig):
       cStartBig  = cTestBig
       iCntBig   += 1
+
+      # print( f"optimizeNormal loop: {iCntBig}")
 
       _optimizeAction( []                  , "Optimize expression"    ,  1 )
       # _optimizeAction( [ "power"          ], "Eliminate powers"       , 10 )
@@ -2470,6 +2474,9 @@ class SymExpress( SymBaseList ):
 
     _printCalc( 'start', 0, 0 )
 
+
+    # print( "optimizeExtended start")
+
     self.optimizeNormal( output, filehandle, extra, varDict )
 
     cStartBig = ''
@@ -2479,6 +2486,8 @@ class SymExpress( SymBaseList ):
     while( iCntBig < iBigMax and cStartBig != cTest  ):
       cStartBig = cTest
       iCntBig  += 1
+
+      # print( f"Big loop: {iCntBig}")
 
       if output != None:
         output.writeLine( '<br>Big Loop '  + str( iCntBig ) )
