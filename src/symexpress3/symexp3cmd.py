@@ -32,6 +32,8 @@ def OptimzeFunction( cExpress, outputFormat, optimizeActions ):
   Optimize the given expression according the optimize actions
   Output the result for the given output types`
   """
+  # import pudb; pudb.set_trace()
+
   # convert string expression into object
   try:
     oExpress = symexpress3.SymFormulaParser( cExpress )

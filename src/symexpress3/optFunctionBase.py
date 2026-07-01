@@ -33,7 +33,7 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
   """
   Base class for type function optimization
   """
-  __slots__ = ( '_name', '_symtype', '_desc', '_funcName', '_minparams', '_maxparams' )
+  __slots__ = ( '_funcName', '_minparams', '_maxparams' )
 
   def __init__( self ):
     super().__init__()

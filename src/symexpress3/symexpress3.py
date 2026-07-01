@@ -2655,6 +2655,7 @@ class SymToHtml():
   """
   Write given SymExpress class in html (MathMl) format to a given file.
   """
+  __slots__ = ( '_isOpen', '_textFile', '_fileName', 'title')
 
   def __init__( self, inFilename = 'mathml.html', inTitle = 'SymToHtml' ):
     self._isOpen    = False

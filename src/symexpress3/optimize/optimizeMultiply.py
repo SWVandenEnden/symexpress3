@@ -261,6 +261,16 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
             # print ( f'_multiplyElemExpressExpress elem1: {len( elem1.elements )}, elem2: {len(elem2.elements)}' )
 
+            # strSymExpr = str( symExpr )
+            # if len( strSymExpr ) > 500000000:
+            #   import pudb; pudb.set_trace()
+            #  with open("formula_big.txt", mode="w", encoding="utf-8") as f:
+            #    f.write(strSymExpr)
+            #  with open("formula_elem1.txt", mode="w", encoding="utf-8") as f:
+            #    f.write( str(elem1) )
+            #  with open("formula_elem2.txt", mode="w", encoding="utf-8") as f:
+            #    f.write( str(elem2) )
+
             for elemSub1 in elem1.elements:
 
               for elemSub2 in elem2.elements:
@@ -420,6 +430,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
         if symMulti.numElements() == 0:
           continue
+
+        # import pudb; pudb.set_trace()
 
         symExpr.symType  = '+'
         symExpr.elements = []
