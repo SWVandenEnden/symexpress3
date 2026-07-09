@@ -242,7 +242,7 @@ def ConvertToSymexpress3String( varData ):
   return varData
 
 
-def PolynomialCoefficients( oFormula, cVarName, insertZeros = False ):
+def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumberOfElements = 2 ):
   """
   Give a dictionary back (key=power,data=coeffient as SymExpress) from the coefficients of the formula.
   The formula is expected to be a polynomial (example: a x^^3 + b x^^2 + c)
@@ -265,8 +265,8 @@ def PolynomialCoefficients( oFormula, cVarName, insertZeros = False ):
   if oFormula.symType != '+':
     raise NameError( f"PolynomialCoefficients, formula has type {oFormula.symType}. Excepted a '+' formula, ({str(oFormula)})")
 
-  if oFormula.numElements() <= 1 :
-    raise NameError( f"PolynomialCoefficients, formula has {oFormula.numElements()} elements. Excepted at least 2 elements, ({str(oFormula)})")
+  if oFormula.numElements() < leastNumberOfElements :
+    raise NameError( f"PolynomialCoefficients, formula has {oFormula.numElements()} elements. Excepted at least {leastNumberOfElements} elements, ({str(oFormula)})")
 
   dVars = oFormula.getVariables()
   if cVarName not in dVars:
