@@ -81,7 +81,7 @@
     Incorrect calculation:
     ----------------------
       mpmath (1.3.0)
-      By a precision of 150 (and greater) there are calculcation errors.
+      By a precision of 150 (and greater) there are calculation errors.
       Try: (-1) * 3^^(1/2) + 1 * 2^^-1 * 3^^(1/2) + 1 * 2^^-1 * (3 * 3^^(1/2))^^(1/3)
       This should give 0 as answer... but if gives 7.6373...
       4 may 2026
