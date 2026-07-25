@@ -22,7 +22,7 @@
 
 
 """
-
+import typing
 import math
 
 from symexpress3 import symexpress3
@@ -37,15 +37,18 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "onlyOneRoot"
     self._symtype      = symexpress3.SymNumber
     self._desc         = "Lower the power of radicals"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymNumber, elem )
 
     # 4^^(1/4) = 2^^(1/2)
     if elem.powerDenominator == 1:
@@ -202,11 +205,16 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass :OptSymNumberOnlyOneRoot
+            , symOrg    :None|symexpress3.TypVarSym3Object
+            , symTest   :None|symexpress3.TypVarSym3Object
+            , wanted    :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )

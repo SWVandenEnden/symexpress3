@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -32,7 +33,7 @@ class OptSymFunctionEToCosSin( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "eToCosSin"
     self._desc         = "Convert e power to cos + i sin"
@@ -41,9 +42,12 @@ class OptSymFunctionEToCosSin( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 2                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     if elem.numElements() > 1:
       # only e powers supported
@@ -76,11 +80,15 @@ class OptSymFunctionEToCosSin( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptSymFunctionEToCosSin
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :None|symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -90,15 +98,16 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
-  symTest = symexpress3.SymFormulaParser( 'exp( 3 i )' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'exp( 3 i )' )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
   symOrg  = symTest.copy()
 
   testClass = OptSymFunctionEToCosSin()
-  symTest   = testClass.optimize( symTest, "eToCosSin" )
+  symTest2  = testClass.optimize( symTest, "eToCosSin" )
 
-  _Check( testClass, symOrg, symTest, "cos( (-1) * i * 3 * i ) + i *  sin( (-1) * i * 3 * i )" )
+  _Check( testClass, symOrg, symTest2, "cos( (-1) * i * 3 * i ) + i *  sin( (-1) * i * 3 * i )" )
 
 
   symTest = symexpress3.SymFormulaParser( 'exp( -3 i, e )' )
@@ -107,9 +116,9 @@ def Test( display = False):
   symOrg  = symTest.copy()
 
   testClass = OptSymFunctionEToCosSin()
-  symTest   = testClass.optimize( symTest, "eToCosSin" )
+  symTest2  = testClass.optimize( symTest, "eToCosSin" )
 
-  _Check( testClass, symOrg, symTest, "cos( (-1) * i * (-3) * i ) + i *  sin( (-1) * i * (-3) * i )" )
+  _Check( testClass, symOrg, symTest2, "cos( (-1) * i * (-3) * i ) + i *  sin( (-1) * i * (-3) * i )" )
 
 
 if __name__ == '__main__':

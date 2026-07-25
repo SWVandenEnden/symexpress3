@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -31,12 +32,13 @@ class OptSymAnyArrayPower( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "arrayPower"
     self._desc         = "Put the power of an array into his elements"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
 
@@ -66,12 +68,13 @@ class OptSymAnyArrayPower( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  symTest = symexpress3.SymFormulaParser( "[ 4 | 2 ]^^2" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "[ 4 | 2 ]^^2" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest )
   symTest = symTest.elements[ 0 ]
   testClass = OptSymAnyArrayPower()
   symNew    = testClass.optimize( symTest, "arrayPower" )

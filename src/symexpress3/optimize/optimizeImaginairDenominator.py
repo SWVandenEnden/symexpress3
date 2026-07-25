@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -32,18 +33,22 @@ class OptimizeImaginairDenominator( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "imaginairDenominator"
     self._symtype      = "+"
     self._desc         = "Set imaginair denominator too the counter, format ( 1 / ( a + bi ))"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if symExpr.symType != '+' :
       return result
@@ -55,9 +60,10 @@ class OptimizeImaginairDenominator( optimizeBase.OptimizeBase ):
       return result
 
     # search for real and imaginair parts
-    elemReal = []
-    elemImg  = []
-    lOk      = True
+    elemReal:symexpress3.TypVarSym3ObjectList = []
+    elemImg:symexpress3.TypVarSym3ObjectList  = []
+    lOk                                       = True
+
     # for iCnt in range( 0, len( symExpr.elements )):
     # for iCnt, elem in enumerate( symExpr.elements ):
     for elem in symExpr.elements:
@@ -184,12 +190,17 @@ class OptimizeImaginairDenominator( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeImaginairDenominator
+            , symOrg   :symexpress3.SymExpress
+            , symTest  :symexpress3.SymExpress
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -203,7 +214,7 @@ def Test( display = False):
   symTest.optimize()
   symTest.optimize( "multiple" )
   symTest.optimize()
-  symTest = symTest.elements[ 0 ]
+  symTest = symTest.elements[ 0 ] # type:ignore
 
   # symexpress3.SymExpressTree( symTest )
 

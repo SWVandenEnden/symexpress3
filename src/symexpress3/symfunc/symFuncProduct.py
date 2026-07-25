@@ -25,7 +25,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -36,7 +37,7 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "product"
     self._desc        = "product function, from lower to upper, example: product(n,0,100,exp(x,n))"
@@ -46,9 +47,11 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     self._synExplain  = "product function, from lower to upper, example: product(n,0,100,exp(x,n))"
 
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -75,9 +78,11 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     return [ '()' ], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemVar   = elem.elements[ 0 ]
     elemStart = elem.elements[ 1 ]
@@ -136,6 +141,8 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     elemList.powerDenominator = elem.powerDenominator
     elemList.onlyOneRoot      = elem.onlyOneRoot
 
+    elemNew:symexpress3.TypVarSym3Object
+
     for iCntVal in range( startVal, endVal + 1 ):
       if isinstance( elemFunc, symexpress3.SymVariable ):
         if elemFunc.name == varName:
@@ -155,9 +162,10 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
     return elemList
 
 
-  def getValue( self, elemFunc, dDict = None ):
-    def _fncValue( x, objExp, dDict, cVar ):
-      dDict[ cVar ] = x
+  def getValue( self, elemFunc:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDictNone = None ) -> symexpress3.TypVarSym3ValueAll :
+
+    def _fncValue( x:symexpress3.TypVarSym3Value, objExp:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDict, cVar:str ) -> symexpress3.TypVarSym3Value :
+      dDict[ cVar ] = x #type:ignore
       fValue = objExp.getValue( dDict )
       if isinstance( fValue, list ):
         fValue = fValue[ 0 ]
@@ -165,6 +173,8 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
 
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
+
+    elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
     if dDict == None:
       dDictProduct = {}
@@ -216,14 +226,23 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
+  def _Check( testClass :SymFuncProduct
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue = symexpress3.SymRound( dValue, 10 )
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

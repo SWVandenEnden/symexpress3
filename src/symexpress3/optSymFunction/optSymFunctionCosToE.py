@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -32,7 +33,7 @@ class OptSymFunctionCosToE( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "cosToE"
     self._desc         = "Convert cos to e power"
@@ -41,9 +42,12 @@ class OptSymFunctionCosToE( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemParam = elem.elements[ 0 ]
 
@@ -65,12 +69,13 @@ class OptSymFunctionCosToE( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  symTest = symexpress3.SymFormulaParser( "cos(1/3)" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "cos(1/3)" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   # print( "symTest: " + str( symTest ))

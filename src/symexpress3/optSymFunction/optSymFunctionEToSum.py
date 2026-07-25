@@ -23,6 +23,7 @@
     https://en.wikipedia.org/wiki/E_(mathematical_constant)
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -34,7 +35,7 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "eToSum"
     self._desc         = "Convert e power to sum"
@@ -43,9 +44,12 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 2                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     if elem.numElements() > 1:
       # only e powers supported
@@ -78,11 +82,16 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptSymFunctionEToSum
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :None|symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -94,15 +103,16 @@ def Test( display = False):
 
   symtools.VariableGenerateReset()
 
-  symTest = symexpress3.SymFormulaParser( 'exp( 3 i )' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'exp( 3 i )' )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
   symOrg  = symTest.copy()
 
   testClass = OptSymFunctionEToSum()
-  symTest   = testClass.optimize( symTest, "eToSum" )
+  symTest2   = testClass.optimize( symTest, "eToSum" )
 
-  _Check( testClass, symOrg, symTest, "sum( n1,0,infinity, exp( n1,3 * i ) *  factorial( n1 )^^-1 )" )
+  _Check( testClass, symOrg, symTest2, "sum( n1,0,infinity, exp( n1,3 * i ) *  factorial( n1 )^^-1 )" )
 
 if __name__ == '__main__':
   Test( True )

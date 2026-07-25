@@ -51,7 +51,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type: ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -64,7 +65,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "hypergeometric"
     self._desc        = "Hypergeometric function"
@@ -73,9 +74,12 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     self._syntax      = "hypergeometric( p, q, a1,..,ap, b1,..,bq, z )"
     self._synExplain  = "hypergeometric( p, q, a1,..,ap, b1,..,bq, z ) Example: hypergeometric( 2, 1, a1, a2, b1, z )"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
-      return None, None
+      return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemP   = elem.elements[ 0 ]
     elemQ   = elem.elements[ 1 ]
@@ -86,36 +90,36 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if not isinstance( elemP, symexpress3.SymNumber ):
       dVars = elemP.getVariables()
       if len( dVars ) != 0:
-        return None, None
+        return [], None
     else:
       if elemP.power != 1:
-        return None, None
+        return [], None
       if elemP.factDenominator != 1:
-        return None, None
+        return [], None
 
     if not isinstance( elemQ, symexpress3.SymNumber):
       dVars = elemQ.getVariables()
       if len( dVars ) != 0:
-        return None, None
+        return [], None
     else:
       if elemQ.power != 1:
-        return None, None
+        return [], None
       if elemQ.factDenominator != 1:
-        return None, None
+        return [], None
 
     try:
       valP = elemP.getValue()
       valQ = elemQ.getValue()
     except: # pylint: disable=bare-except
-      return None, None
+      return [], None
 
     if not isinstance(valP, int):
-      return None, None
+      return [], None
     if not isinstance(valQ, int):
-      return None, None
+      return [], None
 
     if valP + valQ + 3 != elemTot:
-      return None, None
+      return [], None
 
 
     output = ""
@@ -157,10 +161,11 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     return [ '()' ], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     # pylint: disable=unused-argument
 
-    def _analytic2F1( valP, valQ, startP, startQ, elemZ ):
+    def _analytic2F1( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # analytic continuation of 2f1 if z > 1
       if valP != 2 or valQ != 1:
         return None
@@ -168,7 +173,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       # below transformation is only valid if abs(z) > 1
       try:
         valZ = elemZ.getValue()
-        if abs( valZ ) <= 1 :
+        if abs( valZ ) <= 1 : #type:ignore
           return None
       except: # pylint: disable=bare-except
         return None
@@ -249,7 +254,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _transPPlusQPlus( valP, valQ, startP, startQ, elemZ ):
+    def _transPPlusQPlus( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # p+1 F q+1 => gamma * integral( ... * pFq )
       if valP <= 0 or valQ <= 0:
         return None
@@ -257,7 +262,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       # below transformation is only valid if abs(z) < 1
       try:
         valZ = elemZ.getValue()
-        if abs( valZ ) >= 1:
+        if abs( valZ ) >= 1: #type:ignore
           return None
       except: # pylint: disable=bare-except
         return None
@@ -273,8 +278,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       del fLower.elements[ startQ + valQ - 1 ]
       del fLower.elements[ startP + valP - 1 ]
 
-      fLower.elements[ 0 ].factCounter -= 1
-      fLower.elements[ 1 ].factCounter -= 1
+      fLower.elements[ 0 ].factCounter -= 1 #type:ignore
+      fLower.elements[ 1 ].factCounter -= 1 #type:ignore
 
       varName = symtools.VariableGenerateGet()
       elemNewZ = symexpress3.SymExpress( '*' )
@@ -298,7 +303,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
 
 
-    def _trans1F0( valP, valQ, startP, startQ, elemZ ):
+    def _trans1F0( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # 1F0 = (1 - z)^^(-p)
       if valP != 1 or valQ != 0:
         return None
@@ -317,7 +322,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _trans0F0( valP, valQ, startP, startQ, elemZ ):
+    def _trans0F0( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # 0F0 = e^^z
       if valP != 0 or valQ != 0:
         return None
@@ -332,7 +337,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _equalPQ( valP, valQ, startP, startQ, elemZ ):
+    def _equalPQ( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # if a P is equal to a Q then this give a 1 (p/q = 1)
       if valP <= 0 or valQ <= 0:
         return None
@@ -349,18 +354,18 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
             del elemNew.elements[ iCntQ ]
             del elemNew.elements[ iCntP ]
 
-            elemNew.elements[ 0 ].factCounter -= 1
-            elemNew.elements[ 1 ].factCounter -= 1
+            elemNew.elements[ 0 ].factCounter -= 1 #type:ignore
+            elemNew.elements[ 1 ].factCounter -= 1 #type:ignore
 
             return elemNew
 
       return None
 
-    def _transAbsZSmall( valP, valQ, startP, startQ, elemZ ):
+    def _transAbsZSmall( valP:int, valQ:int, startP:int, startQ:int, elemZ:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       # below transformation is only valid if abs(z) < 1
       try:
         valZ = elemZ.getValue()
-        if abs( valZ ) >= 1:
+        if abs( valZ ) >= 1: #type:ignore
           return None
       except: # pylint: disable=bare-except
         return None
@@ -413,6 +418,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemP   = elem.elements[ 0 ]
     elemQ   = elem.elements[ 1 ]
@@ -472,27 +479,27 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     # nFm => integral * n(-1)F(m-1)
     #
 
-    elemNew = _equalPQ( valP, valQ, startP, startQ, elemZ )
+    elemNew = _equalPQ( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
 
     # 0F0 = e^^z
-    elemNew = _trans0F0( valP, valQ, startP, startQ, elemZ )
+    elemNew = _trans0F0( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
 
     # 1F0 = (1 - z)^^(-p)
-    elemNew = _trans1F0( valP, valQ, startP, startQ, elemZ )
+    elemNew = _trans1F0( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
 
     # TODO p+1 F q+1 => gamma * integral( ... * pFq )
-    # elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ )
+    # elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
 
     # analytic2F1
-    elemNew = _analytic2F1( valP, valQ, startP, startQ, elemZ )
+    elemNew = _analytic2F1( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
 
@@ -506,7 +513,8 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     # print( "end hyper nothing to do")
     return None
 
-  def getValue( self, elemFunc, dDict = None ):
+  def getValue( self, elemFunc:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDictNone = None ) -> symexpress3.TypVarSym3ValueAll :
+
     #
     # convert to an optimize function with functionToValue()
     # and use that for calculation the value
@@ -515,7 +523,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     # elemNew = self.functionToValue( elemFunc )
     # if elemNew == None:
     #   return None
-    elem = elemFunc
+    elem = typing.cast( symexpress3.SymFunction, elemFunc )
     arrA = []
     arrB = []
     z    = None
@@ -592,16 +600,23 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    # dValue = round( float(dValue), 10 )
+  def _Check( testClass :SymFuncHypergeometric
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     dValue = symexpress3.SymRound( dValue, 10 )
+
     if dValueCalc != None:
-      # dValueCalc = round( float(dValueCalc), 10 )
       dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

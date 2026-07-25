@@ -23,7 +23,7 @@
     https://en.wikipedia.org/wiki/Factorial
 
 """
-
+import typing
 import math
 
 from symexpress3         import symexpress3
@@ -36,7 +36,7 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "factorial"
     self._desc        = "Factorial x!"
@@ -45,9 +45,12 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
     self._syntax      = "factorial(<n>)"
     self._synExplain  = "factorial(<n>) = n!"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
     # output += "<mfenced separators=''>"
@@ -59,10 +62,13 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
 
     return [ '()' ], output
 
-  def functionToValue( self, elem ):
+
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
 
+    elem  = typing.cast( symexpress3.SymFunction, elem )
     elem2 = elem.elements[ 0 ]
 
     # x!
@@ -78,7 +84,7 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
     if elem2.factDenominator != 1:
       return None
 
-    dValue  = math.factorial( elem2.getValue() )
+    dValue  = math.factorial( elem2.getValue() ) #type:ignore
     elemnew = symexpress3.SymFormulaParser( str( dValue ))
 
     elemnew.powerSign        = elem.powerSign
@@ -87,22 +93,31 @@ class SymFuncFactorial( symFuncBase.SymFuncBase ):
 
     return elemnew
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    dValue = int( dValue )
+
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
+    dValue = int( dValue ) #type:ignore
     return math.factorial( dValue )
 
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
+  def _Check( testClass :SymFuncFactorial
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue = symexpress3.SymRound( dValue, 10 )
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -33,13 +34,13 @@ class OptimizeRootToPrincipalRoot( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "rootToPrincipalRoot"
     self._symtype      = "all"
     self._desc         = "Write out all roots into principal roots"
 
-  def _convertToPrinipal( self, elem ):
+  def _convertToPrinipal( self, elem:symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object:
     # print( "_convertToPrinipal: " + str( elem ) + " " + str(type( elem )))
     if elem.onlyOneRoot == 1:
       return None
@@ -101,10 +102,14 @@ class OptimizeRootToPrincipalRoot( optimizeBase.OptimizeBase ):
     return symNew
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     result = False
     if self.checkExpression( symExpr, action ) != True:
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     # print( "rootToPrincipalRoot start: " + str( symExpr ) + " " + str(type( symExpr ))  )
 
@@ -121,12 +126,17 @@ class OptimizeRootToPrincipalRoot( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None:
   """
   Test unit
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeRootToPrincipalRoot
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -136,7 +146,7 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, wanted: {wanted}, value: {str( symOrg )}' )
 
-  symTest = symexpress3.SymFormulaParser( '4^(1/2)' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '4^(1/2)' )
   symTest.optimize()
   symOrg = symTest.copy()
   testClass = OptimizeRootToPrincipalRoot()

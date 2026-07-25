@@ -23,7 +23,8 @@
     https://en.wikipedia.org/wiki/Absolute_value
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -34,7 +35,7 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "abs"
     self._desc      = "Absolute value"
@@ -43,9 +44,12 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
     self._syntax    = "abs(<x>)"
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # absolute value of x
     elem2 = elem.elements[ 0 ]
@@ -94,16 +98,18 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
           return None
 
         if not isinstance( calcValue, (complex, mpmath.mpc) ):
-          elemnew = symexpress3.SymExpress( '*' )
-          elemnew.powerSign        = elem.powerSign
-          elemnew.powerCounter     = elem.powerCounter
-          elemnew.powerDenominator = elem.powerDenominator
-          elemnew.onlyOneRoot      = elem.onlyOneRoot
+          elemnew2 = symexpress3.SymExpress( '*' )
+          elemnew2.powerSign        = elem.powerSign
+          elemnew2.powerCounter     = elem.powerCounter
+          elemnew2.powerDenominator = elem.powerDenominator
+          elemnew2.onlyOneRoot      = elem.onlyOneRoot
+
+          calcValue = typing.cast( mpmath.mpf|float|int, calcValue )
 
           if calcValue < 0:
-            elemnew.add( symexpress3.SymNumber( -1, 1, 1, 1, 1, 1, 1 ) ) # -1
-          elemnew.add( elem2 )
-          return elemnew
+            elemnew2.add( symexpress3.SymNumber( -1, 1, 1, 1, 1, 1, 1 ) ) # -1
+          elemnew2.add( elem2 )
+          return elemnew2
 
     # if ( elem2.power != 1 and elem2.power != -1 ):
     if not elem2.power in ( 1, -1 ):
@@ -120,18 +126,19 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
       if not elemsub.power in ( 1, -1 ):
         return None
 
-    elemnew = elem2.copy()
-    for iCnt in range( 0, elemnew.numElements()):
-      elemsub = elemnew.elements[ iCnt ]
-      elemsub.factSign = 1
+    elemnew3 = elem2.copy()
+    for iCnt in range( 0, elemnew3.numElements()):
+      elemsub3 = elemnew2.elements[ iCnt ]
+      elemsub3 = typing.cast( symexpress3.SymNumber, elemsub3 )
+      elemsub3.factSign = 1
 
-    elemnew.powerSign        = elem.powerSign
-    elemnew.powerCounter     = elem.powerCounter
-    elemnew.powerDenominator = elem.powerDenominator
-    elemnew.onlyOneRoot      = elem.onlyOneRoot
-    return elemnew
+    elemnew3.powerSign        = elem.powerSign
+    elemnew3.powerCounter     = elem.powerCounter
+    elemnew3.powerDenominator = elem.powerDenominator
+    elemnew3.onlyOneRoot      = elem.onlyOneRoot
+    return elemnew3
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     # return abs( dValue )
     return mpmath.fabs( dValue )
 
@@ -139,11 +146,18 @@ class SymFuncAbs( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncAbs
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

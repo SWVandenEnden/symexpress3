@@ -25,6 +25,7 @@
     https://en.wikibooks.org/wiki/Calculus/Integration_techniques
 
 """
+import typing
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -37,7 +38,7 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "integralresult"
     self._desc        = "integralresult( <function>,<delta>,<lower>,<upper> )"
@@ -47,9 +48,11 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
     self._synExplain  = "The result of integral() but the lower and upper value are not inserted"
 
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -69,9 +72,12 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
     return [ '()' ], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     cVar = self.getVarname( elem.elements[1] )
     if cVar == None:
@@ -114,9 +120,12 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
     return elemNew
 
 
-  def getValue( self, elemFunc, dDict = None ):
+  def getValue( self, elemFunc:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDictNone = None ) -> symexpress3.TypVarSym3ValueAll :
+
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
+
+    elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
     cVar = self.getVarname( elemFunc.elements[1] )
     if cVar == None:
@@ -132,9 +141,9 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
     elemUpper = elemFunc.elements[ 0 ].copy()
     elemUpper.replaceVariable( dDictRep )
 
-    dValue = elemUpper.getValue(dDict) - elemLower.getValue(dDict)
+    dValue = elemUpper.getValue(dDict) - elemLower.getValue(dDict) #type:ignore
 
-    dValue = elemFunc.valuePow( dValue )
+    dValue = elemFunc.valuePow( dValue ) #type:ignore
 
     return dValue
 
@@ -142,14 +151,23 @@ class SymFuncIntegralResult( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
+  def _Check( testClass :SymFuncIntegralResult
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue = symexpress3.SymRound( dValue    , 10 )
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

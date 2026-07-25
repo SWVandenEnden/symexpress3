@@ -23,6 +23,8 @@
 
 """
 
+import typing
+
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 from symexpress3          import primefactor  as primefac
@@ -34,7 +36,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "onlyOneRoot"
     self._symtype      = "all"
@@ -42,7 +44,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
 
   # 27^^(1/2) = ((3^2)*3)^^(1/2) = 3 * 3^^(1/2)
-  def _numberOptimize( self, symExpr ):
+  def _numberOptimize( self, symExpr:symexpress3.SymExpress ) -> bool :
     result = False
 
     # 27^^(1/2) = ((3^2)*3)^^(1/2) = 3 * 3^^(1/2)
@@ -237,11 +239,11 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     return result
 
 
-  def _expressOptimze( self, symExpr ):
+  def _expressOptimze( self, symExpr:symexpress3.SymExpress ) -> bool :
     # optimize expression (4   + 4 a  )^^(1/2) = 2  (1 + a)^^(1/2)
     #                     (1/4 + 1/4 a)^^(1/2) = 1/2(1 + a)^^(1/2)
 
-    def _cleanup( arrElem ):
+    def _cleanup( arrElem:list[dict[int,int]] ) -> bool :
       powerSearch = symExpr.powerDenominator
       firstElem   = True
       allEmpty    = False
@@ -286,7 +288,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
       return True
 
-    def _lowestPower( elemArr ):
+    def _lowestPower( elemArr:list[dict[int,int]] ) -> bool :
 
       if len( elemArr ) == 0:
         return True
@@ -349,8 +351,8 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     # print(" Start _expressOptimze" )
 
     # minNumber = 2 ** symExpr.powerDenominator  # min number 2^denominator, 2^2 = 4, 2^3 = 6
-    arrFact  = []
-    arrDenom = []
+    arrFact  :list[dict[int,int]]= []
+    arrDenom :list[dict[int,int]]= []
     found    = False
     if symExpr.symType == '*' :
       # search for first SymNumber with power of 1
@@ -569,12 +571,16 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
     return result
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
     if self.checkExpression( symExpr, action ) != True:
       # print( "Afgekeurd: " + symExpr.symType )
       return result
 
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     # result |= self._numberOptimize( symExpr )
     # if result == True:
@@ -593,12 +599,16 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None:
   """
   Unit test
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass :OptimizeOnlyOneRoot
+            , symOrg    :symexpress3.TypVarSym3Object
+            , symTest   :symexpress3.TypVarSym3Object
+            , wanted    :str
+            ) -> None :
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -610,10 +620,11 @@ def Test( display = False):
 
   testClass = OptimizeOnlyOneRoot()
 
-  symTest = symexpress3.SymFormulaParser( '(2315819305000550693112168347915158822781184016504196548362331 + 1127493071704679652558486495801124357814515802175332688 * 2^^(1/2) )^^(1/2)' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '(2315819305000550693112168347915158822781184016504196548362331 + 1127493071704679652558486495801124357814515802175332688 * 2^^(1/2) )^^(1/2)' )
   symTest.optimize()
   symTest.optimize( "multiply" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest ) # special for mypy
   symTest = symTest.elements [ 0 ]
   symOrg = symTest.copy()
   testClass.optimize( symTest, "onlyOneRoot" )

@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -31,15 +32,18 @@ class OptSymVariableInfinity( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "infinity"
     self._symtype      = symexpress3.SymVariable
     self._desc         = "Simplify infinity"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymVariable, elem )
 
     if elem.name != 'infinity' :
       return None
@@ -56,7 +60,7 @@ class OptSymVariableInfinity( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """

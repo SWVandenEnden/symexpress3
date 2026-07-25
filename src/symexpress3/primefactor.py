@@ -24,33 +24,35 @@
     https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm
 
 """
+import typing
 
 from math      import gcd
-from math      import sqrt
+# from math      import sqrt
 from threading import Thread
 from queue     import Queue
-from functools import reduce
+# from functools import reduce
 
-import sympy   # use it for prime factorization and divisors
+# use it for prime factorization and divisors
+import sympy   #type: ignore
 # TO DO seek out, use sympy always and delete own implementation
 # for the moment let stay it. Looking for a smaller solution then sympy
 # https://stackoverflow.com/questions/4643647/fast-prime-factorization-module
 
 
-globalCachePrimeFactors = {}
-globalCacheAllFactors   = {}
-globalMaxDigits         = 60 # 90 # TODO max number of digits for factorization
+globalCachePrimeFactors :dict[int,dict[int,int]] = {}
+globalCacheAllFactors   :dict[int,list[int]]     = {}
+globalMaxDigits         :int                     = 60 # 90 # TODO max number of digits for factorization
 
 #
 # only factor positive odd numbers
 #
-def FactorizationOddThread(n, resultQueue = None):
+def FactorizationOddThread(n:int, resultQueue:None|Queue[typing.Any] = None) -> list[int]:
   """
   Factorization odd number with threads
   """
   factors = []
 
-  def GetFactor( n, x, q ):
+  def GetFactor( n:int, x:int, q:Queue[typing.Any] ) -> int:
     xFixed    = 2
     cycleSize = 2
     # x = 2
@@ -71,10 +73,10 @@ def FactorizationOddThread(n, resultQueue = None):
 
   # change this into threads ??
   if n > 1:
-    q1 = Queue()
-    q2 = Queue()
-    q3 = Queue()
-    q4 = Queue()
+    q1:Queue[typing.Any] = Queue()
+    q2:Queue[typing.Any] = Queue()
+    q3:Queue[typing.Any] = Queue()
+    q4:Queue[typing.Any] = Queue()
 
     t1 = Thread(target=GetFactor, args=(n , 2 ,q1,))
     t2 = Thread(target=GetFactor, args=(n , 3 ,q2,))
@@ -128,14 +130,14 @@ def FactorizationOddThread(n, resultQueue = None):
 #
 # only factor positive odd numbers
 #
-def FactorizationOdd(n):
+def FactorizationOdd(n:int)->list[int]:
   """
   Factorization odd number (no threads)
   """
 
   factors = []
 
-  def GetFactor(n):
+  def GetFactor( n:int ) ->  int :
     xFixed    = 2
     cycleSize = 2
     x         = 2
@@ -189,7 +191,7 @@ def FactorizationOdd(n):
 # factor all (positive) numbers
 # give back: array of integers (factors)
 #
-def Factorization(n):
+def Factorization(n:int)-> list[int]:
   """
   Factorization of given number, give array of integer back
   """
@@ -224,7 +226,7 @@ def Factorization(n):
 #
 # factor all positive numbers
 # give back dictionary  { number: count }
-def FactorizationDict(n):
+def FactorizationDict(n:int) -> dict[int,int]:
   """
   Factorization given number, give dictionary back ( number: count )
   """
@@ -327,7 +329,7 @@ def FactorizationDict(n):
 # Same function name as primefac used for Factorization
 # Give back a dictionary { number: count }
 #
-def factorint(n):  # pylint: disable=invalid-name
+def factorint(n:int) -> dict[int,int] :  # pylint: disable=invalid-name
   """
   Factorization of given number, give a dictionary back ( number: count )
   Is equal to primefac
@@ -336,16 +338,16 @@ def factorint(n):  # pylint: disable=invalid-name
 
 
 # https://stackoverflow.com/questions/6800193/what-is-the-most-efficient-way-of-finding-all-the-factors-of-a-number-in-python
-def FactorsAll(n):
-  """
-  Get all the factors of a given n`
-  """
-  step = 2 if n%2 else 1
-  return set(reduce(list.__add__, ([i, n//i] for i in range(1, int(sqrt(n))+1, step) if n % i == 0)))
+# def FactorsAll(n:int):
+#  """
+#  Get all the factors of a given n`
+#  """
+#  step = 2 if n%2 else 1
+#  return set(reduce(list.__add__, ([i, n//i] for i in range(1, int(sqrt(n))+1, step) if n % i == 0)))
 
 
 # get all the factors of the given n`
-def FactorAllInt( n ):
+def FactorAllInt( n:int ) -> list[int] :
   """
   Get all the factors of a given n with caching
   """

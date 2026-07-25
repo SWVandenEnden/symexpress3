@@ -40,6 +40,7 @@
      Functions are not optimized for infinity. Function must handle infinity them self
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -50,14 +51,14 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "infinity"
     self._symtype      = "all"
     self._desc         = "Optimize infinity"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     there are 4 infinity's in complex numbers
      1:          infinity  (positive real)
@@ -66,10 +67,11 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
      4: -1 * i * infinity  (negative imaginary)
     """
 
-    def _firstInfinity():
+    def _firstInfinity(symExpr:symexpress3.SymExpress) -> int :
       """
       Return the first infinity variable found
       """
+
       if symExpr.symType == '*':
         # by * only 1 type exist
         for iCnt, elem in enumerate( symExpr.elements ):
@@ -126,8 +128,12 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
     if self.checkExpression( symExpr, action ) != True:
       return result
 
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
+
     # search for first infinity
-    firstInfinity = _firstInfinity()
+    firstInfinity = _firstInfinity(symExpr)
     if firstInfinity < 0:
       return result
 
@@ -423,11 +429,16 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None:
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeInfinity
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -438,8 +449,9 @@ def Test( display = False):
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
   result  = False
-  symTest = symexpress3.SymFormulaParser( '100 / infinity' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '100 / infinity' )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest ) # special for mypy
   symTest = symTest.elements[ 0 ]
   symOrg  = symTest.copy()
 

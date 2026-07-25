@@ -20,6 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import typing
 
 from symexpress3 import symtables
 
@@ -50,7 +51,7 @@ from symexpress3.symfunc import symFuncDedekindEta
 #
 # automatic called from symepxress3 too fill functionTable[]
 #
-def SymRegisterFunctions():
+def SymRegisterFunctions() -> None :
   """
   Register all the function classes
   """
@@ -84,7 +85,7 @@ def SymRegisterFunctions():
 #
 # Get all the modules from the functions, used in testsymexpress3.py
 #
-def SymRegisterGetModuleNames():
+def SymRegisterGetModuleNames() -> list[typing.Any]:
   """
   Get all the modules of the functions
   """

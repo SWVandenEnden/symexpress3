@@ -23,7 +23,12 @@
 
 """
 
+import typing
+
 from abc import ABC, abstractmethod
+
+from symexpress3 import symexpress3
+
 
 #
 # base class for a specific sym type
@@ -34,33 +39,33 @@ class OptTypeBase( ABC ):
   """
   __slots__ = ( '_name', '_symtype', '_desc')
 
-  def __init__( self ):
-    self._name         = None  # must be set by in the real class
-    self._symtype      = None  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction
-    self._desc         = ""    # description of the optimization
+  def __init__( self ) -> None:
+    self._name    :str         = ""    # must be set by in the real class
+    self._symtype :typing.Any  = None  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction
+    self._desc    :None|str    = ""    # description of the optimization
 
   @property
-  def name(self):
+  def name(self) -> str :
     """
     Name of the function
     """
     return self._name
 
   @property
-  def symType(self):
+  def symType(self) -> None|typing.Any :
     """
     The supported sym type`
     """
     return self._symtype
 
   @property
-  def description(self):
+  def description(self) -> None|str :
     """
     Description of the function
     """
     return self._desc
 
-  def checkType( self, elem, action ):
+  def checkType( self, elem:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Check if the given elem
     """
@@ -80,7 +85,7 @@ class OptTypeBase( ABC ):
     return True # correct call
 
   @abstractmethod
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
     """
     Optimization method, give the optimize elem back, do not change the elem
     """

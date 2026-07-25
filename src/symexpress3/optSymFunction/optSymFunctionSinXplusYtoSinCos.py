@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -32,7 +33,7 @@ class OptSymFunctionSinXplusYtoSinCos( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "sinXplusYtoSinCos"
     self._desc         = "Convert sin(x+y) into sin(x)cos(y) + cos(x)sin(y)"
@@ -41,9 +42,12 @@ class OptSymFunctionSinXplusYtoSinCos( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # https://en.wikipedia.org/wiki/Trigonometric_functions
     # cos(x+y) into sin(x)cos(y) + cos(x)sin(y)
@@ -80,12 +84,13 @@ class OptSymFunctionSinXplusYtoSinCos( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  symTest = symexpress3.SymFormulaParser( "sin(pi/4 + 5/2)" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "sin(pi/4 + 5/2)" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   testClass = OptSymFunctionSinXplusYtoSinCos()

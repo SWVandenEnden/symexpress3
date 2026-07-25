@@ -36,33 +36,33 @@ class OptimizeBase( ABC ):
   """
   __slots__ = ('_name', '_symtype', '_desc' )
 
-  def __init__( self ):
-    self._name         = None  # must be set by in the real class
-    self._symtype      = ""    # symexpression type, use "all" for all expression types
-    self._desc         = ""    # description of the function
+  def __init__( self ) -> None:
+    self._name         :str = ""    # must be set by in the real class
+    self._symtype      :str = ""    # symexpression type, use "all" for all expression types
+    self._desc         :str = ""    # description of the function
 
   @property
-  def name(self):
+  def name(self) -> str :
     """
     Name of the function
     """
     return self._name
 
   @property
-  def symType(self):
+  def symType(self) -> str :
     """
     The supported expression type
     """
     return self._symtype
 
   @property
-  def description(self):
+  def description(self) -> str :
     """
     Description of the function
     """
     return self._desc
 
-  def checkExpression( self, symExpr, action ):
+  def checkExpression( self, symExpr:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Check if the given symexpress is correct for this optimization class
     """
@@ -81,7 +81,7 @@ class OptimizeBase( ABC ):
     return True # correct call
 
   @abstractmethod
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Optimization method
     """

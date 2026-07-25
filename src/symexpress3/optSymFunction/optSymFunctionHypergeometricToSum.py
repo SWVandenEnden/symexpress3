@@ -54,6 +54,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -65,7 +66,7 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "hypergeometricToSum"
     self._desc         = "Convert hypergemoetric to sum for abs(z) < 1"
@@ -74,16 +75,22 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 100                      # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
-    def _transAbsZSmall( valP, valQ, startP, startQ, elemZ ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
+    def _transAbsZSmall( elem   :symexpress3.SymFunction
+                       , valP   :int
+                       , valQ   :int
+                       , startP :int
+                       , startQ :int
+                       , elemZ  :symexpress3.TypVarSym3Object
+                       ) -> None|symexpress3.TypVarSym3Object:
       # below transformation is only valid if abs(z) < 1
       try:
         valZ = elemZ.getValue()
-        if abs( valZ ) >= 1:
+        if abs( valZ ) >= 1: #type:ignore
           return None
       except: # pylint: disable=bare-except
         return None
-
 
       elemPQ  = symexpress3.SymExpress( '*' )
       varName = symtools.VariableGenerateGet()
@@ -131,6 +138,8 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
 
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemP   = elem.elements[ 0 ]
     elemQ   = elem.elements[ 1 ]
@@ -192,7 +201,7 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
 
 
     # below transformation is only valid if abs(z) < 1
-    elemNew = _transAbsZSmall( valP, valQ, startP, startQ, elemZ )
+    elemNew = _transAbsZSmall( elem, valP, valQ, startP, startQ, elemZ )
     if elemNew != None:
       return elemNew
 
@@ -202,14 +211,15 @@ class OptSymFunctionHypergeometricToSum( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
   symtools.VariableGenerateReset()
 
-  symTest = symexpress3.SymFormulaParser( "hypergeometric( 2, 1, 2, 3, 4, 1/2 )" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "hypergeometric( 2, 1, 2, 3, 4, 1/2 )" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   # print( "symTest: " + str( symTest ))
@@ -225,7 +235,6 @@ def Test( display = False):
   if str( symNew ).strip() != "sum( n1,0,infinity, risingfactorial( 2,n1 ) *  risingfactorial( 3,n1 ) *  risingfactorial( 4,n1 )^^-1 *  exp( n1,(1/2) ) *  factorial( n1 )^^-1 )":
     print( f"Error unit test {testClass.name} function" )
     raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symNew )}' )
-
 
 
 if __name__ == '__main__':

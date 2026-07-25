@@ -24,6 +24,7 @@
 
 """
 
+import typing
 import math
 
 from symexpress3         import symexpress3
@@ -36,7 +37,7 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "binomial"
     self._desc        = "Binomial x over y  = x! / ( y! * (x - y)!)"
@@ -45,13 +46,14 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     self._syntax      = "binomial(<n>,<k>)"
     self._synExplain  = "binomial(<n>,<k>) = n!/(n!(n - k)!)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
       return [], None
 
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
     output = ""
 
-    # output += "<mfenced>"
     output += "<mrow><mo>(</mo>"
 
     output += "<mtable>"
@@ -69,15 +71,17 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     output += "</mtr>"
 
     output += "</mtable>"
-    # output += "</mfenced>"
     output += "<mo>)</mo></mrow>"
 
     return [], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elem1 = elem.elements[ 0 ]
     elem2 = elem.elements[ 1 ]
@@ -110,7 +114,7 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     if elem2.factDenominator != 1:
       return None
 
-    dValue  = math.comb( elem1.getValue(), elem2.getValue() )
+    dValue  = math.comb( elem1.getValue(), elem2.getValue() ) # type:ignore
     elemnew = symexpress3.SymFormulaParser( str( dValue ))
 
     elemnew.powerSign        = elem.powerSign
@@ -119,19 +123,27 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
 
     return elemnew
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    return math.comb( dValue, dValue2 )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
+    return math.comb( dValue, dValue2 ) # type:ignore
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
-    dValueCalc = round( float(dValueCalc), 10 )
+  def _Check( testClass :SymFuncBinomial
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue     = symexpress3.SymRound( dValue    , 10 )
+    dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

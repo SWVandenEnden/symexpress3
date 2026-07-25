@@ -22,7 +22,8 @@
     https://en.wikipedia.org/wiki/Dedekind_eta_function
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -34,7 +35,7 @@ class SymFuncDedekindEta( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "dedekindeta"
     self._desc        = "Dedeking eta function"
@@ -43,9 +44,12 @@ class SymFuncDedekindEta( symFuncBase.SymFuncBase ):
     self._syntax      = "dedekindeta( <n> )"
     self._synExplain  = "dedekindeta( <n> )"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -56,9 +60,12 @@ class SymFuncDedekindEta( symFuncBase.SymFuncBase ):
     return [], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     if elem.numElements() != 1:
       return None
@@ -66,24 +73,29 @@ class SymFuncDedekindEta( symFuncBase.SymFuncBase ):
     # for the moment no transformation
     return None
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.eta( dValue  )
 
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncDedekindEta
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :None|str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
 
     if dValue != None:
-      dValue = symexpress3.SymRound( dValue, 10 )
+      dValue     = symexpress3.SymRound( dValue    , 10 )
 
     if dValueCalc != None:
-      # dValueCalc = round( float(dValueCalc), 10 )
       dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
 
     if display == True :

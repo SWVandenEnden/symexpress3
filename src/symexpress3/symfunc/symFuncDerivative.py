@@ -23,6 +23,7 @@
     https://en.wikipedia.org/wiki/Derivative
     https://en.wikipedia.org/wiki/Differentiation_rules
 """
+import typing
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -33,7 +34,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "derivative"
     self._desc        = "derivative( <function>,<delta> )"
@@ -43,9 +44,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     self._synExplain  = "derivative( <function>,<delta> )"
 
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -54,10 +58,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     output += "<mrow>"
     output += "<mi>d</mi>"
 
-    # output += "<mfenced separators=''>"
     output += "<mrow><mo>(</mo>"
     output += elem.elements[ 0 ].mathMl()
-    # output += "</mfenced>"
     output += "<mo>)</mo></mrow>"
 
     output += "</mrow>"
@@ -71,9 +73,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     return [ '()' ], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
 
-    def _subGetConstantAndVariable( elemFunc ):
+    def _subGetConstantAndVariable( elemFunc:symexpress3.TypVarSym3Object
+                                  , elem    :symexpress3.SymFunction
+                                  ) -> tuple[ None|list[symexpress3.TypVarSym3Object], None|list[symexpress3.TypVarSym3Object] ]:
       """
       Split the function into a constant and the variable
       Give 2 result, first = constant, second = variable
@@ -84,7 +88,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       if elemFunc.onlyOneRoot != 1:
         return None, None
 
-      cVarName = elem.elements[ 1 ].name
+      cVarName = elem.elements[ 1 ].name #type:ignore
 
       # plus expression with 1 element
       if (     isinstance( elemFunc, symexpress3.SymExpress )
@@ -106,32 +110,32 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         return [ elemFunc ], None
 
       # fill 2 arrays with elements
-      arrConst = []
-      arrVar   = []
+      arrConst:None|list[symexpress3.TypVarSym3Object] = []
+      arrVar  :None|list[symexpress3.TypVarSym3Object] = []
 
       if isinstance( elemFunc, symexpress3.SymExpress ) and elemFunc.symType == '*' :
         for elemCheck in elemFunc.elements:
           dictVars = elemCheck.getVariables()
           if cVarName in dictVars:
-            arrVar.append( elemCheck )
+            arrVar.append( elemCheck ) #type:ignore
           else:
-            arrConst.append( elemCheck )
+            arrConst.append( elemCheck ) #type:ignore
       else:
         # array check is already done, now only the is there is an variable in it
         dictVars = elemFunc.getVariables()
         if cVarName in dictVars:
-          arrVar.append( elemFunc )
+          arrVar.append( elemFunc ) #type:ignore
         else:
-          arrConst.append( elemFunc )
+          arrConst.append( elemFunc ) #type:ignore
 
-      if len( arrConst ) == 0:
+      if len( arrConst ) == 0: #type:ignore
         arrConst = None
-      if len( arrVar ) == 0:
+      if len( arrVar ) == 0: #type:ignore
         arrVar = None
 
       return arrConst, arrVar
 
-    def _derivativeLog():
+    def _derivativeLog( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
         derivative( log( a x, b ) ) = 1 / ( x log( b ))
       """
@@ -152,7 +156,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       elemParam = elemFunc.elements[ 0 ]
       # arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
-      _, arrVar = _subGetConstantAndVariable ( elemParam )
+      _, arrVar = _subGetConstantAndVariable ( elemParam, elem )
       if arrVar == None:
         return None
 
@@ -161,7 +165,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         # contains the base the variable
         dictBase = elemFunc.elements[1].getVariables()
         if (  len( dictBase ) == 0
-           or not elem.elements[1].name in dictBase
+           or not elem.elements[1].name in dictBase # type:ignore
            ):
           dictBase = None # no variable in base
       if dictBase != None:
@@ -185,7 +189,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       if (   len( arrVar ) > 1
           or not isinstance( arrVar[0], symexpress3.SymVariable )
-          or arrVar[0].name  != elem.elements[ 1 ] .name
+          or arrVar[0].name  != elem.elements[ 1 ] .name          #type:ignore
           or arrVar[0].power != 1
          ):
 
@@ -199,7 +203,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _derivativeExp():
+    def _derivativeExp(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
         derivative( exp( a x , c ) = a exp( a x, c) * log( c )
         derivative( exp( a x     ) = a exp( a x   )
@@ -220,7 +224,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         return None
 
       elemParam = elemFunc.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, elem )
       if arrVar == None and arrConst == None:
         return None
 
@@ -232,7 +236,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         # contains the base the variable
         dictBase = elemFunc.elements[1].getVariables()
         if (  len( dictBase ) == 0
-           or not elem.elements[1].name in dictBase
+           or not elem.elements[1].name in dictBase #type:ignore
            ):
           dictBase = None # no variable in base
 
@@ -251,7 +255,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         for elemVar in arrVar:
           expVar.add( elemVar )
 
-        elemNew = symexpress3.SymExpress( '*' )
+        elemNew:symexpress3.TypVarSym3Object = symexpress3.SymExpress( '*' )
+        elemNew = typing.cast( symexpress3.SymExpress, elemNew )
         if arrConst != None:
           elemNew.add( expConst )
         elemNew.add( elemFunc )
@@ -264,7 +269,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
         if (   len( arrVar ) > 1
             or not isinstance( arrVar[0], symexpress3.SymVariable )
-            or arrVar[0].name  != elem.elements[ 1 ] .name
+            or arrVar[0].name  != elem.elements[ 1 ] .name   #type:ignore
             or arrVar[0].power != 1
            ):
 
@@ -284,7 +289,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       # exp( a, x ) = exp( a - 1, x ) * a
       elemBase = elemFunc.elements[ 1 ]
       if (   not isinstance( elemBase, symexpress3.SymVariable )
-          or elemBase.name != elem.elements[1].name
+          or elemBase.name != elem.elements[1].name  #type:ignore
           or elemBase.power != 1
          ):
         return None
@@ -312,7 +317,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _derivativeTrigonometric():
+    def _derivativeTrigonometric(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
         derivative of trigonometric and inverse trigonometric functions
       """
@@ -339,7 +344,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       elemNew = symexpress3.SymExpress('*')
       if cFuncName == "sin":
         # derivative( sin(x), x)  = cos(x)
-        elemFnc = symexpress3.SymFunction( 'cos' )
+        elemFnc:symexpress3.SymFunction|symexpress3.SymExpress = symexpress3.SymFunction( 'cos' )
         elemFnc.add( elemParam )
         elemNew.add( elemFnc )
 
@@ -433,7 +438,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
 
       if (   not isinstance( elemParam, symexpress3.SymVariable )
-          or elemParam.name  != elem.elements[ 1 ] .name
+          or elemParam.name  != elem.elements[ 1 ] .name  # type:ignore
           or elemParam.power != 1
          ):
 
@@ -449,7 +454,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
 
 
-    def _derivativePower():
+    def _derivativePower(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
       derivative( x^^2     , x ) = 2 x^^1, x
       derivative( sin(x)^^2, x ) = 2 sin(x)^^1 * derivative( sin(x), x )
@@ -494,7 +499,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _derivativeQuotient():
+    def _derivativeQuotient(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
       derivative( x / y, x ) =  ( derivative ( x ) * y - x * derivative ( y ) ) / ( y^^2 )
       """
@@ -556,7 +561,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _derivativeProduct():
+    def _derivativeProduct(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
       derivative( x * y, x ) = derivative( x, x ) * y + x * derivative( y, x )
       """
@@ -576,29 +581,32 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
          ):
         return None
 
-      elemFirst  = None
-      elemSecond = None
+      elemFirst                              = None
+      elemSecond:None|symexpress3.SymExpress = None
+
       for elemProd in elemFunc.elements:
         if elemFirst == None:
           elemFirst = elemProd
           elemSecond = symexpress3.SymExpress( '*' )
         else:
-          elemSecond.add( elemProd )
+          elemSecond.add( elemProd ) # type:ignore
 
       elemNew  = symexpress3.SymExpress( '+' )
 
       expFirst = symexpress3.SymExpress( '*' )
+      # expFirst = typing.cast( symexpress3.SymExpress, expFirst )
+
       elemDer  = symexpress3.SymFunction( 'derivative' )
-      elemDer.add( elemFirst )
+      elemDer.add( elemFirst ) #type:ignore
       elemDer.add( elem.elements[ 1 ] )
       expFirst.add( elemDer )
-      expFirst.add( elemSecond )
+      expFirst.add( elemSecond ) #type:ignore
       elemNew.add( expFirst )
 
       expSecond = symexpress3.SymExpress( '*' )
-      expSecond.add( elemFirst )
+      expSecond.add( elemFirst ) #type:ignore
       elemDer  = symexpress3.SymFunction( 'derivative' )
-      elemDer.add( elemSecond )
+      elemDer.add( elemSecond ) #type:ignore
       elemDer.add( elem.elements[ 1 ] )
       expSecond.add( elemDer )
       elemNew.add( expSecond )
@@ -609,7 +617,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
 
 
-    def _derivativePlus():
+    def _derivativePlus(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
         derivative( x + y, x ) = derivative( x, x ) + deriate( y, x )
       """
@@ -640,13 +648,13 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _derivativeConstant():
+    def _derivativeConstant(elem:symexpress3.SymFunction) -> None|symexpress3.TypVarSym3Object :
       """
         derivative( a  , x ) = 0
         derivative( a x, x ) = a deriate( x, x )
       """
       elemFunc = elem.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemFunc )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemFunc, elem )
 
       if arrVar == None and arrConst == None:
         return None
@@ -692,6 +700,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     if self._checkCorrectFunction( elem ) != True:
       return None
 
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
     # first write out roots
     if elem.elements[ 0 ].onlyOneRoot != 1:
       return None
@@ -710,42 +720,42 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       return None
 
     # constant
-    elemNew = _derivativeConstant()
+    elemNew = _derivativeConstant(elem)
     if elemNew != None:
       return elemNew
 
     # plus
-    elemNew = _derivativePlus()
+    elemNew = _derivativePlus(elem)
     if elemNew != None:
       return elemNew
 
     # product
-    elemNew = _derivativeProduct()
+    elemNew = _derivativeProduct(elem)
     if elemNew != None:
       return elemNew
 
     # quotient rule
-    elemNew = _derivativeQuotient()
+    elemNew = _derivativeQuotient(elem)
     if elemNew != None:
       return elemNew
 
     # power (with chain rule)
-    elemNew = _derivativePower()
+    elemNew = _derivativePower(elem)
     if elemNew != None:
       return elemNew
 
     # trigonometric and inverse (with chain rule)
-    elemNew = _derivativeTrigonometric()
+    elemNew = _derivativeTrigonometric(elem)
     if elemNew != None:
       return elemNew
 
     # exp (with chain rule)
-    elemNew = _derivativeExp()
+    elemNew = _derivativeExp(elem)
     if elemNew != None:
       return elemNew
 
     # log (with chain rule)
-    elemNew = _derivativeLog()
+    elemNew = _derivativeLog(elem)
     if elemNew != None:
       return elemNew
 
@@ -753,9 +763,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     return None
 
 
-  def getValue( self, elemFunc, dDict = None ):
+  def getValue( self, elemFunc:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDictNone = None ) -> symexpress3.TypVarSym3ValueAll :
+
     if self._checkCorrectFunction( elemFunc ) != True:
       return None
+
+    elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
     # print( "Calc derivative" )
 
@@ -774,7 +787,7 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
     elemExpress = elemFunc.elements[0]
 
-    dDictSum[ cVar ] = dDictSum[ cVar ] + h
+    dDictSum[ cVar ] = dDictSum[ cVar ] + h #type:ignore
 
     valFirst = elemExpress.getValue( dDictSum )
     valLast  = elemExpress.getValue( dDict    )
@@ -783,9 +796,9 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
     if isinstance( valFirst, list ):
       dValue = []
       for iCnt, elem in enumerate( valFirst ) :
-        dValue.append( (elem - valLast[ iCnt ]) / h )
+        dValue.append( (elem - valLast[ iCnt ]) / h ) # type:ignore
     else:
-      dValue = (valFirst - valLast) / h
+      dValue = (valFirst - valLast) / h # type:ignore
 
     dValue = elemFunc.valuePow( dValue )
 
@@ -794,11 +807,16 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
+
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, valueCalc ):
+  def _Check( testClass:SymFuncDerivative
+            , symTest  :symexpress3.TypVarSym3Object
+            , value    :None|symexpress3.TypVarSym3Object
+            , valueCalc:str
+            ) -> None :
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

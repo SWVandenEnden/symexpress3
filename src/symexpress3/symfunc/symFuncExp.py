@@ -23,8 +23,8 @@
     https://en.wikipedia.org/wiki/Exponential_function
 
 """
-
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -36,7 +36,7 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "exp"
     self._desc      = "Exponent, y^^x, default is e (e^^x)"
@@ -45,9 +45,12 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     self._syntax    = "exp(<x> [,<y>])"
     self._synExplain= "exp(<x> [,<y>]) = y^^x, default is e (e^^x)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -87,9 +90,12 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     return ['()'], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # exp(a)^^2 = exp( 2 * a )
     if elem.onlyOneRoot == 1 and (elem.powerSign != 1 or elem.powerCounter != 1 or elem.powerDenominator != 1):
@@ -172,7 +178,10 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
     return elemnew
 
 
-  def _getValueSingle( self, dValue, dValue2 = mpmath.e ):
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
+    if dValue2 == None:
+      dValue2 = mpmath.e
+
     dResult = dValue2 ** dValue
     # dResult = mpmath.root( dValue2, dValue )
     return dResult
@@ -181,15 +190,24 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncExp
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if dValue != None:
-      dValue = round( float(dValue), 10 )
+      dValue = symexpress3.SymRound( dValue, 10 )
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

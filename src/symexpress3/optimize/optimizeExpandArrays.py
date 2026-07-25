@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -34,25 +35,28 @@ class OptimizeExpandArrays( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "expandArrays"
     self._symtype      = "all"
-    self._desc         = "If the expression containts at least 1 array then make the hole expression an array element."
+    self._desc         = "If the expression contains at least 1 array then make the hole expression an array element."
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
       return result
 
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
+
     if symExpr.numElements() <= 1 :
       return result
 
     iArray = -1
-    # for iCnt in range( 0, len(symExpr.elements)):
     for iCnt, elemTest in enumerate( symExpr.elements ):
-      # if isinstance( symExpr.elements[ iCnt ], symexpress3.SymArray ) :
       if isinstance( elemTest, symexpress3.SymArray ) and elemTest.power == 1 and elemTest.onlyOneRoot == 1:
         iArray = iCnt
         break
@@ -61,14 +65,16 @@ class OptimizeExpandArrays( optimizeBase.OptimizeBase ):
       return result
 
     expr = symexpress3.SymExpress( symExpr.symType )
-    # for iCnt in range( 0, len(symExpr.elements)):
     for iCnt, elemTest in enumerate( symExpr.elements ):
       if iCnt == iArray :
         continue
-      # expr.add( symExpr.elements[ iCnt ] )
       expr.add( elemTest )
 
-    elemarr     = symExpr.elements[ iArray ]
+    elemarr = symExpr.elements[ iArray ]
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    elemarr = typing.cast( symexpress3.SymArray, elemarr )
 
     elemarrfact = symexpress3.SymExpress( '*', elemarr.powerSign, elemarr.powerCounter, elemarr.powerDenominator
                                         , elemarr.onlyOneRoot
@@ -92,12 +98,16 @@ class OptimizeExpandArrays( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Test unit
   """
+  def _Check( testClass:OptimizeExpandArrays
+            , symOrg   :symexpress3.SymExpress
+            , symTest  :symexpress3.SymExpress
+            , wanted   :str
+            ) -> None:
 
-  def _Check( testClass, symOrg, symTest, wanted ):
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )

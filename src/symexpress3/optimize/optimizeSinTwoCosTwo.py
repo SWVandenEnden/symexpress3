@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -31,18 +32,23 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "sinTwoCosTwo"
     self._symtype      = "+"
     self._desc         = "sin(x)^2 + cos(x)^2 = 1"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if symExpr.numElements() <= 1:
       return result
@@ -93,15 +99,15 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
       elemsin = None
       iCntSin = -1
 
-      for iCntSin, elemcheck in enumerate( elem.elements):
-        if not isinstance( elemcheck, symexpress3.SymFunction ):
+      for iCntSin, elemcheck2 in enumerate( elem.elements):
+        if not isinstance( elemcheck2, symexpress3.SymFunction ):
           continue
-        if elemcheck.name != 'sin':
+        if elemcheck2.name != 'sin':
           continue
-        if elemcheck.power != 2:
+        if elemcheck2.power != 2:
           continue
         # ok, found a sin
-        elemsin = elemcheck
+        elemsin = elemcheck2
         break
 
       if elemsin == None:
@@ -120,13 +126,12 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
         if elem2.symType != '*':
           continue
 
-        for iCntCos, elemcheck in enumerate( elem2.elements):
-          # print( 'elemcheck cos: {}'.format( str( elemcheck )))
-          if not isinstance( elemcheck, symexpress3.SymFunction ):
+        for iCntCos, elemcheck3 in enumerate( elem2.elements):
+          if not isinstance( elemcheck3, symexpress3.SymFunction ):
             continue
-          if elemcheck.name != 'cos':
+          if elemcheck3.name != 'cos':
             continue
-          if elemcheck.power != 2:
+          if elemcheck3.power != 2:
             continue
           # ok, found a cos
 
@@ -134,7 +139,7 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
 
           # check if this is
           elemequal = elem2.copy()
-          elemequal.elements[ iCntCos ].name = 'sin'
+          elemequal.elements[ iCntCos ].name = 'sin' # type:ignore
           if not elemequal.isEqual( elem ):
             continue
 
@@ -149,11 +154,16 @@ class OptimizeSinTwoCosTwo( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeSinTwoCosTwo
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -163,7 +173,7 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
-  symTest = symexpress3.SymFormulaParser( 'cos( x )^2 + sin( x )^2' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'cos( x )^2 + sin( x )^2' )
   symTest.optimize()
   symOrg = symTest.copy()
 

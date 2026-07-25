@@ -24,6 +24,7 @@
 
 """
 
+import typing
 import math
 import uuid
 
@@ -40,7 +41,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
   __slots__ = ()
 
   # sin/cos/tan are all in radius, between 0 and 2 pi
-  def _optimizeSinCosTan( self, elemFunc ):
+  def _optimizeSinCosTan( self, elemFunc:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
     elem = elemFunc.elements[ 0 ]
     if not isinstance( elem, symexpress3.SymExpress ):
       return None
@@ -54,8 +55,11 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     elemNum = None
     elemVar = None
 
-    result = elemFunc.copy()
+    result:None|symexpress3.TypVarSym3Object = elemFunc.copy()
+
+    result = typing.cast( symexpress3.SymExpress, result )
     elem   = result.elements[ 0 ]
+    elem   = typing.cast( symexpress3.SymExpress, elem )
 
     if isinstance( elem.elements[0], symexpress3.SymNumber ):
       elemNum = elem.elements[0]
@@ -99,7 +103,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     return result
 
   # convert sin() and cos()
-  def _convertFuncSinCosTan( self, elem ):
+  def _convertFuncSinCosTan( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
 
     # https://www.rapidtables.com/math/trigonometry/arctan.html
 
@@ -298,10 +302,10 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
   # get the sin/cos from the given counter/denominator
   # if not exist try to create one (with only real radicals, no complex)
   #
-  def _getSinCos( self, cType, iCounter, iDenominator ):
+  def _getSinCos( self, cType:str, iCounter:int, iDenominator:int ) -> None|str :
 
     # search trigonometricdata to the given base
-    def _getBaseFormula( cTp, iCount, iDenom ):
+    def _getBaseFormula( cTp:str, iCount:int, iDenom:int ) -> None|str :
       for tri in symTrigonometricData.trigonometricdata:
         if tri[ 0 ] != cTp:
           continue
@@ -312,11 +316,11 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
         if tri[ 3 ] != iDenom:
           continue
 
-        return tri[ 4 ] # symexpress string formula
+        return typing.cast( str, tri[ 4 ] ) # symexpress string formula
 
       return None
 
-    def _createSinCosHalf( iDenom ):
+    def _createSinCosHalf( iDenom:int ) -> None :
       # sin( x / 2 ) = sign( sin( x/2 ) ) ( (1 - cos(x) ) / 2 )^^(1/2)
       # cos( x / 2 ) = sign( cos( x/2 ) ) ( (1 + cos(x) ) / 2 )^^(1/2)
 
@@ -332,31 +336,33 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin.optimizeNormal()
       oFormulaCos.optimizeNormal()
 
-      triRec = []
-      triRec.append( "sin" )
-      triRec.append( 1 )
-      triRec.append( 1 )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaSin ) )
-      triRec.append( None )
+      triRec = [
+          "sin"
+        , 1
+        , 1
+        , iDenom
+        , str( oFormulaSin )
+        , None
+      ]
 
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add sin: { triRec[ 4 ]}" )
 
-      triRec = []
-      triRec.append( "cos" )
-      triRec.append( 1 )
-      triRec.append( 1 )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaCos ) )
-      triRec.append( None )
+      triRec = [
+          "cos"
+        , 1
+        , 1
+        , iDenom
+        , str( oFormulaCos )
+        , None
+      ]
 
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add cos: { triRec[ 4 ]}" )
 
-    def _createSinCosDouble( iCount, iDenom ):
+    def _createSinCosDouble( iCount:int, iDenom:int ) -> None :
       # sin( 2x ) = 2 sin(x) cos(x)
       # cos( 2x ) = 2 cos(x)^^2 - 1
 
@@ -371,31 +377,31 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin.optimizeNormal()
       oFormulaCos.optimizeNormal()
 
-      triRec = []
-      triRec.append( "sin" )
-      triRec.append( 1 )
-      triRec.append( iCount )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaSin ) )
-      triRec.append( None )
-
+      triRec = [
+          "sin"
+        , 1
+        , iCount
+        , iDenom
+        , str( oFormulaSin )
+        , None
+      ]
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add sin: { triRec[ 4 ]}" )
 
-      triRec = []
-      triRec.append( "cos" )
-      triRec.append( 1 )
-      triRec.append( iCount )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaCos ) )
-      triRec.append( None )
-
+      triRec = [
+           "cos"
+         , 1
+         , iCount
+         , iDenom
+         , str( oFormulaCos )
+         , None
+      ]
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add cos: { triRec[ 4 ]}" )
 
-    def _createSinCosPlusOne( iCount, iDenom ):
+    def _createSinCosPlusOne( iCount:int, iDenom:int ) -> None :
       # sin( x + y ) = sin(x) cos(y) + cos(x) sin(y)
       # cos( x + y ) = cos(x) cos(y) - sin(x) sin(y)
       # sin( x - y ) = sin(x) cos(y) - cos(x) sin(y)
@@ -416,26 +422,26 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin.optimizeNormal()
       oFormulaCos.optimizeNormal()
 
-      triRec = []
-      triRec.append( "sin" )
-      triRec.append( 1 )
-      triRec.append( iCount )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaSin ) )
-      triRec.append( None )
-
+      triRec = [
+           "sin"
+         , 1
+         , iCount
+         , iDenom
+         , str( oFormulaSin )
+         , None
+      ]
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add sin: { triRec[ 4 ]}" )
 
-      triRec = []
-      triRec.append( "cos" )
-      triRec.append( 1 )
-      triRec.append( iCount )
-      triRec.append( iDenom )
-      triRec.append( str( oFormulaCos ) )
-      triRec.append( None )
-
+      triRec = [
+          "cos"
+        , 1
+        , iCount
+        , iDenom
+        , str( oFormulaCos )
+        , None
+      ]
       symTrigonometricData.trigonometricdata.append( triRec )
 
       # print( f"Add cos: { triRec[ 4 ]}" )
@@ -526,7 +532,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     return baseFormula
 
 
-  def _convertSinCosAtan( self, elem ):
+  def _convertSinCosAtan( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
     #
     # https://math.stackexchange.com/questions/1894265/how-do-i-show-this-cos2-arctanx-frac11x2/2121833#2121833
     # cos( atan( 11/3 ) / 2 )
@@ -581,11 +587,12 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       # sin(x/2) = sqrt( (1 - cos(x)) / 2 )
       # replace 2 to a power of 2 and make x atan(y) then that's it
       elemexpr = elem.elements[ 0 ]
+      # elemexpr = typing.cast( symexpress3.SymExpress, elemexpr )
 
       if elemexpr.symType == '*' and elemexpr.numElements() == 2 and elemexpr.power == 1:
         if isinstance( elemexpr.elements[ 0 ], symexpress3.SymFunction ):
-          elemFunc = elemexpr.elements[ 0 ]
-          elemNum  = elemexpr.elements[ 1 ]
+          elemFunc:symexpress3.TypVarSym3Object = elemexpr.elements[ 0 ]
+          elemNum                               = elemexpr.elements[ 1 ]
         else:
           elemFunc = elemexpr.elements[ 1 ]
           elemNum  = elemexpr.elements[ 0 ]
@@ -757,7 +764,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
     return None
 
-  def _convertSinCosTanAtanSign( self, elem ):
+  def _convertSinCosTanAtanSign( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
     #  sin( -x ) = - sin(  x )
     #  cos( -x ) = + cos(  x )
     #  tan( -x ) = - tan(  x )
@@ -777,10 +784,11 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
       elemExpress    = elem.copy()
       elem1          = elemExpress.elements[ 0 ]
+      elem1          = typing.cast( symexpress3.SymNumber, elem1 )
       elem1.factSign = 1
 
       if elemExpress.name == "cos":
-        elemResult = elemExpress
+        elemResult:symexpress3.TypVarSym3Object = elemExpress
 
       elif elemExpress.name == "acos":
         elemResult = symexpress3.SymExpress( '+' )
@@ -819,7 +827,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       return None
 
     elemExpress    = elem.copy()
-    elem1          = elemExpress.elements[ 0 ].elements[ foundNo ]
+    elem1          = elemExpress.elements[ 0 ].elements[ foundNo ] # type:ignore
+    elem1          = typing.cast( symexpress3.SymNumber, elem1 )
     elem1.factSign = 1
 
     if elemExpress.name == "cos":
@@ -841,7 +850,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
     return elemResult
 
-  def _conversTableToArc( self, elem ):
+  def _conversTableToArc( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
     funcname = None
     if elem.name == 'atan':
       funcname = 'tan'

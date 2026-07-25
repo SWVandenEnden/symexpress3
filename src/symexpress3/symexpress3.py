@@ -89,16 +89,19 @@
 
 """
 
+from __future__ import annotations
+
 # internal build number, for version number see version.py
 __buildnumber__ = "20260616001" # build number
 
-
 import sys
 import math
-import warnings
+# import warnings
+import typing
 # import gc
 
 # import traceback
+
 
 from abc       import ABC, abstractmethod
 from threading import Thread
@@ -107,10 +110,26 @@ from threading import Thread
 # import multiprocessing as mp
 # from queue     import Queue
 
-import mpmath  # use mpmath for more precision, see also the functions
-
+# use mpmath for more precision, see also the functions
+import mpmath  # type: ignore
 
 from symexpress3 import symtables
+
+type TypVarSym3Value      = mpmath.mpf|float|mpmath.mpc|complex|int
+type TypVarSym3ValueList  = list[TypVarSym3Value]
+type TypVarSym3ValueAll   = None|TypVarSym3Value|TypVarSym3ValueList
+
+type TypVarSym3ValueDict  = None|dict[str,typing.Any]
+
+type TypVarSym3Object     = SymNumber|SymVariable|SymArray|SymFunction|SymExpress
+type TypVarSym3ObjectList = list[TypVarSym3Object]
+
+type TypVarSym3VarDict    = dict[str,str]
+type TypVarSym3VarDictNone= None|dict[str,str]
+
+type TypVarSym3GetVarFunc = dict[str,int]
+
+
 
 # Classes:
 # - SymNumber      : Number
@@ -136,7 +155,7 @@ globalUseThreads      = False # use thread, see _optSubThread()
 #
 # rounding
 #
-def SymRound( value, decimals = None):
+def SymRound( value:TypVarSym3Value, decimals:None|int = None) -> TypVarSym3Value :
   """
   Round a number to the given decimals, if not given use the default (mpmath.mp.dps - 2)
   It also round complex number
@@ -145,7 +164,7 @@ def SymRound( value, decimals = None):
     if decimals == None:
       decimals = mpmath.mp.dps - 2
 
-    # TODO mpmath.nint is slow for rounding, something else?
+    # mpmath.nint is slow for rounding, something else?
 
     # Scale the value to the desired decimal places
     shiftNumber = 10 ** decimals
@@ -184,14 +203,14 @@ class SymBase( ABC ):
   __slots__ = ()
 
   @abstractmethod
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:str|None = None ) -> bool:
     """
     Optimize the expression. cAction = None is the default optimization
     """
     # pass
 
   @abstractmethod
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:TypVarSym3Object, checkFactor:bool = True, checkPower:bool = True ) -> bool:
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -199,21 +218,21 @@ class SymBase( ABC ):
     # pass
 
   @abstractmethod
-  def copy(self):
+  def copy(self) -> object:
     """
     Make a copy of this expression
     """
     # pass
 
   @abstractmethod
-  def mathMl( self ):
+  def mathMl( self ) -> str:
     """
     Give the expression in MathMl format
     """
     # pass
 
   @abstractmethod
-  def getVariables( self ):
+  def getVariables( self ) -> TypVarSym3GetVarFunc:
     """
     Get all the variables and give it back in a dictionary &lt;variable&gt;:&lt;number of times found&gt;
     """
@@ -221,14 +240,14 @@ class SymBase( ABC ):
 
 
   @abstractmethod
-  def getFunctions( self ):
+  def getFunctions( self ) -> TypVarSym3GetVarFunc:
     """
     Get all the functions and give it back in a dictionary &lt;function&gt;:&lt;number of times found&gt;
     """
     # pass
 
   @abstractmethod
-  def replaceVariable( self, dDict ):
+  def replaceVariable( self, dDict:TypVarSym3VarDict ) -> None :
     """
     Replace variables witch are given in the dictionary.
     \nkey = name variable, value = string for SymFormulaParser
@@ -237,7 +256,7 @@ class SymBase( ABC ):
 
 
   @abstractmethod
-  def getValue( self, dDict = None):
+  def getValue( self, dDict:TypVarSym3ValueDict = None) -> TypVarSym3ValueAll :
     """
     Get the value of the expression
     \nkey = name variable, value = value of the variable
@@ -247,7 +266,7 @@ class SymBase( ABC ):
 
 
   # check if this type is equal to an expression of type *, with 2 elements, 1 number and 1 type
-  def isEqualExpress( self, elem, checkFactor = True  ):
+  def isEqualExpress( self, elem:TypVarSym3Object, checkFactor:bool = True  ) -> bool:
     """
     Check if this type is equal to an expression of type *, with 2 elements, 1 number and 1 type
     """
@@ -287,7 +306,7 @@ class SymBase( ABC ):
   #
   # get SymVariable and give a SymExpress back if the variable is in dDict, otherwise None is given
   #
-  def _replaceVar( self, elem, dDict ):
+  def _replaceVar( self, elem:TypVarSym3Object, dDict:TypVarSym3VarDict ) -> None|TypVarSym3Object:
     if not isinstance( elem, SymVariable ):
       return None
 
@@ -319,10 +338,10 @@ class SymBase( ABC ):
   #
   # add the varname to the dictionary, varname can be a string or a dictionary
   #
-  def _addVar( self, objDict, cVarName, iNumber = 1 ):
+  def _addVar( self, objDict:None|TypVarSym3GetVarFunc, cVarName:None|str|TypVarSym3GetVarFunc, iNumber:int = 1 ) -> TypVarSym3GetVarFunc:
     # print( "dict type: {}".format( type( objDict )))
     if ( cVarName == '' or cVarName == None ):  # pylint: disable=consider-using-in
-      return None
+      return {}
 
     if isinstance( cVarName, dict ):
       for key, var in cVarName.items():
@@ -348,7 +367,7 @@ class SymBase( ABC ):
   # return None if elem is not a function or it cannot be converted
   # otherwise the SymExpress will be returned
   #
-  def _funcionToValue( self, elem, funcname = None ):
+  def _funcionToValue( self, elem:TypVarSym3Object, funcname:None|str = None ) -> None|TypVarSym3Object:
     if not isinstance( elem, SymFunction ):
       return None
 
@@ -362,15 +381,14 @@ class SymBase( ABC ):
     if funcDef == None:
       return None
 
-    result = funcDef.functionToValue( elem )
+    result = typing.cast( None|TypVarSym3Object, funcDef.functionToValue( elem ) )
 
     # if result != None:
     #   print( f"_funcionToValue: {funcDef.name}, elem: {str(elem)}")
 
-
     return result
 
-  def existArray(self):
+  def existArray(self) -> bool:
     """
     Exist there an array in this expression
     """
@@ -387,11 +405,11 @@ class SymBasePower( SymBase ):
   __slots__ = '_powerSign','_powerCounter','_powerDenominator','_onlyOneRoot'
 
   def __init__( self
-              , inPowerSign        = 1
-              , inPowerCounter     = 1
-              , inPowerDenominator = 1
-              , inOnlyOneRoot      = 1 # default principal root
-              ):
+              , inPowerSign       :int = 1
+              , inPowerCounter    :int = 1
+              , inPowerDenominator:int = 1
+              , inOnlyOneRoot     :int = 1 # default principal root
+              ) -> None:
     super().__init__()
 
     self.powerSign        = inPowerSign
@@ -400,14 +418,14 @@ class SymBasePower( SymBase ):
     self.onlyOneRoot      = inOnlyOneRoot
 
   @property
-  def powerSign(self):
+  def powerSign(self) -> int :
     """
     Get or set the sign of the power. Valid values are -1 and 1.
     """
     return self._powerSign
 
   @powerSign.setter
-  def powerSign(self, val):
+  def powerSign(self, val:int ) -> None :
     if not isinstance( val, int ):
       raise NameError( f'powerSign is incorrect: {val}, expected integer value' )
 
@@ -418,7 +436,7 @@ class SymBasePower( SymBase ):
 
 
   @property
-  def powerCounter(self):
+  def powerCounter(self) -> int :
     """
     Get or set the counter of the power. It is always positive and an integer.
     If a negative counter is set if will be make positive and the powerSign will be multiply with -1
@@ -426,7 +444,7 @@ class SymBasePower( SymBase ):
     return self._powerCounter
 
   @powerCounter.setter
-  def powerCounter(self, val):
+  def powerCounter(self, val:int ) -> None :
     if not isinstance( val, int):
       raise NameError( f'powerCounter is incorrect: {val}, expected integer value' )
 
@@ -438,7 +456,7 @@ class SymBasePower( SymBase ):
 
 
   @property
-  def powerDenominator(self):
+  def powerDenominator(self) -> int :
     """
     Get or set the denominator of the power, it is always positive and an integer.
     If a negative denominator is set if will be make positive and the powerSign will be multiply with -1
@@ -446,7 +464,7 @@ class SymBasePower( SymBase ):
     return self._powerDenominator
 
   @powerDenominator.setter
-  def powerDenominator(self, val):
+  def powerDenominator(self, val:int ) -> None :
     if not isinstance( val, int):
       raise NameError( f'powerDenominator is incorrect: {val}, expected integer value' )
 
@@ -460,14 +478,14 @@ class SymBasePower( SymBase ):
     self._powerDenominator = val
 
   @property
-  def onlyOneRoot(self):
+  def onlyOneRoot(self) -> int :
     """
     Get or set if this can only have one value if it is a root, 1=only one root, 0=many roots
     """
     return self._onlyOneRoot
 
   @onlyOneRoot.setter
-  def onlyOneRoot(self, val):
+  def onlyOneRoot(self, val:int ) -> None :
     if not isinstance( val, int ):
       raise NameError( f'onlyOneRoot is incorrect: {val}, expected integer value' )
 
@@ -478,7 +496,7 @@ class SymBasePower( SymBase ):
 
 
   @property
-  def power(self):
+  def power(self) -> int|mpmath.mpf:
     """
     Get the power in decimal format (powerSign * powerCounter / powerDenominator )
     """
@@ -488,7 +506,7 @@ class SymBasePower( SymBase ):
     return self.powerSign * self.powerCounter
 
 
-  def valuePow( self, dValue ):
+  def valuePow( self, dValue:TypVarSym3ValueList ) -> TypVarSym3ValueList :
     """
     Pow the given value according the object
     """
@@ -528,7 +546,7 @@ class SymBasePower( SymBase ):
 
 
   # set the only for if the denominator greater as 1 is
-  def _setOnlyOne( self ):
+  def _setOnlyOne( self ) -> bool:
     if self.powerDenominator > 1:
       self.onlyOneRoot = 1
       return True
@@ -541,7 +559,7 @@ class SymBasePower( SymBase ):
 
 
   # power in string format
-  def powerStr( self ):
+  def powerStr( self ) -> str :
     """
     Internal use, give the power in string format
     """
@@ -552,7 +570,7 @@ class SymBasePower( SymBase ):
       output += str( self.power )
     return output
 
-  def powerMathMlColor( self ):
+  def powerMathMlColor( self ) -> str:
     """
     Internal use, give mathml color string for root (one or multiple roots)
     """
@@ -564,7 +582,7 @@ class SymBasePower( SymBase ):
 
     return ' mathcolor= "' + cResult + '" '
 
-  def powermathMl( self, defaults = None ):
+  def powermathMl( self, defaults:None|list[str] = None ) -> tuple[str,str]:
     """
     Internal use, give the power in mathml format
     [] = default
@@ -632,7 +650,7 @@ class SymBasePower( SymBase ):
 
     return startPower, endPower
 
-  def copyPower( self, elemTo ):
+  def copyPower( self, elemTo:SymBasePower ) -> None:
     """
     Copy the power to the given SymBasePower object
     """
@@ -644,7 +662,7 @@ class SymBasePower( SymBase ):
 
 
   # optimize the unit
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:None|str = None ) -> bool:
     """
     cAction = None: Optimize the factor and power so that they are in there lowest form
     \ncAction = 'setOnlyOne':  Set that this radicals can only has one solution
@@ -682,14 +700,14 @@ class SymNumber( SymBasePower ):
   __slots__ = '_factSign','_factCounter','_factDenominator'
 
   def __init__( self
-              , in_factSign         = 1
-              , in_factCounter      = 1
-              , in_factDenominator  = 1
-              , in_powerSign        = 1
-              , in_powerCounter     = 1
-              , in_powerDenominator = 1
-              , in_onlyOneRoot      = 1 # default principal root
-              ):
+              , in_factSign        :int = 1
+              , in_factCounter     :int = 1
+              , in_factDenominator :int = 1
+              , in_powerSign       :int = 1
+              , in_powerCounter    :int = 1
+              , in_powerDenominator:int = 1
+              , in_onlyOneRoot     :int = 1 # default principal root
+              ) -> None :
     super().__init__( in_powerSign
                     , in_powerCounter
                     , in_powerDenominator
@@ -701,14 +719,14 @@ class SymNumber( SymBasePower ):
     self.factDenominator  = in_factDenominator
 
   @property
-  def factSign(self):
+  def factSign(self) -> int :
     """
     Get or set the sign of the factor. Valid values are -1 and 1.
     """
     return self._factSign
 
   @factSign.setter
-  def factSign(self, val):
+  def factSign(self, val:int ) -> None :
     if not isinstance( val, int):
       raise NameError( f'factSign is incorrect: {val}, expected integer value' )
 
@@ -719,7 +737,7 @@ class SymNumber( SymBasePower ):
 
 
   @property
-  def factCounter(self):
+  def factCounter(self) -> int :
     """
     Get or set the counter of the factor. It is always positive and an integer.
     If a negative counter is set if will be make positive and the factSign will be multiply with -1
@@ -727,7 +745,7 @@ class SymNumber( SymBasePower ):
     return self._factCounter
 
   @factCounter.setter
-  def factCounter(self, val):
+  def factCounter(self, val:int ) -> None :
     if not isinstance( val, int):
       # print( f'Factcounter: {val} - type: { type(val) }' )
       raise NameError( f'factCounter is incorrect: {val}, expected integer value( {type(val)} )' )
@@ -740,7 +758,7 @@ class SymNumber( SymBasePower ):
 
 
   @property
-  def factDenominator(self):
+  def factDenominator(self) -> int :
     """
     Get or set the denominator of the factor, it is always positive and an integer.
     If a negative denominator is set if will be make positive and the factSign will be multiply with -1
@@ -748,7 +766,7 @@ class SymNumber( SymBasePower ):
     return self._factDenominator
 
   @factDenominator.setter
-  def factDenominator(self, val):
+  def factDenominator(self, val:int ) -> None :
     if not isinstance( val, int):
       raise NameError( f'factDenominator is incorrect: {val}, expected integer value' )
 
@@ -763,7 +781,7 @@ class SymNumber( SymBasePower ):
 
 
   @property
-  def factor(self):
+  def factor(self) -> int|mpmath.mpf :
     """
     Get the factor in decimal format (factSign * factCounter / factDenominator )
     """
@@ -773,7 +791,7 @@ class SymNumber( SymBasePower ):
     return self.factSign * self.factCounter
 
   # check if a given object is equal to this object
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:typing.Any, checkFactor:bool = True, checkPower:bool = True ) -> bool :
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -797,19 +815,19 @@ class SymNumber( SymBasePower ):
 
     return True
 
-  def getVariables( self ):
-    dVar = {}
+  def getVariables( self ) -> TypVarSym3GetVarFunc :
+    dVar:TypVarSym3GetVarFunc = {}
     return dVar
 
-  def getFunctions( self ):
-    dFunc = {}
+  def getFunctions( self ) -> TypVarSym3GetVarFunc :
+    dFunc:TypVarSym3GetVarFunc = {}
     return dFunc
 
-  def replaceVariable( self, dDict ):
-    # you cannot replace your self, only subelements
+  def replaceVariable( self, dDict:TypVarSym3VarDictNone ) -> None :
+    # you cannot replace your self, only sub elements
     pass
 
-  def getValue( self, dDict = None ):
+  def getValue( self, dDict:TypVarSym3ValueDict = None) -> TypVarSym3ValueAll :
     dValue = self.factor
 
     # print( f"getValue start: {dValue}")
@@ -825,7 +843,7 @@ class SymNumber( SymBasePower ):
     return dValue
 
   # factor in string format
-  def factorStr( self ):
+  def factorStr( self ) -> str :
     """
     Internal use, give the factor in string format
     """
@@ -840,7 +858,7 @@ class SymNumber( SymBasePower ):
       output += str( self.factCounter )
     return output
 
-  def factormathMl( self ):
+  def factormathMl( self ) -> str :
     """
     Internal use, give the factor in mathml format
     """
@@ -884,7 +902,7 @@ class SymNumber( SymBasePower ):
     return output + '\n'
 
   # optimize the unit
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:None|str = None ) -> bool :
     """
     cAction = None: Optimize the factor and power so that they are in there lowest form
     \ncAction = 'setOnlyOne':  Set that this radicals can only has one solution
@@ -925,7 +943,7 @@ class SymNumber( SymBasePower ):
     return result
 
   # output in MathMl format
-  def mathMl( self ):
+  def mathMl( self ) -> str :
     """
     Give the unit in MathMl format
     """
@@ -942,7 +960,7 @@ class SymNumber( SymBasePower ):
 
     return output + '\n'
 
-  def __str__( self ):
+  def __str__( self ) -> str :
     output = ''
 
     if self.factSign == -1:
@@ -961,7 +979,7 @@ class SymNumber( SymBasePower ):
     return output
 
   # give a copy of this object
-  def copy(self):
+  def copy(self) -> SymNumber:
     """
     Make a copy of this number
     """
@@ -991,13 +1009,12 @@ class SymVariable( SymBasePower ):
   __slots__ = ('_name',)
 
   def __init__( self
-               , in_name             = ''
-               , in_powerSign        = 1
-               , in_powerCounter     = 1
-               , in_powerDenominator = 1
-               , in_onlyOneRoot      = 1 # default principal root
-
-               ):
+               , in_name             :str = ''
+               , in_powerSign        :int = 1
+               , in_powerCounter     :int = 1
+               , in_powerDenominator :int = 1
+               , in_onlyOneRoot      :int = 1 # default principal root
+               ) -> None :
 
     super().__init__( in_powerSign
                     , in_powerCounter
@@ -1007,7 +1024,7 @@ class SymVariable( SymBasePower ):
     self.name = in_name
 
   @property
-  def name(self):
+  def name(self) -> str :
     """
     Get or set the name of the unit.
     \nSpecial names:
@@ -1019,13 +1036,13 @@ class SymVariable( SymBasePower ):
     return self._name
 
   @name.setter
-  def name(self, val):
+  def name(self, val:str) -> None :
     if not isinstance( val, str):
       raise NameError( f'name is incorrect: {val}, expected string value' )
     self._name = val
 
   # check if a given object is equal to this object
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:TypVarSym3Object, checkFactor:bool = True, checkPower:bool = True ) -> bool:
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -1041,7 +1058,7 @@ class SymVariable( SymBasePower ):
     return True
 
   # optimize the unit
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:str|None = None ) -> bool:
     """
     cAction = None: Optimize the unit, set the factor and power in there smallest form
     \ncAction = "i : Write out all the imaginary numbers (eliminate powers)
@@ -1059,19 +1076,19 @@ class SymVariable( SymBasePower ):
 
     return result
 
-  def getVariables( self ):
-    dVar = {}
+  def getVariables( self ) -> TypVarSym3GetVarFunc:
+    dVar:TypVarSym3GetVarFunc = {}
     return self._addVar( dVar, self.name )
 
-  def getFunctions( self ):
-    dFunc = {}
+  def getFunctions( self ) -> TypVarSym3GetVarFunc:
+    dFunc:TypVarSym3GetVarFunc = {}
     return dFunc
 
-  def replaceVariable( self, dDict ):
+  def replaceVariable( self, dDict:TypVarSym3VarDictNone ) -> None :
     # you cannot replace your self, only sub elements
     pass
 
-  def getValue( self, dDict = None ):
+  def getValue( self, dDict:TypVarSym3ValueDict = None ) -> TypVarSym3ValueAll:
     dValue = None
     if dDict != None:
       dValue = dDict.get( self.name, None )
@@ -1111,7 +1128,7 @@ class SymVariable( SymBasePower ):
 
 
   # output in MathMl format
-  def mathMl( self ):
+  def mathMl( self ) -> str :
     """
     Give the unit in MathMl format
     """
@@ -1152,7 +1169,7 @@ class SymVariable( SymBasePower ):
     return output + '\n'
 
   # the SymVariable in string format
-  def __str__( self ):
+  def __str__( self ) -> str :
     output = ''
     output += self.name
 
@@ -1164,7 +1181,7 @@ class SymVariable( SymBasePower ):
     return output
 
   # give a copy of this object
-  def copy(self):
+  def copy(self) -> SymVariable :
     """
     Make a copy of this unit
     """
@@ -1187,22 +1204,22 @@ class SymBaseList( SymBasePower ):
   __slots__ = ('elements', )
 
   def __init__( self
-              , in_powerSign        = 1
-              , in_powerCounter     = 1
-              , in_powerDenominator = 1
-              , in_onlyOneRoot      = 1 # default principal root
-              ):
+              , in_powerSign        :int = 1
+              , in_powerCounter     :int = 1
+              , in_powerDenominator :int = 1
+              , in_onlyOneRoot      :int = 1 # default principal root
+              ) -> None :
 
     super().__init__( in_powerSign
                     , in_powerCounter
                     , in_powerDenominator
                     , in_onlyOneRoot
                     )
-    self.elements = []
+    self.elements:TypVarSym3ObjectList = []
 
 
   # add SymExpress or and SymVariable to the list
-  def add( self, val ):
+  def add( self, val:TypVarSym3Object ) -> None:
     """
     Make a copy of the given object (SymBase) and add it to this expression
     """
@@ -1210,25 +1227,25 @@ class SymBaseList( SymBasePower ):
       raise NameError( f'add is incorrect: {type( val )}, expected a class with inherents of SymBase' )
     self.elements.append( val.copy() )
 
-  def numElements( self ):
+  def numElements( self ) -> int :
     """
     Give the number if elements in this expression
     """
     return len( self.elements )
 
-  def getVariables( self ):
-    dVar = {}
+  def getVariables( self ) -> TypVarSym3GetVarFunc:
+    dVar:TypVarSym3GetVarFunc = {}
     for elem in self.elements:
       self._addVar( dVar, elem.getVariables() )
     return dVar
 
-  def getFunctions( self ):
-    dFunc = {}
+  def getFunctions( self ) -> TypVarSym3GetVarFunc:
+    dFunc:TypVarSym3GetVarFunc = {}
     for elem in self.elements:
       self._addVar( dFunc, elem.getFunctions() )
     return dFunc
 
-  def replaceVariable( self, dDict ):
+  def replaceVariable( self, dDict:TypVarSym3VarDict ) -> None :
     for iCnt, elemSelect in enumerate( self.elements ):
       elem = self._replaceVar( elemSelect, dDict )
       if elem != None:
@@ -1236,7 +1253,7 @@ class SymBaseList( SymBasePower ):
       else:
         self.elements[ iCnt ].replaceVariable( dDict )
 
-  def existArray(self):
+  def existArray(self) -> bool :
     """
     Exist there an array in this expression
     """
@@ -1251,7 +1268,7 @@ class SymBaseList( SymBasePower ):
 
     return result
 
-  def mathMlParameters( self, setOpenClose = True, startElem = 0, endElem = 0, seperator = ',' ):
+  def mathMlParameters( self, setOpenClose:bool = True, startElem:int = 0, endElem:int = 0, seperator:str = ',' ) -> str:
     """
     Give back the parameters of the function in mathMl format.
     If always start with ( and end with ) between the parameters there is a ,
@@ -1283,7 +1300,7 @@ class SymBaseList( SymBasePower ):
     return output
 
 
-  def _convertFunctionsToValues( self, funcname = None):
+  def _convertFunctionsToValues( self, funcname:None|str = None) -> bool :
     """
     Convert functions to values
     If function name is given, only that function otherwise all functions
@@ -1297,7 +1314,7 @@ class SymBaseList( SymBasePower ):
     return result
 
   # is sub element is a symexpress with 1 element, get it
-  def _optGetOneExpressions(self):
+  def _optGetOneExpressions(self) -> bool :
     result = False
     # print( "Start _optGetOneExpressions: {}".format( str( self )))
     for iCnt, elem in enumerate( self.elements ):
@@ -1372,7 +1389,7 @@ class SymBaseList( SymBasePower ):
 
     return result
 
-  def _optimizeSymSubs( self, cAction ):
+  def _optimizeSymSubs( self, cAction:None|str ) -> bool :
     result = False
     if cAction == None:
       return result
@@ -1433,7 +1450,7 @@ class SymArray( SymBaseList ):
   """
   __slots__ = ()
 
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:None|str = None ) -> bool :
 
     """
     Optimize the expression, but do no calculations
@@ -1473,7 +1490,7 @@ class SymArray( SymBaseList ):
     return result
 
 
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:TypVarSym3Object, checkFactor:bool = True, checkPower:bool = True ) -> bool:
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -1513,13 +1530,13 @@ class SymArray( SymBaseList ):
 
     return True
 
-  def existArray(self):
+  def existArray(self) -> bool :
     """
     Exist there an array in this expression
     """
     return True
 
-  def getValue( self, dDict = None ):
+  def getValue( self, dDict:TypVarSym3ValueDict = None) -> TypVarSym3ValueAll :
     arrValues = []
     for elem in self.elements:
       dValue = elem.getValue( dDict )
@@ -1532,7 +1549,7 @@ class SymArray( SymBaseList ):
 
     return arrValues
 
-  def copy(self):
+  def copy(self) -> SymArray :
     """
     Make a copy of this expression
     """
@@ -1545,7 +1562,7 @@ class SymArray( SymBaseList ):
       copyArray.add( elem )
     return copyArray
 
-  def mathMl( self ):
+  def mathMl( self ) -> str :
     output = ''
     output += '<mrow>'
 
@@ -1574,7 +1591,7 @@ class SymArray( SymBaseList ):
     return output + '\n'
 
 
-  def __str__( self ):
+  def __str__( self ) -> str :
     output = ''
     output += '[ '
 
@@ -1602,11 +1619,11 @@ class SymFunction( SymBaseList ):
   __slots__ = ('_name',)
 
   def __init__( self
-              , in_name             = ""
-              , in_powerSign        = 1
-              , in_powerCounter     = 1
-              , in_powerDenominator = 1
-              , in_onlyOneRoot      = 1 # default principal root
+              , in_name             :str = ""
+              , in_powerSign        :int = 1
+              , in_powerCounter     :int = 1
+              , in_powerDenominator :int = 1
+              , in_onlyOneRoot      :int = 1 # default principal root
               ):
 
     super().__init__( in_powerSign
@@ -1617,24 +1634,24 @@ class SymFunction( SymBaseList ):
     self.name = in_name
 
   @property
-  def name(self):
+  def name(self) -> str :
     """
     Get or set the name of the function.
     """
     return self._name
 
   @name.setter
-  def name(self, val):
+  def name(self, val:str ) -> None :
     if not isinstance( val, str ):
       raise NameError( f'name is incorrect: {val}, expected string value' )
     self._name = val
 
-  def getFunctions( self ):
+  def getFunctions( self ) -> TypVarSym3GetVarFunc :
     dFunc = super().getFunctions()
     self._addVar( dFunc, self.name )
     return dFunc
 
-  def getValue( self, dDict = None ):
+  def getValue( self, dDict:TypVarSym3ValueDict = None) -> TypVarSym3ValueAll :
     dValue = None
 
     # print( "Test functiontable: {}".format( len(functionTable) ) )
@@ -1649,7 +1666,7 @@ class SymFunction( SymBaseList ):
     raise NameError( f'getValue for function {self.name} is not implemented' )
 
 
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:None|str = None ) -> bool :
     """
     Optimize the expression, but do no calculations
     \ncAction = None: Optimize the expression
@@ -1706,7 +1723,7 @@ class SymFunction( SymBaseList ):
 
     return result
 
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:TypVarSym3Object, checkFactor:bool = True, checkPower:bool = True ) -> bool:
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -1732,7 +1749,7 @@ class SymFunction( SymBaseList ):
 
     return True
 
-  def copy(self):
+  def copy(self) -> SymFunction :
     """
     Make a copy of this expression
     """
@@ -1747,7 +1764,7 @@ class SymFunction( SymBaseList ):
 
     return copyFunc
 
-  def mathMl( self ):
+  def mathMl( self ) -> str :
     # get the function specific mathml string
     powerDef   = []
     funcMathMl = None
@@ -1806,7 +1823,7 @@ class SymFunction( SymBaseList ):
 
     return output + '\n'
 
-  def __str__( self ):
+  def __str__( self ) -> str :
     output = ' '
     output += self.name + '( '
 
@@ -1845,11 +1862,11 @@ class SymExpress( SymBaseList ):
   __slots__ = ('_symType',)
 
   def __init__( self
-              , in_symType          = "+"
-              , in_powerSign        = 1
-              , in_powerCounter     = 1
-              , in_powerDenominator = 1
-              , in_onlyOneRoot      = 1 # default principal root
+              , in_symType          :str = "+"
+              , in_powerSign        :int = 1
+              , in_powerCounter     :int = 1
+              , in_powerDenominator :int = 1
+              , in_onlyOneRoot      :int = 1 # default principal root
               ):
 
     super().__init__( in_powerSign
@@ -1860,7 +1877,7 @@ class SymExpress( SymBaseList ):
     self.symType = in_symType
 
   @property
-  def symType(self):
+  def symType(self) -> str :
     """
     Get or set the type of the expression, valid values are + and *.
     \n For a negative number use a negative factor
@@ -1869,7 +1886,7 @@ class SymExpress( SymBaseList ):
     return self._symType
 
   @symType.setter
-  def symType(self, val):
+  def symType(self, val:str ) -> None :
     if not isinstance( val, str ):
       raise NameError( f'symType is incorrect: {val}, expected string value' )
 
@@ -1879,7 +1896,7 @@ class SymExpress( SymBaseList ):
     self._symType = val
 
   # check if a given object is equal to this object
-  def isEqual( self, elem, checkFactor = True, checkPower = True ):
+  def isEqual( self, elem:TypVarSym3Object, checkFactor:bool = True, checkPower:bool = True ) -> bool:
     """
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
@@ -1933,14 +1950,16 @@ class SymExpress( SymBaseList ):
               selfExpr = self1
 
         if ( lElemFactor == True or lSelfFactor == True ):
+          # On this point elemExpr and elem will never be None
+          # mypy does not recognize it
           if ( lElemFactor == True and lSelfFactor == True ):
-            return selfExpr.isEqual ( elemExpr )
+            return selfExpr.isEqual ( elemExpr ) # type: ignore
 
           if ( lElemFactor == False and lSelfFactor == True ):
-            return selfExpr.isEqual ( elem )
+            return selfExpr.isEqual ( elem ) # type: ignore
 
           if ( lElemFactor == True and lSelfFactor == False ):
-            return self.isEqual ( elemExpr )
+            return self.isEqual ( elemExpr ) # type: ignore
 
       return False
 
@@ -2012,8 +2031,8 @@ class SymExpress( SymBaseList ):
     # print( "True ??" )
     return True
 
-  def getValue( self, dDict = None ):
-    dValue = 0
+  def getValue( self, dDict:TypVarSym3ValueDict = None) -> TypVarSym3ValueAll :
+    dValue:TypVarSym3Value = 0
 
     for iCnt, elem1 in enumerate( self.elements ):
       # print( "getValue" )
@@ -2024,6 +2043,7 @@ class SymExpress( SymBaseList ):
       if iCnt == 0:
         dValue = dValSub
       else:
+
         if ( isinstance( dValue, list ) and isinstance( dValSub, list )):
           dResult = []
           for dVal1 in dValue:
@@ -2055,18 +2075,20 @@ class SymExpress( SymBaseList ):
           dValue = dResult
 
         else:
+          # mypy has trouble to get the correct type
           if self.symType == '+':
-            dValue += dValSub
+            dValue += dValSub # type: ignore
           else:
-            dValue *= dValSub
+            dValue *= dValSub # type: ignore
           # print( f"Express {self.symType}, dValue: {dValue}, dValSub: {dValSub}" )
 
-    dValue = self.valuePow( dValue  )
+    # mypy has trouble to get the correct type
+    dValue = self.valuePow( dValue ) # type: ignore
 
     return dValue
 
   # optimize the symExpression, but do not add or multiple elements together
-  def optimize( self, cAction = None ):
+  def optimize( self, cAction:None|str = None ) -> bool :
     """
     Optimize the expression and all the sub-units and sub-expressions.
     \ncAction = None: Optimize the expression
@@ -2091,17 +2113,18 @@ class SymExpress( SymBaseList ):
 
     result |= self._optimizeSymSubs( cAction )
 
-    optDef = symtables.optimizeTable.get( cAction )
-    if optDef != None :
-      result |= optDef.optimize( self, cAction )
+    if cAction != None:
+      optDef = symtables.optimizeTable.get( cAction )
+      if optDef != None :
+        result |= optDef.optimize( self, cAction )
 
     # print( ' step end: {} {}'.format( cAction, str( self )))
     return result
 
-  def _optSubThread(self, cAction):
+  def _optSubThread(self, cAction:None|str ) -> bool :
 
-    def SubThread( elem, cAction ):
-      elem.optimize( cAction )
+    def SubThread( elem:TypVarSym3Object, cAction:None|str ) -> bool:
+      return elem.optimize( cAction )
 
     result = False
 
@@ -2133,14 +2156,14 @@ class SymExpress( SymBaseList ):
 
     return result
 
-  def _optimizeDefault( self ):
+  def _optimizeDefault( self ) -> bool :
     """
     Default optimization
     """
 
     # factor zero is no elements at all, and no elements is factor 0
     # power zero give always 1, is 1 element with value 1, factor is not changed
-    def _optFactPowerZero():
+    def _optFactPowerZero() -> bool :
       result = False
 
       # factor zero is no elements at all, and no elements is factor 0
@@ -2171,7 +2194,7 @@ class SymExpress( SymBaseList ):
       return result
 
     # if sub expression is zero delete it
-    def _optMultiZero():
+    def _optMultiZero() -> bool :
       result = False
       for iCnt in range( len( self.elements ) - 1, -1, -1 ) :
         elem = self.elements[ iCnt ]
@@ -2189,7 +2212,7 @@ class SymExpress( SymBaseList ):
       return result
 
     # delete all sympress with zero elements
-    def _optDelZeroElements():
+    def _optDelZeroElements() -> bool :
       result = False
 
       if self.symType != '+':
@@ -2209,7 +2232,7 @@ class SymExpress( SymBaseList ):
       return result
 
     # kill 1 units. but never the last one
-    def _optKillOneUnits():
+    def _optKillOneUnits() -> bool :
       result = False
       if ( self.symType == '*' and len( self.elements ) > 1 ):
         # print ( "Test 1 units" )
@@ -2232,7 +2255,7 @@ class SymExpress( SymBaseList ):
       return result
 
     # get lower symexpress with same type and factor and power of 1
-    def _optGetLowerSameType():
+    def _optGetLowerSameType() -> bool :
       result = False
       lFound = True
       while lFound == True:
@@ -2297,14 +2320,14 @@ class SymExpress( SymBaseList ):
     return result
 
 
-  def optimizeNormal( self , output = None, filehandle = None, extra = None, varDict = None ):
+  def optimizeNormal( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|dict[str,str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
     """
     Normalize the expression, this is a combination of optimize(), multiply, i, power and add optimize methods
     \n output = SymToHtml class
     \n filehandle = file handle
     \n If output and/or a filehandle is given then all the sub-optimizations will be written to it.
     """
-    def _printCalc():
+    def _printCalc() -> None :
       if ( extra != None and "calculation" in extra ):
         # dValue = self.getValue( varDict )
 
@@ -2319,7 +2342,7 @@ class SymExpress( SymBaseList ):
           print( f'Calculated: {str( dValue )}', file=filehandle )
 
 
-    def _optimizeAction( arrAction, cText, maxCount = 10 ):
+    def _optimizeAction( arrAction:list[str], cText:str, maxCount:int = 10 ) -> None :
       iCnt     = 0
       bChanged = True
 
@@ -2410,15 +2433,8 @@ class SymExpress( SymBaseList ):
     # does not work...
     # gc.collect()
 
-  # @deprecated(version='1.2.1', reason="You should use another function")
-  def optimizeSpecial( self , output = None, filehandle = None, extra = None, varDict = None ):
-    """
-    Deprecated in 0.0.10, use optimizeExtended
-    """
-    warnings.warn( "optimizeSpecial is deprecated in 0.0.10, use optimizeExtended" )
-    self.optimizeExtended( output, filehandle, extra, varDict )
 
-  def optimizeExtended( self , output = None, filehandle = None, extra = None, varDict = None ):
+  def optimizeExtended( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|dict[str,str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
     """
     Optimize the expression in all the possibilities, this use the power, multiply, i , add, radicals, unnestingRadicals, nestedRadicals, imaginairDenominator, splitDenominator, sinTwoCosTwo and functionToValues optimizations
     \n output = SymToHtml class
@@ -2429,7 +2445,7 @@ class SymExpress( SymBaseList ):
 
     """
 
-    def _printCalc( cTekst, iCnt, iCntBig ):
+    def _printCalc( cTekst:str, iCnt:int, iCntBig:int ) -> None :
       if ( extra != None and "calculation" in extra ):
 
         try:
@@ -2443,7 +2459,7 @@ class SymExpress( SymBaseList ):
           print( f'Calculated {cTekst} {iCnt}/{iCntBig}: value:{str( dValue )}', file=filehandle )
 
 
-    def _optimizeAction( arrAction, cText, iCntBig, iMaxCnt ):
+    def _optimizeAction( arrAction:list[str], cText:str, iCntBig:int, iMaxCnt:int ) -> None :
       iCnt     = 0
       bChanged = True
       cCode    = 'None'
@@ -2533,7 +2549,7 @@ class SymExpress( SymBaseList ):
 
 
   # copy the expression (sort of deep copy)
-  def copy( self ):
+  def copy( self ) -> SymExpress :
     """
     Make a copy of this expression.
     """
@@ -2548,7 +2564,7 @@ class SymExpress( SymBaseList ):
     return copySymExpress
 
   # output in MathMl format
-  def mathMl( self ):
+  def mathMl( self ) -> str :
     """
     Give the expression in MathML format.
     """
@@ -2572,7 +2588,8 @@ class SymExpress( SymBaseList ):
         if not isinstance( elem1, SymNumber ):
           elem1 = self.elements[ 1 ]
           elem2 = self.elements[ 0 ]
-        if ( elem1.power == 1 and elem1.factor == -1 and elem2.power == 1 ):
+        # construction too complex for mypy.  elem1 is always a SymNumber on this point
+        if ( elem1.power == 1 and elem1.factor == -1 and elem2.power == 1 ): # type: ignore
           specicalVar = True
           output += '<mi>-</mi>' + elem2.mathMl()
 
@@ -2609,7 +2626,7 @@ class SymExpress( SymBaseList ):
     return output + '\n'
 
   # the SymExpress in string format
-  def __str__( self ):
+  def __str__( self ) -> str :
     output = ''
 
     if self.power != 1:
@@ -2657,25 +2674,25 @@ class SymToHtml():
   """
   __slots__ = ( '_isOpen', '_textFile', '_fileName', 'title')
 
-  def __init__( self, inFilename = 'mathml.html', inTitle = 'SymToHtml' ):
-    self._isOpen    = False
-    self.isOpen     = False
-    self._textFile  = None
-    self.fileName   = inFilename
-    self.title      = inTitle
+  def __init__( self, inFilename:None|str = 'mathml.html', inTitle:str = 'SymToHtml' ) -> None :
+    self._isOpen    :bool               = False
+    self.isOpen     :bool               = False
+    self._textFile  :None|typing.TextIO = None
+    self.fileName   :str                = inFilename
+    self.title      :str                = inTitle
 
-  def __del__(self):
+  def __del__(self) -> None :
     self.isOpen = False
 
   @property
-  def fileName(self):
+  def fileName(self) -> None|str :
     """
     Get or set the (html) filename (string)
     """
     return self._fileName
 
   @fileName.setter
-  def fileName(self, val):
+  def fileName(self, val:None|str ) -> None :
     # None = sys.stdout
     if val != None and not isinstance( val, str):
       raise NameError( f'fileName is incorrect: {val}, expected string value' )
@@ -2683,7 +2700,7 @@ class SymToHtml():
     self._fileName = val
 
   @property
-  def isOpen(self):
+  def isOpen(self) -> bool :
     """
     Get of the file is open. If set and the file is not already open, it will open the file.
     \n type: boolean
@@ -2691,32 +2708,34 @@ class SymToHtml():
     return self._isOpen
 
   @isOpen.setter
-  def isOpen(self, val):
+  def isOpen(self, val:bool ) -> None :
     if not isinstance( val, bool):
       raise NameError( f'isOpen is incorrect: {val}, expected boolean value' )
     if ( val == False and self._isOpen == True ):
       self.writeFooter()
-      if self.fileName != None :
+      if self._textFile != None :
         self._textFile.close()
       self._textFile = None
     self._isOpen = val
 
 
-  def openFile(self):
+  def openFile(self) -> bool :
     """
     Open the file if if is not already open. It will automatic write a html header (writeHeader) the the file.
     """
     if self.isOpen == True:
       return self.isOpen # is already open
+
     if self.fileName == None:
       self._textFile = sys.stdout
     else:
       self._textFile = open( self.fileName, mode="w", encoding="utf-8")  # pylint: disable=consider-using-with
+
     self.isOpen    = True
     self.writeHeader()
     return self.isOpen
 
-  def closeFile(self):
+  def closeFile(self) -> bool :
     """
     Close the file if it was open. If the file was open it write a html footer (writeFooter) too the file
     """
@@ -2724,27 +2743,36 @@ class SymToHtml():
     return self.isOpen
 
 
-  def writeLine( self, cLine, cTitle = None ):
+  def writeLine( self, cLine:str, cTitle:None|str = None ) -> None :
     """
     Write the given text line to the file. If the file is not open, it will be opened.
     """
     if self.isOpen == False:
       self.openFile()
+
+    if self._textFile == None:
+      return
+
     if cTitle != None:
       self._textFile.write( cTitle )
       self._textFile.write( '<br>' )
+
     self._textFile.write( str( cLine ) + '\n' )
     self._textFile.write( '<br>' )
 
-  def write( self, cData ):
+  def write( self, cData:str ) -> None :
     """
     Write the given text to the file. If the file is not open, it will be opened.
     """
     if self.isOpen == False:
       self.openFile()
+
+    if self._textFile == None:
+      return
+
     self._textFile.write( str( cData ) + '\n' )
 
-  def writeHeader( self ):
+  def writeHeader( self ) -> None :
     """
     Write the default html header to the file. Is called by opening the file (openFile).
     """
@@ -2757,14 +2785,14 @@ class SymToHtml():
     self.write( '</head>' )
     self.write( '<body>' )
 
-  def writeFooter( self ):
+  def writeFooter( self ) -> None :
     """
     Write the default html footer to the file. Is called by closing (closeFile) the file.
     """
     self.write( '</body>' )
     self.write( '</html>' )
 
-  def writeSymExpress( self, oSymExpress, cTitle = None ):
+  def writeSymExpress( self, oSymExpress:TypVarSym3Object, cTitle:None|str = None ) -> None :
     """
     Write a SymExpress in MathMl format to the file. If the file is not open, it will be opened.
     """
@@ -2777,7 +2805,7 @@ class SymToHtml():
     self.write( '</math>' )
     self.writeLine( '' )
 
-  def writeGetValues( self, oFrm, dDictVars = None, cTitle = None, cLabel = None ):
+  def writeGetValues( self, oFrm:TypVarSym3Object, dDictVars:TypVarSym3VarDictNone = None, cTitle:None|str = None, cLabel:None|str = None ) -> None :
     """
     Write the values (getValue) from the expression
     """
@@ -2805,16 +2833,17 @@ class SymToHtml():
       self.writeLine( cLabel + " error sys: " + str( exceptAll ) )
 
 
-  def writeVariables( self, dVars, cTitle = None ):
+  def writeVariables( self, dVars:TypVarSym3ValueDict, cTitle:None|str = None ) -> None :
     """
     Write the variables (dictionary)
     """
     if cTitle != None:
       self.writeLine( cTitle )
-    for key, value in dVars.items() :
-      self.writeLine( key + ' = ' + str( value ))
+    if dVars != None:
+      for key, value in dVars.items() :
+        self.writeLine( key + ' = ' + str( value ))
 
-  def writeSymExpressWithStr( self, oSymExpress, cTitle = None ):
+  def writeSymExpressWithStr( self, oSymExpress:TypVarSym3Object, cTitle:None|str = None ) -> None :
     """
     Write the expression in MathMl and ascii format
     """
@@ -2822,7 +2851,7 @@ class SymToHtml():
     self.writeLine( str( oSymExpress ) )
     self.writeLine( '' )
 
-  def writeSymExpressComplete( self, oSymExpress, dVars = None, cTitle = None ):
+  def writeSymExpressComplete( self, oSymExpress:TypVarSym3Object, dVars:None|dict[str,typing.Any] = None, cTitle:None|str = None ) -> None:
     """
     Write the expression in MathMl and ascii format and calculate the value(s).
     """
@@ -2842,7 +2871,7 @@ class SymToHtml():
 #
 # display the expression tree to the default output (for debug)
 #
-def SymExpressTree( symexpress, filehandle = None ):
+def SymExpressTree( symexpress:TypVarSym3Object, filehandle:None|typing.TextIO = None ) -> None:
   """
   Print all the elements of the given SymExpress class in tree format to the output. If not given the sys.stdout is used.
 
@@ -2850,7 +2879,7 @@ def SymExpressTree( symexpress, filehandle = None ):
      symexpress (SymExpress):  Expression to print the tree
      filehandle (file): Print the tree too this file, if not given the default output will be used.
   """
-  def SymExpressTreeSub( symexpress, level ):
+  def SymExpressTreeSub( symexpress:TypVarSym3Object, level:int ) -> None:
     sprint = ""
     # for iCnt in range( 1, level ):
     for _ in range( 1, level ):
@@ -2900,7 +2929,7 @@ def SymExpressTree( symexpress, filehandle = None ):
 
 # iPosCur = 0    # Current position in the formula
 # def SymFormulaParser ( cFormula, iStartPos = -1, cEndChar = None ) :
-def SymFormulaParser ( cFormula ) :
+def SymFormulaParser ( cFormula:str ) -> SymExpress :
   """
   Parse a given string and make a SymExpress from it.
   Returns a SymExpress class.
@@ -2916,14 +2945,14 @@ def SymFormulaParser ( cFormula ) :
   \n formula          =&lt;number|name|function&gt;&lt;operator&gt;&lt;number|name|function&gt;|&lt;start subformula&gt;&lt;formula&gt;&lt;end subformula&gt;
   \n Example: (4+2^3) + y( 1 + 3 i x)^2 + sin( 2 pi )
   """
-  iPosCur = 0
+  iPosCur:int  = 0
 
-  def _symFormulaParser ( cFormula, iStartPos = -1, cEndChar = None ) :
+  def _symFormulaParser ( cFormula:str, iStartPos:int = -1, cEndChar:None|str = None ) -> SymExpress:
 
-    oMul    = None
-    oPlus   = None
-    oUnit   = None
-    oExpress= None
+    oMul    :None|SymExpress       = None
+    oPlus   :None|SymExpress       = None
+    oUnit   :None|TypVarSym3Object = None
+    oExpress:None|TypVarSym3Object = None
 
     # check input parameters
     if not isinstance( cFormula, str) :
@@ -2934,12 +2963,12 @@ def SymFormulaParser ( cFormula ) :
       raise NameError( 'No formula given' )
 
     # give current position in formula
-    def GetCurPos():
+    def GetCurPos() -> int :
       nonlocal iPosCur
       return iPosCur
 
     # give next character
-    def CharNext():
+    def CharNext() -> None|str :
       nonlocal iPosCur
 
       iPosCur += 1
@@ -2950,14 +2979,14 @@ def SymFormulaParser ( cFormula ) :
       return cFormula[ iPosCur:iPosCur + 1 ]
 
     # set last character back
-    def CharBack():
+    def CharBack() -> None :
       nonlocal iPosCur
 
       if iPosCur >= 0:
         iPosCur -= 1
 
     # get current character
-    def CharCurrent():
+    def CharCurrent() -> None|str :
       nonlocal iPosCur
 
       if iPosCur >= len( cFormula ):
@@ -2968,14 +2997,14 @@ def SymFormulaParser ( cFormula ) :
 
 
     # check if it is a skip character
-    def IsSkipChar( cChar ):
+    def IsSkipChar( cChar:None|str ) -> bool :
       if ( cChar == ' ' or cChar == '\t' or cChar == '\n' ): # pylint: disable=consider-using-in
         return True
       return False
 
 
     # Skip with space, tab and newlines
-    def SkipWithSpace():
+    def SkipWithSpace() -> None :
       cChar = CharNext()
       if cChar == None:
         return
@@ -2985,7 +3014,7 @@ def SymFormulaParser ( cFormula ) :
         CharBack() # read 1 too many, put it back
 
     # get 1 parameter = number or name
-    def GetParam():
+    def GetParam() -> None|str|SymExpress|SymArray :
       nonlocal iPosCur
 
       SkipWithSpace()
@@ -3051,13 +3080,13 @@ def SymFormulaParser ( cFormula ) :
       return cResult
 
     # check if cParam is an expression
-    def IsSymExpress( cParam ):
+    def IsSymExpress( cParam:None|str|SymExpress|SymArray ) -> bool :
       if isinstance( cParam , (SymExpress, SymArray )):
         return True
       return False
 
     # is string a numbers
-    def IsNumber( cParam ):
+    def IsNumber( cParam:str ) -> bool :
       if cParam[0].isalpha():
         return False
 
@@ -3067,20 +3096,20 @@ def SymFormulaParser ( cFormula ) :
       except ValueError:
         return False
 
-    def IsInteger( cParam ):
+    def IsInteger( cParam:str ) -> bool :
       try:
         int( cParam )
         return True
       except ValueError:
         return False
 
-    def GetNumber( cParam ):
+    def GetNumber( cParam:str ) -> int :
       if IsInteger( cParam ):
         return int( cParam )
       raise NameError( f'Incorrect number {cParam} on position {GetCurPos()}' )
 
     # Get an operator
-    def GetOperator():
+    def GetOperator() -> None|str :
       SkipWithSpace()
 
       cChar = CharNext()
@@ -3104,10 +3133,10 @@ def SymFormulaParser ( cFormula ) :
     # init vars
     nonlocal iPosCur
 
-    iPosCur = iStartPos  # not yet started
-    oMul    = SymExpress( '*' )
-    oPlus   = SymExpress( '+' )
-    iExpt   = 1
+    iPosCur     = iStartPos  # not yet started
+    oMul        = SymExpress( '*' )
+    oPlus       = SymExpress( '+' )
+    iExpt  :int = 1
 
     cParam = GetParam()
     while True :
@@ -3116,27 +3145,30 @@ def SymFormulaParser ( cFormula ) :
       # switches between oUnit an oExpress
       #
       # print( "Before bepaling, iExpt: {}, cParam: {}".format( iExpt, str( cParam ) ) )
+
+      # mypy does only recognize isinstance() for the differentiation... but not own functions
+      # so a lot of type:ignore from this point
       if IsSymExpress( cParam ):
         # print( "IsSymExpress" )
         oUnit    = None
-        if iExpt != 1:
+        if iExpt != 1 :
           cParam2 = SymExpress()
           cParam2.powerCounter = iExpt
-          cParam2.add( cParam )
+          cParam2.add( cParam ) # type:ignore
           oExpress = cParam2
         else:
-          oExpress = cParam
-      elif IsNumber( cParam ):
+          oExpress = cParam # type:ignore
+      elif IsNumber( cParam ): # type:ignore
         # print( "IsNumber" )
         oExpress = None
-        oUnit    = SymNumber( 1, GetNumber( cParam ), 1, 1, iExpt, 1 )
+        oUnit    = SymNumber( 1, GetNumber( cParam ), 1, 1, iExpt, 1 ) # type:ignore
       else:
         cChar = CharNext()
         # print( "Current char: {}, pos: {} ".format( CharCurrent(), iPosCur ))
-        if ( cChar == '(' and len( cParam ) > 0 and cParam[ :1].isalpha() ):
+        if ( cChar == '(' and len( cParam ) > 0 and cParam[ :1].isalpha() ): # type:ignore
           oExt     = _symFormulaParser( cFormula, iPosCur, ',)' )
           # print ('oExt: {}'.format( str( oExt )))
-          oExpress = SymFunction( cParam, 1, iExpt, 1 )
+          oExpress = SymFunction( cParam, 1, iExpt, 1 ) # type:ignore
           oExpress.add( oExt )
           while CharCurrent() == ',':
             oExt     = _symFormulaParser( cFormula, iPosCur, ',)' )
@@ -3151,7 +3183,7 @@ def SymFormulaParser ( cFormula ) :
           if cParam == '-':
             oUnit = SymNumber( -1, 1, 1, 1, iExpt, 1 )
           else:
-            oUnit = SymVariable( cParam, 1, iExpt, 1 )
+            oUnit = SymVariable( cParam, 1, iExpt, 1 ) # type:ignore
 
 
       cOpt = GetOperator() # get an operator
@@ -3166,10 +3198,11 @@ def SymFormulaParser ( cFormula ) :
             CharBack() # read 1 too many
 
         # Get an exponent for the last parameter
-        cParam2 = GetParam()
+        cParam2 = GetParam() # type:ignore
         iExpt2  = None
         if IsSymExpress( cParam2 ):
-          iExpt = None
+          iExpt    = 1
+          iTestExp = None
           # print( "SymExpress als parameter gevonden" )
           # make it simple
           # print( "cParam2 (1) : {}".format ( str( cParam2 )))
@@ -3183,34 +3216,39 @@ def SymFormulaParser ( cFormula ) :
           # SymExpressTree( cParam2 )
           # need the factor, so no name and no factor on the expression, the factor is placed in the symunit
           if cParam2.numElements() == 1:
-            cParam2 = cParam2.elements[ 0 ]
+            cParam2 = cParam2.elements[ 0 ] # type:ignore
             # print( "cParam2 (3): {}".format ( str( cParam2 )))
 
             if isinstance( cParam2 , SymNumber ):
               if cParam2.powerSign == -1:
                 iExpt2  = cParam2.factCounter * cParam2.factSign
                 iExpt   = cParam2.factDenominator
+                iTestExp = iExpt
               else:
                 iExpt   = cParam2.factCounter * cParam2.factSign
+                iTestExp = iExpt
                 iExpt2  = cParam2.factDenominator
-          if iExpt == None:
+          if iTestExp == None:
             raise NameError( f'Incorrect power {cParam2} on position {GetCurPos()} it must be an integer' )
+
           # print ( "iExpt: {}, iExpt2: {}".format( iExpt, iExpt2 ))
-        elif IsInteger( cParam2 ) == False:
+        elif IsInteger( cParam2 ) == False: # type:ignore
           raise NameError( f'Incorrect power {cParam2} on position {GetCurPos()} it must be an integer' )
 
         if iExpt2 == None:
-          iExpt = GetNumber( cParam2 )
+          iExpt = GetNumber( cParam2 ) # type:ignore
           iExpt2 = 1
 
         if oExpress != None:
           oExpress.powerCounter     *= iExpt
           oExpress.powerDenominator *= iExpt2
           oExpress.onlyOneRoot       = lonlyOneRoot
-        else:
+        elif oUnit != None:
           oUnit.powerCounter     *= iExpt
           oUnit.powerDenominator *= iExpt2
           oUnit.onlyOneRoot       = lonlyOneRoot
+        else:
+          raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
 
         cOpt  = GetOperator() # get an operator
 
@@ -3223,8 +3261,11 @@ def SymFormulaParser ( cFormula ) :
         # end of formula
         if oExpress != None:
           oMul.add( oExpress )
-        else:
+        elif oUnit != None:
           oMul.add( oUnit )
+        else:
+          raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
+
         oPlus.add( oMul )
         break
 
@@ -3235,8 +3276,10 @@ def SymFormulaParser ( cFormula ) :
         # put current list in plus list
         if oExpress != None:
           oMul.add( oExpress )
-        else:
+        elif oUnit != None :
           oMul.add( oUnit )
+        else:
+          raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
 
         oPlus.add( oMul )
         oMul = SymExpress( '*' )
@@ -3245,8 +3288,11 @@ def SymFormulaParser ( cFormula ) :
       else:
         if oExpress != None:
           oMul.add( oExpress )
-        else:
+        elif oUnit != None:
           oMul.add( oUnit )
+        else:
+          raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
+
 
       cParam = GetParam()
       if cParam == None:

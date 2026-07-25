@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from  symexpress3 import symexpress3
 from  symexpress3 import optTypeBase
@@ -32,15 +33,18 @@ class OptSymNumberPower( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "power"
     self._symtype      = symexpress3.SymNumber
     self._desc         = "Write out powers"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymNumber, elem )
 
     if ( elem.power != 1 and elem.power != -1 and elem.powerCounter > 1 ):
       # can write out power
@@ -73,7 +77,7 @@ class OptSymNumberPower( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """

@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -29,20 +30,24 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "divideDivide"
     self._symtype      = "*"
     self._desc         = "Divide divide is normal, 1/1/x = x"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     result = False
 
     # symexpress3.SymExpressTree( symExpr )
 
     if self.checkExpression( symExpr, action ) != True:
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     # only 1 / (x * y)  accepted
     if (# symExpr.powerCounter     >  1 or
@@ -88,11 +93,16 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeDivideDivide
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -103,11 +113,12 @@ def Test( display = False):
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
   result = False
-  symTest = symexpress3.SymFormulaParser( '1 / ( a * (1/pi) * (1/e) )' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '1 / ( a * (1/pi) * (1/e) )' )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
   symTest = symTest.elements[ 0 ]
   # symexpress3.SymExpressTree( symTest )
-  symOrg = symTest.copy()
+  symOrg:symexpress3.TypVarSym3Object = symTest.copy()
 
   testClass = OptimizeDivideDivide()
   result |= testClass.optimize( symTest, "divideDivide" )

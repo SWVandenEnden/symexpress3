@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -34,21 +35,26 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "multiply"
     self._symtype      = "*"
     self._desc         = "Multiply elements"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
     if self.checkExpression( symExpr, action ) != True:
       # print( "Afgekeurd: " + symExpr.symType )
       return result
 
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
+
     # multiply symNumbers
-    def _multiplyNumbers():
+    def _multiplyNumbers() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -64,6 +70,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       if elem == None:
         return result
+
+      elem = typing.cast( symexpress3.SymNumber, elem )
 
       # print( "_multiplyNumbers start: {}".format( symExpr ) )
 
@@ -103,7 +111,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # get all sub expressions with power op 1
-    def _multiplyElemGetSubPowerOne():
+    def _multiplyElemGetSubPowerOne() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -129,7 +137,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply SymVariable with expression of type +
-    def _multiplyElemUnitExpress():
+    def _multiplyElemUnitExpress() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -211,7 +219,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply 2 expressions
-    def _multiplyElemExpressExpress():
+    def _multiplyElemExpressExpress() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -294,7 +302,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply 2 variables
-    def _multiplyElemVarVar():
+    def _multiplyElemVarVar() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -354,7 +362,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply number with multiple-plus-expression
-    def _multiplyNumberExpress():
+    def _multiplyNumberExpress() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -399,7 +407,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply plus-expression with multiply-expression
-    def _multplyPlusExpressMultiply():
+    def _multplyPlusExpressMultiply() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -450,7 +458,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply radicals with the same base (onlyOneRoot only)
-    def _multplyPlusMultiplyOnlyRoots():
+    def _multplyPlusMultiplyOnlyRoots() -> bool :
       result = False
       if symExpr.symType != '*':
         return result
@@ -492,6 +500,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
             if not elemcheck1.isEqual( elemcheck2 ):
               lOk = False
+
+              elemcheck1 = typing.cast( symexpress3.SymNumber, elemcheck1)
+              elemcheck2 = typing.cast( symexpress3.SymNumber, elemcheck2)
 
               # needed this 4 variable to initialize, but the initialize value is never used (pylint)
               rem1FactCounter   = 1
@@ -550,6 +561,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               if not elemcheck1.isEqual( elemcheck2 ):
                 # print( "afgekeurd" )
                 continue
+
+              elem  = typing.cast( symexpress3.SymNumber, elem  )
+              elem2 = typing.cast( symexpress3.SymNumber, elem2 )
 
               elem.factCounter    = rem1FactCounter
               elem2.factCounter   = rem2FactCounter
@@ -621,7 +635,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       return result
 
     # multiply radicals with the same power
-    def _multplyRadicalsSamePowerOnlyRoots():
+    def _multplyRadicalsSamePowerOnlyRoots() -> bool :
       result = False
 
       if symExpr.symType != '*':
@@ -664,6 +678,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             result = True
 
           if lFound == True:
+            oExpr = typing.cast( symexpress3.SymExpress, oExpr )
+
             elem.powerSign        = 1
             elem.powerCounter     = 1
             elem.powerDenominator = 1
@@ -677,7 +693,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       # print( "symExpr: {}".format( str( symExpr )) )
       return result
 
-    def _multiplyFunctionFunction():
+    def _multiplyFunctionFunction() -> bool :
       result = False
 
       if symExpr.symType != '*':
@@ -808,12 +824,17 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None:
   """
   Unit test
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass :OptimizeMultiply
+            , symOrg    :symexpress3.TypVarSym3Object
+            , symTest   :symexpress3.TypVarSym3Object
+            , wanted    :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -825,11 +846,12 @@ def Test( display = False):
 
 
   # multiply SymNumbers
-  symTest = symexpress3.SymFormulaParser( '2 * 3' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '2 * 3' )
   symTest.optimize()
   # the upper is a + expression, the inner is a * expression
+  symTest = typing.cast( symexpress3.SymExpress, symTest )
   symTest = symTest.elements[ 0 ]
-  symOrg = symTest.copy()
+  symOrg  = symTest.copy()
 
   testClass = OptimizeMultiply()
   testClass.optimize( symTest, "multiply" )

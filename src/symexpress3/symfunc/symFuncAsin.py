@@ -23,8 +23,8 @@
     https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
 """
 
-# import cmath
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncTrigonoBase
@@ -35,7 +35,7 @@ class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "asin"
     self._desc      = "asin"
@@ -44,10 +44,12 @@ class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
     self._syntax    = "asin(<x>)"
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
 
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     result = self._conversTableToArc( elem )
     if result != None:
@@ -60,8 +62,7 @@ class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
     return None
 
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    # return cmath.asin( dValue )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.asin( dValue )
 
 
@@ -69,11 +70,20 @@ class SymFuncAsin( symFuncTrigonoBase.SymFuncTrigonoBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncAsin
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue = symexpress3.SymRound( dValue, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )
@@ -90,7 +100,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( float(dValue), 10), "1 * 2^^-1 * pi", round( 1.5707963268, 10) )
+  _Check(  testClass, symTest, value, dValue, "1 * 2^^-1 * pi", round( 1.5707963268, 10) )
 
 
   symTest = symexpress3.SymFormulaParser( 'asin( -1 )' )
@@ -99,7 +109,7 @@ def Test( display = False):
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check(  testClass, symTest, value, round( float(dValue), 10), "(-1) *  asin( 1 )", round( -1.5707963268, 10) )
+  _Check(  testClass, symTest, value, dValue, "(-1) *  asin( 1 )", round( -1.5707963268, 10) )
 
 
 if __name__ == '__main__':

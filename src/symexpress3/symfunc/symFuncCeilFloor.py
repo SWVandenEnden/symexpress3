@@ -23,8 +23,9 @@
     https://en.wikipedia.org/wiki/Floor_and_ceiling_functions
 """
 
+import typing
 import math
-import mpmath
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -36,7 +37,7 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "ceil"
     self._desc      = "Round to the highest integer"
@@ -44,9 +45,11 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     self._maxparams = 1    # maximum number of parameters
     self._syntax    = "ceil(<x>)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -66,9 +69,12 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
 
     return [], output
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # array not supported, use expandArray
     if isinstance ( elem, symexpress3.SymArray ):
@@ -76,7 +82,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
 
     # round up to the first integer
     dVars = elem.getVariables()
-    for key in dVars.items():
+    # for key in dVars.items():
+    for key in dVars:
       # if (key != "e" and key != "pi" ):
       if not key in ("e", "pi"):
         return None
@@ -93,7 +100,8 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
     if isinstance( dValue, (complex, mpmath.mpc) ):
       return None
 
-    dValue  = math.ceil( dValue )
+    # use math and not mpmath because of the str()
+    dValue  = math.ceil( dValue ) # type:ignore
     elemnew = symexpress3.SymFormulaParser( str( dValue ))
 
     elemnew.powerSign        = elem.powerSign
@@ -102,8 +110,7 @@ class SymFuncCeil( symFuncBase.SymFuncBase ):
 
     return elemnew
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    # return math.ceil( dValue )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.ceil( dValue )
 
 
@@ -111,7 +118,7 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
   """
   Floor function, round to the lowest integer
   """
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "floor"
     self._desc      = "Round to the lowest integer"
@@ -119,9 +126,12 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     self._maxparams = 1    # maximum number of parameters
     self._syntax    = "floor(<x>)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -139,7 +149,8 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
 
     return [], output
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
 
@@ -147,9 +158,11 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     if isinstance( elem, symexpress3.SymArray ):
       return None
 
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
     # round to the lowest integer
     dVars = elem.getVariables()
-    for key in dVars.items():
+    for key in dVars:
       # if (key != "e" and key != "pi" ):
       if not key in ("e", "pi"):
         return None
@@ -166,7 +179,8 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
     if isinstance( dValue, (complex, mpmath.mpc) ):
       return None
 
-    dValue  = math.floor( dValue )
+    # use math and not mpmath because of the str()
+    dValue  = math.floor( dValue ) # type:ignore
     elemnew = symexpress3.SymFormulaParser( str( dValue ))
 
     elemnew.powerSign        = elem.powerSign
@@ -175,20 +189,27 @@ class SymFuncFloor( symFuncBase.SymFuncBase ):
 
     return elemnew
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    # return math.floor( dValue )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.floor( dValue )
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
-    dValueCalc = round( float(dValueCalc), 10 )
+  def _Check( testClass :SymFuncCeil|SymFuncFloor
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue     = symexpress3.SymRound( dValue    , 10 )
+    dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

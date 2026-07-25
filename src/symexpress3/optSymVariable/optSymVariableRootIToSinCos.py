@@ -21,8 +21,8 @@
 
 
 """
-
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -33,15 +33,17 @@ class OptSymVariableRootIToSinCos( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "rootIToSinCos"
     self._symtype      = symexpress3.SymVariable
     self._desc         = "Root i to cos + i sin"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymVariable, elem )
 
     if elem.name != 'i' :
       return None
@@ -107,10 +109,10 @@ class OptSymVariableRootIToSinCos( optTypeBase.OptTypeBase ):
         iMax = iCalc
         iId  = iCnt2
         if not isinstance( iMax, (complex, mpmath.mpc) ):
-          iMax = complex( iMax, 0 )
+          iMax = complex( iMax, 0 ) #type:ignore
       else:
         if not isinstance( iCalc, (complex, mpmath.mpc) ):
-          iCalc = complex( iCalc, 0 )
+          iCalc = complex( iCalc, 0 ) #type:ignore
 
         if iCalc.real > iMax.real :
           iMax = iCalc
@@ -130,7 +132,7 @@ class OptSymVariableRootIToSinCos( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """

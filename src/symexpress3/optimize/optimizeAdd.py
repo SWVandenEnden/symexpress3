@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -31,14 +32,14 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None:
     super().__init__()
     self._name         = "add"
     self._symtype      = "+"
     self._desc         = "Add elements"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Adding up elements in this expression and his sub-expression.
     \n x + 2x becomes 3x
@@ -47,6 +48,10 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     if self.checkExpression( symExpr, action ) != True:
       # print( "Afgekeurd: " + symExpr.symType )
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if symExpr.symType != '+' :
       return result
@@ -60,6 +65,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     # add the same elements (SymVariables) together
 
     # addBefore = str( symExpr )
+    elemnum:None|symexpress3.TypVarSym3Object = None
 
     lFound = True
     while lFound == True :
@@ -150,7 +156,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             if isinstance( elem1, symexpress3.SymExpress ):
               elemexp = elem1
             else:
-              elemexp = elem2
+              # is is always a SymExpress type
+              elemexp = elem2 # type:ignore
             elemnew.onlyOneRoot      = elemexp.onlyOneRoot
             elemnew.powerSign        = elemexp.powerSign
             elemnew.powerCounter     = elemexp.powerCounter
@@ -429,12 +436,16 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
+  def _Check( testClass:OptimizeAdd
+            , symOrg   :symexpress3.SymExpress
+            , symTest  :symexpress3.SymExpress
+            , wanted   :str
+            ) -> None :
 
-  def _Check( testClass, symOrg, symTest, wanted ):
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )

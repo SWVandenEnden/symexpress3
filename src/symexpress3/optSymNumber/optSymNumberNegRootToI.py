@@ -22,8 +22,8 @@
 
 
 """
-
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from  symexpress3 import symexpress3
 from  symexpress3 import optTypeBase
@@ -34,15 +34,18 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "negRootToI"
     self._symtype      = symexpress3.SymNumber
     self._desc         = "Negative root change to i"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymNumber, elem )
 
     if elem.powerDenominator == 1:
       return None
@@ -114,8 +117,9 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
       arrSolutions.append( expfunc )
 
     # get the principal
-    iMax = None
-    iId  = 0
+    iMax:None|symexpress3.TypVarSym3Value = None
+    iId:int                               = 0
+
     for iCnt2, elem2 in enumerate( arrSolutions ):
 
       # print( "Get Value from: {}".format( elem2 ))
@@ -125,9 +129,11 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
         iMax = iCalc
         iId  = iCnt2
         if not isinstance( iMax, (complex, mpmath.mpc) ):
+          iMax = typing.cast( complex|mpmath.mpc, iMax )
           iMax = complex( iMax, 0 )
       else:
         if not isinstance( iCalc, (complex, mpmath.mpc) ):
+          iCalc = typing.cast( complex|mpmath.mpc, iCalc )
           iCalc = complex( iCalc, 0 )
 
         if iCalc.real > iMax.real :
@@ -149,12 +155,12 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
   # (-2/3)^^(1/2)
-  symTest = symexpress3.SymNumber( -1, 2, 3, 1, 1, 2, 1 )
+  symTest   = symexpress3.SymNumber( -1, 2, 3, 1, 1, 2, 1 )
   testClass = OptSymNumberNegRootToI()
   symNew    = testClass.optimize( symTest, "negRootToI" )
 

@@ -23,6 +23,8 @@
 
 """
 
+import typing
+
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 
@@ -32,18 +34,23 @@ class OptimizePowerArrays( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "powerArrays"
     self._symtype      = "all"
     self._desc         = "Put the power of the array into the elements"
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
       # print( "Afgekeurd: " + symExpr.symType )
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     for elem in symExpr.elements:
       if not isinstance( elem, symexpress3.SymArray ):
@@ -71,12 +78,17 @@ class OptimizePowerArrays( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Test unit
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizePowerArrays
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -86,7 +98,7 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
-  symTest = symexpress3.SymFormulaParser( '[ 2 | 4 ]^^2' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '[ 2 | 4 ]^^2' )
   symTest.optimize()
   symOrg = symTest.copy()
 

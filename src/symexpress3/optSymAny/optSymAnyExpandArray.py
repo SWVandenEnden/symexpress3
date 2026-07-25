@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -31,14 +32,14 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "expandArrays"
     self._desc         = "If the expression contains at least 1 array then make the hole expression an array element."
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
 
-    def _subExpandSymArray( elem ):
+    def _subExpandSymArray( elem:symexpress3.SymArray ) -> None|symexpress3.SymArray :
       if elem.power != 1 or elem.onlyOneRoot != 1 : # use arrayPower first
         return None
 
@@ -61,7 +62,7 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
 
       return result
 
-    def _subExpandSymFunction( elem ):
+    def _subExpandSymFunction( elem:symexpress3.SymFunction ) -> None|symexpress3.SymArray:
       result  = None
       iArrPos = -1
       for iCnt, elemsub in enumerate( elem.elements ):
@@ -74,18 +75,18 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
 
       result    = symexpress3.SymArray()
       arrElem   = elem.elements[ iArrPos ].copy()
-      iNumArray = arrElem.numElements()
+      iNumArray = arrElem.numElements() # type:ignore
       elem.elements[ iArrPos ] = symexpress3.SymNumber() # place holder
 
       for iCnt in range( 0, iNumArray ):
         elemSub = elem.copy()
-        elemSub.elements[ iArrPos ] = arrElem.elements[ iCnt ]
+        elemSub.elements[ iArrPos ] = arrElem.elements[ iCnt ] # type:ignore
         result.add( elemSub )
 
       return result
 
-    def _subExpandSymSymExpress( elem ):
-      return _subExpandSymFunction( elem )
+    # def _subExpandSymSymExpress( elem:symexpress3.SymExpress ) -> None|symexpress3.SymArray:
+    #   return _subExpandSymFunction( elem )
 
 
     if self.checkType( elem, action ) != True:
@@ -105,12 +106,13 @@ class OptSymAnyExpandArray( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  symTest = symexpress3.SymFormulaParser( "[ 4 | [ a | b ] | 4 ]" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "[ 4 | [ a | b ] | 4 ]" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest )
   symTest = symTest.elements[ 0 ]
   testClass = OptSymAnyExpandArray()
   symNew    = testClass.optimize( symTest, "expandArrays" )

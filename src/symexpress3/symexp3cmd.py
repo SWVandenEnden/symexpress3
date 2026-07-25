@@ -24,10 +24,12 @@
 import sys
 from pathlib import Path
 
-import mpmath
+import mpmath       # type: ignore
 import symexpress3
 
-def OptimzeFunction( cExpress, outputFormat, optimizeActions ):
+from symexpress3 import version
+
+def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:list[str] ) -> None:
   """
   Optimize the given expression according the optimize actions
   Output the result for the given output types`
@@ -91,7 +93,6 @@ def OptimzeFunction( cExpress, outputFormat, optimizeActions ):
         #  pass
 
         output.closeFile()
-        output = None
 
       elif outputType == "t":
         symexpress3.SymExpressTree( oExpress )
@@ -102,7 +103,7 @@ def OptimzeFunction( cExpress, outputFormat, optimizeActions ):
 
 
 
-def CheckOptimizeActions( cList ):
+def CheckOptimizeActions( cList:str ) -> list[str]:
   """
   Check of the given optimize actions are valid
   """
@@ -122,7 +123,7 @@ def CheckOptimizeActions( cList ):
   return actions
 
 
-def DisplayList( listTypes ):
+def DisplayList( listTypes:str ) -> None:
   """
   Display list of the given type
   f = functions
@@ -158,23 +159,23 @@ def DisplayList( listTypes ):
     else:
       print( f"Unknown -list options: {listType}" )
 
-def DisplayVersion():
+def DisplayVersion() -> None:
   """
   Display version information
   """
   # print( "symexp3cmd.py - symexpress3 command line interface" )
-  print( "Version    : " + symexpress3.__version__    )
+  print( "Version    : " + version.__version__    )
   # print( "Build number: " + symexpress3.symexpress3.__buildnumber__ )
 
-  print( "Author     : " + symexpress3.__author__     )
-  print( "Copyright  : " + symexpress3.__copyright__  )
-  print( "License    : " + symexpress3.__license__    )
-  print( "Maintainer : " + symexpress3.__maintainer__ )
-  print( "Email      : " + symexpress3.__email__      )
-  print( "Status     : " + symexpress3.__status__     )
+  print( "Author     : " + version.__author__     )
+  print( "Copyright  : " + version.__copyright__  )
+  print( "License    : " + version.__license__    )
+  print( "Maintainer : " + version.__maintainer__ )
+  print( "Email      : " + version.__email__      )
+  print( "Status     : " + version.__status__     )
 
 
-def DisplayHelp():
+def DisplayHelp() -> None:
   """
   Display help
   """
@@ -204,7 +205,7 @@ def DisplayHelp():
   print( "Example: " )
   print( 'python -m symexpress3 -v -l fav -o sc "cos( pi / 4 )^^(1/3)"' )
 
-def CommandLine( argv ):
+def CommandLine( argv:list[str] ) -> None:
   """
   Process the symexpres3 command line parameters
   """

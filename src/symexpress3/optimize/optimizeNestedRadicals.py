@@ -23,7 +23,7 @@
 
 """
 
-# import math
+import typing
 
 from symexpress3           import symexpress3
 from symexpress3.optimize  import optimizeBase
@@ -35,18 +35,23 @@ class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "nestedRadicals"
     self._symtype      = "all"
     self._desc         = "De-nest principal radicals"
 
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     result = False
     if self.checkExpression( symExpr, action ) != True:
       # print( "Afgekeurd: " + symExpr.symType )
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if ( symExpr.numElements() > 1 and symExpr.symType != '*' ):
       return result
@@ -131,12 +136,16 @@ class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None:
   """
   Unit test
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptimizeNestedRadicals
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -146,10 +155,11 @@ def Test( display = False):
       print( f"Error unit test {testClass.name} function" )
       raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
-  symTest = symexpress3.SymFormulaParser( '(2 * 5^^(1/3))^^(1/3)' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '(2 * 5^^(1/3))^^(1/3)' )
   symTest.optimize()
   symTest.optimize( "multiple" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymExpress, symTest ) # special for mypy
   symTest = symTest.elements[ 0 ]
 
   # symexpress3.SymExpressTree( symTest )

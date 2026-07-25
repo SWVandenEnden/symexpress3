@@ -18,19 +18,36 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import typing
+
+# TODO this import give cyclic-import warnings (pylint) we need some sort of forward declaration
+
+# from symexpress3          import optTypeBase
+# from symexpress3          import optFunctionBase
+# from symexpress3.optimize import optimizeBase
+# from symexpress3.symfunc  import symFuncBase
 
 # Different between functionTable and optSymFunction is functionTable can calculate a value from a function, optSymFunction cannot
-functionTable       = {} # dictionary of functions of type SymFuncBase     , see symexpress3.symfunc.symRegisterFunctions
-optimizeTable       = {} # dictionary of optimize classes for SymExpress   , see symexpress3.optimize.symRegisterOptimze
-optSymNumberTable   = {} # dictionary of optimize classes for SymNumber
-optSymVariableTable = {} # dictionary of optimize classes for SymVariable
-optSymFunctionTable = {} # dictionary of optimize classes for SymFunction
-optSymAnyTable      = {} # dictionary of optimize classes for any type, last resort if the optimize not fit in 1 of the above
+# functionTable       :dict[str,symFuncBase.SymFuncBase        ] = {} # dictionary of functions of type SymFuncBase     , see symexpress3.symfunc.symRegisterFunctions
+# optimizeTable       :dict[str,optimizeBase.OptimizeBase      ] = {} # dictionary of optimize classes for SymExpress   , see symexpress3.optimize.symRegisterOptimze
+# optSymNumberTable   :dict[str,optTypeBase.OptTypeBase        ] = {} # dictionary of optimize classes for SymNumber
+# optSymVariableTable :dict[str,optTypeBase.OptTypeBase        ] = {} # dictionary of optimize classes for SymVariable
+# optSymFunctionTable :dict[str,optFunctionBase.OptFunctionBase] = {} # dictionary of optimize classes for SymFunction
+# optSymAnyTable      :dict[str,optTypeBase.OptTypeBase        ] = {} # dictionary of optimize classes for any type, last resort if the optimize not fit in 1 of the above
 
-fixedVariables      = {} # dictionary of fixed variables, see symtools.py
+functionTable       :dict[str,typing.Any ] = {} # dictionary of functions of type SymFuncBase     , see symexpress3.symfunc.symRegisterFunctions
+optimizeTable       :dict[str,typing.Any ] = {} # dictionary of optimize classes for SymExpress   , see symexpress3.optimize.symRegisterOptimze
+optSymNumberTable   :dict[str,typing.Any ] = {} # dictionary of optimize classes for SymNumber
+optSymVariableTable :dict[str,typing.Any ] = {} # dictionary of optimize classes for SymVariable
+optSymFunctionTable :dict[str,typing.Any ] = {} # dictionary of optimize classes for SymFunction
+optSymAnyTable      :dict[str,typing.Any ] = {} # dictionary of optimize classes for any type, last resort if the optimize not fit in 1 of the above
 
 
-def RegisterTableEntry( cType, oEntry ):
+fixedVariables      :dict[str,str                            ] = {} # dictionary of fixed variables, see symtools.py
+
+
+# def RegisterTableEntry( cType:str, oEntry:optTypeBase.OptTypeBase|optFunctionBase.OptFunctionBase|optimizeBase.OptimizeBase ):
+def RegisterTableEntry( cType:str, oEntry:typing.Any ) -> None :
   """
   Register the given optimize class
   """

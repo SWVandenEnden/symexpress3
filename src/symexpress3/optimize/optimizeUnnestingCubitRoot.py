@@ -20,14 +20,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
 from symexpress3          import primefactor
 
-globalCacheCubicRoot = {}
+globalCacheCubicRoot:dict[str,None|dict[str,symexpress3.SymExpress]] = {}
 
 # import sys
 # sys.stderr.write( f"Start cubic root\n" )
@@ -40,17 +40,21 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "unnestingCubicRoot"
     self._symtype      = "+"
     self._desc         = "Unnesting of cubic roots of format (a * b^^(1/2) + c)^^(1/3)"
 
-  def optimize( self, symExpr, action ):
+  def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
       return result
+
+    # set type for mypy
+    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if symExpr.onlyOneRoot != 1:
       return result
@@ -160,6 +164,7 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     # numberPart = valid number
 
     # print( "Valid rootpart: " + str( rootPart ))
+    # symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     keyCache = str( symExpr )
     if keyCache in globalCacheCubicRoot:
@@ -172,9 +177,6 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
       symExpr.elements = []
 
       symExpr.add( keyData[ 'symRotate' ] )
-
-      # symExpr.add( keyData[ 'exprFndB' ] )
-      # symExpr.add( keyData[ 'exprFndA' ] )
 
       return True
 
@@ -364,6 +366,9 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
       symRotate = symexpress3.SymExpress( '*' )
       symPlus   = symexpress3.SymExpress( '+' )
 
+      exprFndB = typing.cast( symexpress3.SymExpress, exprFndB )
+      exprFndA = typing.cast( symexpress3.SymExpress, exprFndA )
+
       symPlus.add( exprFndB )
       symPlus.add( exprFndA )
 
@@ -449,11 +454,16 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass :OptimizeUnnestingCubitRoot
+            , symOrg    :symexpress3.TypVarSym3Object
+            , symTest   :symexpress3.TypVarSym3Object
+            , wanted    :str
+            ) -> None :
+
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -467,10 +477,11 @@ def Test( display = False):
   # answer: (47/74 + (33 i 3^^(1/2))/74 )^^(1/2)
 
   # (1/9 + 1/11 17^^(1/2))^^3  = (1/3) * ((4252/3267) + (580/1331) * 17^^(1/2))^^(1/3)
-  symTest = symexpress3.SymFormulaParser( '((4252/3267) + (580/1331) * 17^^(1/2))^^(1/3)' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '((4252/3267) + (580/1331) * 17^^(1/2))^^(1/3)' )
+  symTest = typing.cast( symexpress3.SymExpress, symTest ) # special for mypy
   symTest.optimizeNormal()
   symTest = symTest.elements[ 0 ]
-  symOrg = symTest.copy()
+  symOrg  = symTest.copy()
 
   testClass = OptimizeUnnestingCubitRoot()
   testClass.optimize( symTest, "unnestingCubicRoot" )

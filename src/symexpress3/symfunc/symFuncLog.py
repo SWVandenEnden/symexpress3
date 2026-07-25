@@ -24,9 +24,8 @@
 
 """
 
-# import math
-# import cmath
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -39,7 +38,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "log"
     self._desc      = "Logarithm function, log( x, y ) = y^^answer = x"
@@ -48,9 +47,11 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
     self._syntax    = "log(<x> [,<y>])"
     self._synExplain= "log(<x> [,<y>]) => y^^answer = x, default is e (e^^answer = x)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -75,9 +76,12 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
     return ['()'], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # answer = log(<x> [,<y>])
     elem1 = elem.elements[ 0 ]
@@ -136,11 +140,11 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
 
         elemLog2 = elemLog1.copy()
 
-        elemLog1.elements[ 0 ].factDenominator = 1
+        elemLog1.elements[ 0 ].factDenominator = 1 #type:ignore
 
-        elemLog2.elements[ 0 ].factCounter     = elemLog2.elements[ 0 ].factDenominator
-        elemLog2.elements[ 0 ].factDenominator =  1
-        elemLog2.elements[ 0 ].factSign        =  1
+        elemLog2.elements[ 0 ].factCounter     = elemLog2.elements[ 0 ].factDenominator #type:ignore
+        elemLog2.elements[ 0 ].factDenominator =  1                                     #type:ignore
+        elemLog2.elements[ 0 ].factSign        =  1                                     #type:ignore
         elemLog2.elements[ 0 ].powerSign       =  1
 
         elemNew.add( elemLog1 )
@@ -181,7 +185,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
         elemLog.powerCounter     = 1
         elemLog.powerDenominator = 1
 
-        elemLog.elements[ 0 ].factSign = 1
+        elemLog.elements[ 0 ].factSign = 1 #type:ignore
 
         elemNew.add( elemLog )
 
@@ -301,9 +305,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
     return None
 
 
-  def _getValueSingle( self, dValue, dValue2 = mpmath.e ):
-    # def _getValueSingle( self, dValue, dValue2 = math.e ):
-    # dResult = cmath.log( dValue, dValue2 )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     dResult = mpmath.log( dValue, dValue2 )
 
     return dResult
@@ -312,15 +314,24 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncLog
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if dValue != None:
-      dValue = round( float(dValue), 10 )
+      dValue     = symexpress3.SymRound( dValue    , 10 )
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

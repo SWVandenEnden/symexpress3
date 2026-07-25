@@ -19,7 +19,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3 import symtables
 from symexpress3 import symexpress3
@@ -28,7 +29,7 @@ from symexpress3 import symexpress3
 globalVariableLetter  = "n"  # the letter for the generated unique variable
 globalVariableCounter = 1    # the current unique number, rises every time a variable is get
 
-def VariableGenerateGet():
+def VariableGenerateGet() -> str :
   """
   Get a unique generated variable.
   Format is fixed letter with a unique number
@@ -40,7 +41,7 @@ def VariableGenerateGet():
   globalVariableCounter += 1
   return varName
 
-def VariableGenerateReset():
+def VariableGenerateReset() -> None :
   """
   Reset the variable counter.
   Is for test scripts
@@ -49,7 +50,7 @@ def VariableGenerateReset():
   global globalVariableCounter
   globalVariableCounter = 1
 
-def VariableGenerateSet( newCurrentNumber ):
+def VariableGenerateSet( newCurrentNumber:int ) -> None :
   """
   Set the variable counter to the given number.
   Is for test scripts
@@ -60,7 +61,7 @@ def VariableGenerateSet( newCurrentNumber ):
 
 
 
-def GetAllOptimizeActions():
+def GetAllOptimizeActions() -> dict[str,str] :
   """
   Get all the optimize actions in a dictionary [key]=description
   """
@@ -90,7 +91,7 @@ def GetAllOptimizeActions():
   return result
 
 
-def GetAllFunctions():
+def GetAllFunctions() -> dict[str,str]:
   """
   Get all the calculation functions in a dictionary [key]=description
   """
@@ -103,7 +104,7 @@ def GetAllFunctions():
 
   return result
 
-def GetSpecialFunctions():
+def GetSpecialFunctions() -> dict[ str,str] :
   """
   Get all the special functions in a dictionary [key]=description
   """
@@ -124,7 +125,7 @@ def GetSpecialFunctions():
   return result
 
 
-def GetFixedVariables():
+def GetFixedVariables() -> dict[str,str] :
   """
   Get dictionary of fixed defined variables ( [variable name] = description
   """
@@ -139,14 +140,14 @@ def GetFixedVariables():
   return symtables.fixedVariables
 
 
-def ConvertToSymexpress3String( varData ):
+def ConvertToSymexpress3String( varData:typing.Any ) -> str :
   """
   Convert given data into a symexpress3 string
   """
-  def _floatToString( varData ):
+  def _floatToString( varDataInput:float|mpmath.mpf|complex|mpmath.mpc ) -> str:
     # print( f"Start: {varData}" )
 
-    varData = str( varData )
+    varData = str( varDataInput )
     varData = varData.replace( '(', '' )
     varData = varData.replace( ')', '' )
     varData = varData.replace( ' ', '' )
@@ -239,10 +240,10 @@ def ConvertToSymexpress3String( varData ):
 
   # print( f"ConvertToSymexpress3String, end varData: {varData}" )
 
-  return varData
+  return typing.cast( str, varData )
 
 
-def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumberOfElements = 2 ):
+def PolynomialCoefficients( oFormula:symexpress3.SymExpress, cVarName:str, insertZeros:bool = False, leastNumberOfElements:int = 2 ) -> dict[int,symexpress3.TypVarSym3Object] :
   """
   Give a dictionary back (key=power,data=coeffient as SymExpress) from the coefficients of the formula.
   The formula is expected to be a polynomial (example: a x^^3 + b x^^2 + c)
@@ -250,7 +251,7 @@ def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumber
 
   If insertZeros is true then if a coefficient does not exist then put 0-value in it
   """
-  dCoeffients = {}
+  dCoeffients:dict[int,symexpress3.TypVarSym3Object] = {}
 
   if not isinstance( oFormula, symexpress3.SymExpress):
     raise NameError( f"PolynomialCoefficients, {str(oFormula)} is not a SymExpress object but {type(oFormula)}")
@@ -277,9 +278,9 @@ def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumber
 
   # get all the coefficients
   for elem in oFormula.elements:
-    dVars    = elem.getVariables()
-    varPower = 0
-    varElem  = None
+    dVars                                      = elem.getVariables()
+    varPower                                   = 0
+    varElem:None|symexpress3.TypVarSym3Object  = None
     if cVarName in dVars:
       # search for variable and get its power
       if isinstance( elem, symexpress3.SymVariable ):
@@ -329,7 +330,8 @@ def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumber
     if varPower not in dCoeffients:
       dCoeffients[ varPower ] = symexpress3.SymExpress( '+' )
 
-    dCoeffients[ varPower ].add( varElem )
+    if isinstance( dCoeffients[ varPower ], symexpress3.SymBaseList):
+      dCoeffients[ varPower ].add( varElem ) #type:ignore
 
   # if coefficient not exist put 0-value in it's place
   if insertZeros == True:
@@ -342,3 +344,7 @@ def PolynomialCoefficients( oFormula, cVarName, insertZeros = False, leastNumber
   dCoeffients = dict( sorted( dCoeffients.items() ))
 
   return dCoeffients
+
+# ---------------------------
+# Last line
+# ---------------------------

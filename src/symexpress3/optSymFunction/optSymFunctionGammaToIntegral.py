@@ -23,7 +23,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -35,7 +36,7 @@ class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "gammaToIntegral"
     self._desc         = "Convert gamma to integral if the real part is positive"
@@ -44,7 +45,8 @@ class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
 
@@ -62,6 +64,8 @@ class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
     else:
       return None
 
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
     varName = symtools.VariableGenerateGet()
     varElem = str( elem.elements[ 0 ] )
     cElem = f"integral(exp( ({varElem} - 1),  {varName}) * exp({varName} * -1), {varName}, 0,infinity )"
@@ -78,14 +82,15 @@ class OptSymFunctionGammaToIntegral( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
   symtools.VariableGenerateReset()
 
-  symTest = symexpress3.SymFormulaParser( "gamma(1/3)^^(-1/2)" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "gamma(1/3)^^(-1/2)" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   # print( "symTest: " + str( symTest ))

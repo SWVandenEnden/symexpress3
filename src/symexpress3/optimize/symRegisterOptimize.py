@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3          import symtables
 from symexpress3.optimize import optimizeSinTwoCosTwo
@@ -43,7 +44,7 @@ from symexpress3.optimize import optimizeDivideDivide
 #
 # automatic called from symepxress3 too fill functionTable[]
 #
-def SymRegisterOptimize():
+def SymRegisterOptimize() -> None :
   """
   Register all the optimize action classes
   """
@@ -68,7 +69,7 @@ def SymRegisterOptimize():
 #
 # Get all the modules from the functions, used in testsymexpress3.py
 #
-def SymRegisterGetModuleNames():
+def SymRegisterGetModuleNames() -> list[typing.Any] :
   """
   Get all the modules of the optimize actions
   """

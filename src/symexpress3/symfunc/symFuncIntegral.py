@@ -27,7 +27,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -39,7 +40,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "integral"
     self._desc        = "integral( <function>,<delta> [,<lower>,<upper>] )"
@@ -48,10 +49,12 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     self._syntax      = "integral( <function>,<delta> [,<lower>,<upper>] )"
     self._synExplain  = "integral( <function>,<delta> [,<lower>,<upper>] )"
 
-  def _checkCorrectFunction( self, elem ):
+  def _checkCorrectFunction( self, elem:None|symexpress3.TypVarSym3Object ) -> bool :
     result = super()._checkCorrectFunction( elem )
     if result != True:
       return result
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # both lower and upper must be present or none
     if elem.numElements() == 3:
@@ -59,9 +62,12 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
     return result
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -88,9 +94,9 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     return [ '()' ], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
 
-    def _subToResultAndPower( elemNew ):
+    def _subToResultAndPower( elemNew:symexpress3.SymExpress|symexpress3.SymFunction, elem:symexpress3.SymFunction ) -> symexpress3.TypVarSym3Object :
       """
       Give the integral function back or if upper and lower are given,
       give the integralresult function back.
@@ -108,7 +114,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elem.copyPower( elemNew )
       return elemNew
 
-    def _subGetConstantAndVariable( elemFunc, checkPower = True ):
+    def _subGetConstantAndVariable( elemFunc:symexpress3.TypVarSym3Object
+                                  , elem    :symexpress3.SymFunction
+                                  , checkPower:bool = True
+                                  ) -> tuple[ None|list[symexpress3.TypVarSym3Object], None|list[symexpress3.TypVarSym3Object] ]:
+
       """
       Split the function into a constant and the variable
       Give 2 result, first = constant, second = variable
@@ -128,7 +138,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
            ):
           return None, None
 
-      cVarName = elem.elements[ 1 ].name
+      cVarName = elem.elements[ 1 ].name # type:ignore
 
       # plus expression with 1 element
       if (     isinstance( elemFunc, symexpress3.SymExpress )
@@ -150,8 +160,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return [ elemFunc ], None
 
       # fill 2 arrays with elements
-      arrConst = []
-      arrVar   = []
+      arrConst:None|list[symexpress3.TypVarSym3Object] = []
+      arrVar  :None|list[symexpress3.TypVarSym3Object] = []
+
+      arrConst = typing.cast( list[symexpress3.TypVarSym3Object], arrConst )
+      arrVar   = typing.cast( list[symexpress3.TypVarSym3Object], arrVar   )
 
       if isinstance( elemFunc, symexpress3.SymExpress ) and elemFunc.symType == '*' :
         for elemCheck in elemFunc.elements:
@@ -175,7 +188,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return arrConst, arrVar
 
-    def _integralSum():
+    def _integralSum( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral of a sum: integral( sum( x, -1, 1, x ))
       """
@@ -197,7 +210,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       # the lower and upper limit may not contain the integral variable
-      elemVar = elem.elements[ 1 ]
+      elemVar = typing.cast( symexpress3.SymVariable, elem.elements[ 1 ])
 
       elemLower = elemFunc.elements[ 1 ]
       elemUpper = elemFunc.elements[ 2 ]
@@ -205,10 +218,10 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       dictVarLower = elemLower.getVariables()
       dictVarUpper = elemUpper.getVariables()
 
-      if elemVar in dictVarLower:
+      if elemVar.name in dictVarLower:
         return None
 
-      if elemVar in dictVarUpper:
+      if elemVar.name in dictVarUpper:
         return None
 
       elemNew = symexpress3.SymFunction( "sum" )
@@ -230,7 +243,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _integralByParts():
+    def _integralByParts( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral by parts: integral( f(x) * g(x), x ) = f(x) * integral( g(x), x ) - integral( derivative( f(x), x) * integral( g(x),x), x )
       https://en.wikipedia.org/wiki/Integration_by_parts
@@ -279,7 +292,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # 3 = trigonometric function
       # 4 = exp
       # 5 = rest of functions and expressions
-      arrLite = [ [], [], [], [], [], [] ]
+      arrLite:list[list[symexpress3.TypVarSym3Object]] = [ [], [], [], [], [], [] ]
       for _, elemSub in enumerate( elemFunc.elements ):
         if isinstance( elemSub, symexpress3.SymFunction ):
           # do not supported powers on functions
@@ -355,8 +368,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       # give integral a new variable
       varName = symtools.VariableGenerateGet()
-      varDict = {}
-      varDict[ elem.elements[ 1 ].name ] = varName
+      varDict:dict[str,str] = {}
+      varDict[ elem.elements[ 1 ].name ] = varName #type:ignore
       elemInt1.replaceVariable( varDict )
 
       elemPart1.add( elemInt1 )
@@ -394,7 +407,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # give integral a new variable
       varName = symtools.VariableGenerateGet()
       varDict = {}
-      varDict[ elem.elements[ 1 ].name ] = varName
+      varDict[ elem.elements[ 1 ].name ] = varName #type:ignore
       elemInt21.replaceVariable( varDict )
 
       elemExp2.add( elemInt21 )
@@ -416,7 +429,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _integralLog():
+    def _integralLog( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral( log( a x, b ), x ) =  x log( a x ) - x / log( a, e )
       """
@@ -436,7 +449,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       elemParam = elemFunc.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, elem )
       if arrVar == None :
         return None
 
@@ -463,19 +476,19 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         # integral( log( x, x))  not supported
         elemBase = elemFunc.elements[1]
         dDictVar = elemBase.getVariables()
-        if elem.elements[1].name in dDictVar:
+        if elem.elements[1].name in dDictVar: #type:ignore
           return None
 
 
       elemNew = symexpress3.SymExpress( '+' )
       elemPart1 = symexpress3.SymExpress( '*' )
-      elemPart1.add( symexpress3.SymVariable( elem.elements[1].name ))
+      elemPart1.add( symexpress3.SymVariable( elem.elements[1].name )) #type:ignore
       elemPart1.add( elemFunc )
       elemNew.add( elemPart1 )
 
       elemPart2 = symexpress3.SymExpress( '*' )
       elemPart2.add( symexpress3.SymNumber( -1, 1,1,1))
-      elemPart2.add( symexpress3.SymVariable( elem.elements[1].name ))
+      elemPart2.add( symexpress3.SymVariable( elem.elements[1].name )) #type:ignore
 
       if elemFunc.numElements() >= 2:
         elemLn = symexpress3.SymFunction( 'log' )
@@ -485,11 +498,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       elemNew.add( elemPart2 )
 
-      elemNew = _subToResultAndPower( elemNew )
+      elemNewRet = _subToResultAndPower( elemNew, elem )
 
-      return elemNew
+      return elemNewRet
 
-    def _integralExp():
+    def _integralExp( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral( exp( a x    ), x) = exp( a x    ) / a
       Integral( exp( a x, b ), x) = exp( a x, b ) / (a ln( b )) , b > 0 and b <> 1
@@ -510,9 +523,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       elemParam = elemFunc.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, False )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, elem, False )
       if arrVar == None and arrConst == None:
         return None
+
+      elemNew:symexpress3.SymExpress|symexpress3.SymFunction
 
       if arrVar == None :
         # exp( a, x ) = x^a
@@ -520,13 +535,13 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
           elemBase = elemFunc.elements[1]
 
           if (    isinstance( elemBase, symexpress3.SymVariable)
-              and elemBase.name  == elem.elements[1].name
+              and elemBase.name  == elem.elements[1].name       #type:ignore
               and elemBase.power == 1
              ):
             # result = exp( constants + 1, x ) / ( n + 1)  , n <> -1
-            if (    len( arrConst )    == 1
-                and isinstance( arrConst[0], symexpress3.SymNumber )
-                and arrConst[0].factor == -1
+            if (    len( arrConst )    == 1                          # type:ignore
+                and isinstance( arrConst[0], symexpress3.SymNumber ) # type:ignore
+                and arrConst[0].factor == -1                         # type:ignore
                ):
               # 1/x = ln(abs(x))
               # x^^(-1) => ln( abs( x ))
@@ -535,11 +550,13 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
               elemAbs.add( symexpress3.SymVariable( elemBase.name ) )
               elemNew.add( elemAbs )
 
-              elemNew = _subToResultAndPower( elemNew )
+              # elemNewRet = _subToResultAndPower( elemNew, elem )
+              # return elemNewRet
+
             else:
               expConst = symexpress3.SymExpress( '*' )
               # exp( n + 1, x ) / ( n + 1)
-              for elemConst in arrConst:
+              for elemConst in arrConst: #type:ignore
                 expConst.add( elemConst )
 
               elemNew = symexpress3.SymExpress( '*' )
@@ -557,8 +574,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
               elemPlus.powerSign = -1
               elemNew.add( elemPlus )
 
-            elemNew = _subToResultAndPower( elemNew )
-            return elemNew
+            elemNewRet = _subToResultAndPower( elemNew, elem )
+            return elemNewRet
 
 
         return None
@@ -579,7 +596,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       if elemFunc.numElements() >= 2:
         elemBase = elemFunc.elements[1]
         dDictVar = elemBase.getVariables()
-        if elem.elements[1].name in dDictVar:
+        if elem.elements[1].name in dDictVar: #type:ignore
           return None
 
 
@@ -607,11 +624,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       elemNew.add( elemDiv )
 
-      elemNew = _subToResultAndPower( elemNew )
+      elemNewRet = _subToResultAndPower( elemNew, elem )
 
-      return elemNew
+      return elemNewRet
 
-    def _integralTrigonometricFunctions():
+    def _integralTrigonometricFunctions( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral of (inverse) trigonometric functions
       integral( sin/cos/tan/asin/acos/atan, x )
@@ -633,7 +650,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         return None
 
       elemParam = elemFunc.elements[ 0 ]
-      arrConst, arrVar = _subGetConstantAndVariable ( elemParam )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemParam, elem )
       if arrVar == None :
         # no variable found in function with power of 1
         # convert the function into a sum to get integrated
@@ -728,7 +745,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemPlus1 = symexpress3.SymExpress( '*' )
         elemAsin = symexpress3.SymFunction( 'asin' )
         elemAsin.add( elemParam )
-        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name ))
+        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name )) #type:ignore
         elemPlus1.add( elemAsin )
 
         elemNew.add( elemPlus1 )
@@ -746,7 +763,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemPower = symexpress3.SymExpress( '*' )
         elemPower.add( symexpress3.SymNumber( -1, 1,1,1 ))
         elemPower.add( expConst )
-        elemPower.add( symexpress3.SymVariable( elem.elements[ 1 ].name,1 ,2 ,1 ))
+        elemPower.add( symexpress3.SymVariable( elem.elements[ 1 ].name,1 ,2 ,1 )) #type:ignore
 
         elemSqrt.add( elemPower )
         elemPlus2.add( elemSqrt )
@@ -760,7 +777,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemPlus1 = symexpress3.SymExpress( '*' )
         elemAsin = symexpress3.SymFunction( 'acos' )
         elemAsin.add( elemParam )
-        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name ))
+        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name )) #type:ignore
         elemPlus1.add( elemAsin )
 
         elemNew.add( elemPlus1 )
@@ -779,7 +796,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemPower = symexpress3.SymExpress( '*' )
         elemPower.add( symexpress3.SymNumber( -1, 1,1,1 ))
         elemPower.add( expConst )
-        elemPower.add( symexpress3.SymVariable( elem.elements[ 1 ].name,1 ,2 ,1 ))
+        elemPower.add( symexpress3.SymVariable( elem.elements[ 1 ].name,1 ,2 ,1 )) #type:ignore
 
         elemSqrt.add( elemPower )
         elemPlus2.add( elemSqrt )
@@ -793,7 +810,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemPlus1 = symexpress3.SymExpress( '*' )
         elemAsin = symexpress3.SymFunction( 'atan' )
         elemAsin.add( elemParam )
-        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name ))
+        elemPlus1.add( symexpress3.SymVariable( elem.elements[ 1 ].name )) #type:ignore
         elemPlus1.add( elemAsin )
 
         elemNew.add( elemPlus1 )
@@ -807,7 +824,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         expConst.powerCounter = 2
         elemLogParam1 = symexpress3.SymExpress( '*' )
         elemLogParam1.add( expConst )
-        elemLogParam1.add( symexpress3.SymVariable( elem.elements[ 1 ].name, 1, 2, 1 ))
+        elemLogParam1.add( symexpress3.SymVariable( elem.elements[ 1 ].name, 1, 2, 1 )) #type:ignore
         expConst.powerCounter = 1
 
         elemLogParam.add( elemLogParam1 )
@@ -827,11 +844,11 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       else:
         return None # is theoretical not possible
 
-      elemNew = _subToResultAndPower( elemNew )
+      elemNewRet = _subToResultAndPower( elemNew, elem )
 
-      return elemNew
+      return elemNewRet
 
-    def _integralVariable():
+    def _integralVariable( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Integral of x^<power> dx
       """
@@ -840,11 +857,15 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       if not isinstance( elemFunc, symexpress3.SymVariable ):
         return None
 
-      if elemFunc.name != elem.elements[1].name:
+      # elemFunc = typing.cast( symexpress3.SymVariable, elemFunc )
+
+      if elemFunc.name != elem.elements[1].name: #type:ignore
         return None
 
       if elemFunc.onlyOneRoot != 1:
         return None
+
+      elemNew:symexpress3.SymExpress|symexpress3.SymFunction
 
       if (    elemFunc.powerSign        == -1
           and elemFunc.powerCounter     == 1
@@ -856,9 +877,9 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
         elemAbs.add( symexpress3.SymVariable( elemFunc.name ) )
         elemNew.add( elemAbs )
 
-        elemNew = _subToResultAndPower( elemNew )
+        elemNewRet = _subToResultAndPower( elemNew, elem )
 
-        return elemNew
+        return elemNewRet
 
       # x^^y => x^^(y+1) / (y + 1)
       # = (y+1)^^(-1) * exp( y + 1, x )
@@ -881,19 +902,19 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemNew.add( elemPlus )
       elemNew.add( elemExp  )
 
-      elemNew = _subToResultAndPower( elemNew )
+      elemNewRet = _subToResultAndPower( elemNew, elem )
 
-      return elemNew
+      return elemNewRet
 
 
-    def _intergralConstantAndVariable():
+    def _intergralConstantAndVariable( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Get the constant(s) out of the integral
       integral( a x, x ) = a integral( x, x )
       """
       elemFunc = elem.elements[ 0 ]
 
-      arrConst, arrVar = _subGetConstantAndVariable ( elemFunc )
+      arrConst, arrVar = _subGetConstantAndVariable ( elemFunc, elem )
       if arrVar == None :
         return None
 
@@ -922,7 +943,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       return elemNew
 
 
-    def _integralPlus():
+    def _integralPlus( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       integral( a + b ) = integral( a ) + integral( b )
       """
@@ -955,7 +976,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _integralConstant():
+    def _integralConstant( elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       integral( a, x ) = a x
       """
@@ -967,7 +988,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # print( f"dictVars: { str(dictVars)}" )
       # print( f"Name: {elem.elements[ 1 ].name}" )
 
-      if elem.elements[ 1 ].name in dictVars:
+      if elem.elements[ 1 ].name in dictVars: #type:ignore
         return None
 
       elemNew = symexpress3.SymExpress( '*' )
@@ -975,15 +996,17 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       elemNew.add( elem.elements[ 0 ] )
       elemNew.add( elem.elements[ 1 ] )
 
-      elemNew = _subToResultAndPower( elemNew )
+      elemNewRet = _subToResultAndPower( elemNew, elem )
 
-      return elemNew
+      return elemNewRet
 
     #
     # start integral conversion
     # .........................
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     # first write out roots
     if elem.elements[ 0 ].onlyOneRoot != 1:
@@ -1003,47 +1026,47 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       return None
 
     # constant integral
-    elemNew = _integralConstant()
+    elemNew = _integralConstant( elem )
     if elemNew != None:
       return elemNew
 
     # plus integral
-    elemNew = _integralPlus()
+    elemNew = _integralPlus( elem )
     if elemNew != None:
       return elemNew
 
     # get constant out integral( a x, x ) = a integral( x, x )
-    elemNew = _intergralConstantAndVariable()
+    elemNew = _intergralConstantAndVariable( elem )
     if elemNew != None:
       return elemNew
 
     # get power of x integral( x^^2, x ) = (x^^3)/3, with special case integral(x^^(-1)) = ln( abs(x))
-    elemNew = _integralVariable()
+    elemNew = _integralVariable( elem )
     if elemNew != None:
       return elemNew
 
     # integral( sin/cos/tan/asin/acos/atan )
-    elemNew = _integralTrigonometricFunctions()
+    elemNew = _integralTrigonometricFunctions( elem )
     if elemNew != None:
       return elemNew
 
     # integral( exp( a x ), x ) = exp( a x ) / a
-    elemNew = _integralExp()
+    elemNew = _integralExp( elem )
     if elemNew != None:
       return elemNew
 
     # integral( log( x, a ))
-    elemNew = _integralLog()
+    elemNew = _integralLog( elem )
     if elemNew != None:
       return elemNew
 
     # integral( sum( x, -1, 1, x ) )
-    elemNew = _integralSum()
+    elemNew = _integralSum( elem )
     if elemNew != None:
       return elemNew
 
     # TODO integral by parts
-    # elemNew = _integralByParts()
+    # elemNew = _integralByParts( elem )
     if elemNew != None:
       return elemNew
 
@@ -1051,9 +1074,16 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     return None
 
 
-  def getValue( self, elemFunc, dDict = None ):
+  def getValue( self, elemFunc:symexpress3.TypVarSym3Object, dDict:symexpress3.TypVarSym3VarDictNone = None ) -> symexpress3.TypVarSym3ValueAll :
 
-    def _fncValue( x, objExp, dDict, cVar ):
+    def _fncValue( x       :str
+                 , objExp :symexpress3.TypVarSym3Object
+                 , dDict  :symexpress3.TypVarSym3VarDictNone
+                 , cVar   :str
+                 ) -> symexpress3.TypVarSym3Value :
+
+      dDict = typing.cast( dict[str,str], dDict )
+
       dDict[ cVar ] = x
       fValue = objExp.getValue( dDict )
       if isinstance( fValue, list ):
@@ -1069,6 +1099,8 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     # https://mpmath.org/doc/current/calculus/integration.html
     # https://stackoverflow.com/questions/6256249/passing-arguments-to-mpmath-quad-integration
 
+    elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
+
     if dDict == None:
       dDictSum = {}
     else:
@@ -1080,15 +1112,15 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       # print( f"integral no varname: { str(elemFunc.elements[1]) }  elemFunc: {str(elemFunc)}" )
       return None
 
-    startVal     = None
-    endVal       = None
+    startVal:None|symexpress3.TypVarSym3Value  = None
+    endVal  :None|symexpress3.TypVarSym3Value  = None
 
     # determine start / end integral
     if elemFunc.numElements() >= 3:
       startVal = elemFunc.elements[2]
       if isinstance( startVal, symexpress3.SymExpress ):
         # look for - infinity
-        if startVal.symType == '*' and startVal.numElements == 2:
+        if startVal.symType == '*' and startVal.numElements() == 2:
           elem1 = startVal.elements[0]
           elem2 = startVal.elements[1]
 
@@ -1101,7 +1133,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
               startVal = float('-inf')
 
       if not isinstance( startVal, float ):
-        startVal = float( startVal.getValue( dDict ) )
+        startVal = float( startVal.getValue( dDict ) ) # type:ignore
 
     if startVal == None:
       startVal = float('-inf')
@@ -1113,7 +1145,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
           endVal = float('inf')
 
       if not isinstance( endVal, float ):
-        endVal = float( endVal.getValue( dDict ) )
+        endVal = float( endVal.getValue( dDict ) ) #type:ignore
 
     if endVal == None:
       endVal = float('inf')
@@ -1133,15 +1165,23 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncIntegral
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if dValue != None:
-      dValue = round( float(dValue), 4 ) # changed to 4
+      dValue = symexpress3.SymRound( dValue, 4 ) # changed to 4
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 4 ) # changed to 4
+      dValueCalc = symexpress3.SymRound( dValueCalc, 4 ) # changed to 4
 
     if display == True :
       print( f"naam    : {testClass.name}" )

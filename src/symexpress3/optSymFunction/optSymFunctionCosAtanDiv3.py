@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -32,7 +33,7 @@ class OptSymFunctionCosAtanDiv3( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "cosAtanDiv3"
     self._desc         = "Convert cos(atan(x)/3) to value"
@@ -41,10 +42,13 @@ class OptSymFunctionCosAtanDiv3( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     # https://www.quora.com/Is-there-a-method-to-calculate-cos-%CF%80-7-and-sin-%CF%80-7
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elem1 = elem.elements[0]
     if not isinstance( elem1, symexpress3.SymExpress ):
@@ -114,12 +118,13 @@ class OptSymFunctionCosAtanDiv3( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  symTest = symexpress3.SymFormulaParser( "cos(atan(x)/3)" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "cos(atan(x)/3)" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   # print( "symTest: " + str( symTest ))

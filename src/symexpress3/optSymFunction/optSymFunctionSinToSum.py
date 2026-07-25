@@ -23,6 +23,7 @@
     https://en.wikipedia.org/wiki/List_of_trigonometric_identities
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -34,7 +35,7 @@ class OptSymFunctionSinToSum( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "sinToSum"
     self._desc         = "Convert sin to sum"
@@ -43,9 +44,12 @@ class OptSymFunctionSinToSum( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemParam = elem.elements[ 0 ]
 
@@ -68,14 +72,15 @@ class OptSymFunctionSinToSum( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
   symtools.VariableGenerateReset()
 
-  symTest = symexpress3.SymFormulaParser( "sin(pi/4)" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "sin(pi/4)" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   # print( "symTest: " + str( symTest ))

@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3                import symtables
 from symexpress3.optSymFunction import optSymFunctionSinToSum
@@ -45,7 +46,7 @@ from symexpress3.optSymFunction import optSymFunctionHypergeometricToSum
 #
 # automatic called from symepxress3 too fill functionTable[]
 #
-def SymRegisterOptimize():
+def SymRegisterOptimize() -> None :
   """
   Register all the function optimize classes
   """
@@ -73,7 +74,7 @@ def SymRegisterOptimize():
 #
 # Get all the modules from the optSymNumber, used in testsymexpress3.py
 #
-def SymRegisterGetModuleNames():
+def SymRegisterGetModuleNames() -> list[typing.Any] :
   """
   Get all the modules of the function optimizes
   """

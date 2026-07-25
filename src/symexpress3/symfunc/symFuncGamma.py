@@ -26,7 +26,8 @@
 
 """
 
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -39,7 +40,7 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "gamma"
     self._desc        = "Gamma function"
@@ -48,9 +49,12 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     self._syntax      = "gamma(<n>)"
     self._synExplain  = "gamma(<n>)"
 
-  def mathMl( self, elem ):
+  def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
+
     if self._checkCorrectFunction( elem ) != True:
       return [], None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     output = ""
 
@@ -65,9 +69,9 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     return [], output
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
 
-    def _toFactorial( elem1 ):
+    def _toFactorial( elem1:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Convert gamma to factorial
       """
@@ -95,7 +99,7 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
 
       return elemNew
 
-    def _smallestGamma( elem1 ):
+    def _smallestGamma( elem1:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Convert gamma to the smallest from ( x * gammy(y) )
       """
@@ -111,10 +115,10 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
 
       # special case gamm( 1/2 ) = sqrt(pi)
       if elem1.factDenominator == 2 and elem1.factCounter == 1:
-        elemNew = symexpress3.SymVariable( 'pi', 1, 1, 2, 1)
+        elemNew2 = symexpress3.SymVariable( 'pi', 1, 1, 2, 1)
 
         elemRet = symexpress3.SymExpress( '*')
-        elemRet.add( elemNew )
+        elemRet.add( elemNew2 )
         elemRet.powerSign        = elem.powerSign
         elemRet.powerCounter     = elem.powerCounter
         elemRet.powerDenominator = elem.powerDenominator
@@ -172,7 +176,7 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
       return elemRet
 
 
-    def _convNegative( elem1 ):
+    def _convNegative( elem1:symexpress3.TypVarSym3Object, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
       """
       Convert negative gamma to positive gamma for non integer values
       """
@@ -215,42 +219,51 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     if self._checkCorrectFunction( elem ) != True:
       return None
 
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
     if elem.numElements() != 1:
       return None
 
     elem1 = elem.elements[0]
 
-    elemNew = _toFactorial( elem1 )
+    elemNew = _toFactorial( elem1, elem )
     if elemNew != None:
       return elemNew
 
-    elemNew = _convNegative( elem1 )
+    elemNew = _convNegative( elem1, elem )
     if elemNew != None:
       return elemNew
 
-    elemNew = _smallestGamma( elem1 )
+    elemNew = _smallestGamma( elem1, elem )
     if elemNew != None:
       return elemNew
 
     return elemNew
 
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.gamma( dValue  )
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncGamma
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if dValue != None:
-      dValue     = round( float(dValue)    , 10 )
+      dValue = symexpress3.SymRound( dValue, 10 )
 
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
 
     if display == True :
       print( f"naam    : {testClass.name}" )

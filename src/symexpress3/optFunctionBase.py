@@ -35,39 +35,40 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
   """
   __slots__ = ( '_funcName', '_minparams', '_maxparams' )
 
-  def __init__( self ):
+  def __init__( self ) -> None:
     super().__init__()
-    self._name         = None                     # must be set by in the real class
+    self._name         = ""                       # must be set by in the real class
     self._symtype      = symexpress3.SymFunction  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction
     self._desc         = ""                       # description of the optimization
-    self._funcName     = None                     # name of the function
-    self._minparams    = 1                        # minimum number of parameters
-    self._maxparams    = 1                        # maximum number of parameters
+    self._funcName     :str      = ""             # name of the function
+    self._minparams    :int      = 1              # minimum number of parameters
+    self._maxparams    :int      = 1              # maximum number of parameters
 
 
   @property
-  def functionName(self):
+  def functionName(self) -> str:
     """
     Name of the function
     """
     return self._funcName
 
   @property
-  def minimumNumberOfParameters(self):
+  def minimumNumberOfParameters(self) -> int :
     """
     Minimum number of parameters
     """
     return self._minparams
 
   @property
-  def maximumNumberOfParameters(self):
+  def maximumNumberOfParameters(self) -> int :
     """
     Maximum number of parameters
     """
     return self._maxparams
 
 
-  def checkType( self, elem, action ):
+  def checkType( self, elem:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+
     """
     Check if the given elem
     """
@@ -77,10 +78,14 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
       # print( "test 1")
       return False
 
-    if elem.name != self.functionName:
+    if elem == None:
       return False
 
-    numElem = elem.numElements()
+    # this is always a SymFunction but mypy does not see it
+    if elem.name != self.functionName: # type:ignore
+      return False
+
+    numElem = elem.numElements() # type:ignore
     if  numElem < self._minparams :
       return False
 

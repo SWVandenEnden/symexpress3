@@ -24,8 +24,8 @@
 
 """
 
-# import math
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -37,7 +37,7 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "atan2"
     self._desc      = "atan2"
@@ -46,9 +46,12 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
     self._syntax    = "atan2(<x>,<y>)"
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elem1 = elem.elements[ 0 ]
     elem2 = elem.elements[ 1 ]
@@ -80,6 +83,9 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
     if ( isinstance( elem1, ( list, complex, symexpress3.SymArray, mpmath.mpc ) ) or
          isinstance( elem2, ( list, complex, symexpress3.SymArray, mpmath.mpc ) )   ) :
       return None
+
+    valy = typing.cast( mpmath.mpf|float|int, valy )
+    valx = typing.cast( mpmath.mpf|float|int, valx )
 
     newelem = symexpress3.SymExpress( '*' )
     newelem.powerSign        = elem.powerSign
@@ -118,8 +124,7 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
 
     return None
 
-  def _getValueSingle( self, dValue, dValue2 = None):
-    # return math.atan2( dValue, dValue2 )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.atan2( dValue, dValue2 )
 
 
@@ -127,13 +132,22 @@ class SymFuncAtan2( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
+
   """
   Unit test
   """
-  def _Check(  testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
-    dValueCalc = round( float(dValueCalc), 10 )
+  def _Check( testClass :SymFuncAtan2
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue     = symexpress3.SymRound( dValue    , 10 )
+    dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

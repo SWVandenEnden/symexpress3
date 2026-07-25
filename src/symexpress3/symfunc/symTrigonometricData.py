@@ -27,12 +27,15 @@
 
 """
 
+import typing
+
 # sin 0 -> PI/2 equal to PI -> PI/2 (inverse),  PI -> 2PI/3 ( * -1)
 # cos ( x ) = sin( pi / 2 - x )
 # only needed is sin from  0 -> pi/2
 #
-#               trio-name[0], sign[1], counter[2], denominator[3], expression[4]    , SymExpress[5]
-trigonometricdata = [ [ "sin",    1    ,0      ,  1         , "0"                               , None]
+#             trio-name[0]:str, sign[1]:int, counter[2]:int, denominator[3]:int, expression[4]:str, SymExpress[5]:None|symexpress3.SymExpress
+trigonometricdata: list[ list[typing.Any] ] = (
+                    [ [ "sin",    1    ,0      ,  1         , "0"                               , None]
                     , [ "sin",    1    ,1      , 12         , "( 6^^(1/2) - 2^^(1/2) ) / 4"     , None]
                     , [ "sin",    1    ,1      , 10         , "(5^^(1/2) - 1) / 4"              , None]
                     , [ "sin",    1    ,1      ,  8         , "(2 - 2^^(1/2))^^(1/2) / 2"       , None]
@@ -79,4 +82,4 @@ trigonometricdata = [ [ "sin",    1    ,0      ,  1         , "0"               
                     , [ "tan",    1    ,2      ,   5        , "(5 + 2 * 5^^(1/2))^^(1/2)"          , None]
                     , [ "tan",    1    ,5      ,  12        , "(2 + 3^^(1/2))"                     , None]
 
-                    ]
+                    ] )

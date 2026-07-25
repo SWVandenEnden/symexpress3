@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
@@ -33,7 +34,7 @@ class OptSymFunctionNumberToDivisors( optFunctionBase.OptFunctionBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "numberToDivisors"
     self._desc         = "Convert a given number to all his divisors as an add sum"
@@ -42,9 +43,12 @@ class OptSymFunctionNumberToDivisors( optFunctionBase.OptFunctionBase ):
     self._maxparams    = 1                        # maximum number of parameters
 
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemParam = elem.elements[ 0 ]
     if not isinstance( elemParam, symexpress3.SymNumber ):
@@ -103,12 +107,16 @@ class OptSymFunctionNumberToDivisors( optFunctionBase.OptFunctionBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
 
-  def _Check( testClass, symOrg, symTest, wanted ):
+  def _Check( testClass:OptSymFunctionNumberToDivisors
+            , symOrg   :symexpress3.TypVarSym3Object
+            , symTest  :None|symexpress3.TypVarSym3Object
+            , wanted   :str
+            ) -> None :
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -119,8 +127,9 @@ def Test( display = False):
       raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
 
 
-  symTest = symexpress3.SymFormulaParser( "numberToDivisors( -12 )" )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "numberToDivisors( -12 )" )
   symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
 
   testClass = OptSymFunctionNumberToDivisors()

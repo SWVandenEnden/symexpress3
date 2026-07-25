@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3           import symtables
 from symexpress3.optSymAny import optSymAnyArrayPower
@@ -30,7 +31,7 @@ from symexpress3.optSymAny import optSymAnyRootToPrincipalRoot
 #
 # automatic called from symepxress3
 #
-def SymRegisterOptimize():
+def SymRegisterOptimize() -> None :
   """
   Register all the any optimize classes
   """
@@ -41,7 +42,7 @@ def SymRegisterOptimize():
 #
 # Get all the modules from the optSymVariable, used in testsymexpress3.py
 #
-def SymRegisterGetModuleNames():
+def SymRegisterGetModuleNames() -> list[typing.Any] :
   """
   Get all the modules of the any optimizes
   """

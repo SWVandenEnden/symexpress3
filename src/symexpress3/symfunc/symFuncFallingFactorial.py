@@ -23,8 +23,8 @@
     https://en.wikipedia.org/wiki/Falling_and_rising_factorials
 
 """
-
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -37,7 +37,7 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name        = "fallingfactorial"
     self._desc        = "Falling Factorial product( k, 1, n, x - k + 1 )"
@@ -46,9 +46,13 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
     self._syntax      = "fallingfactorial(<fnc>,<n>)"
     self._synExplain  = "fallingfactorial(<fnc>,<n>) = product(k, 1, n, <fnc> - k + 1)"
 
-  def functionToValue( self, elem ):
+
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     elemFunc  = elem.elements[ 0 ]
     elemEnd   = elem.elements[ 1 ]
@@ -79,6 +83,7 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
         lGamma = True
         # return None
 
+      endVal = typing.cast( int, endVal )
       if endVal < 0 :
         lGamma = True
         # return None
@@ -131,7 +136,8 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
 
     return elemSym
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
+
     # product(k, 1, n, <fnc> - k + 1)"
 
     # result = 1
@@ -139,7 +145,7 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
     #   result *= (dValue - k + 1)
     # print( f"faillinffactorial: dValue: {dValue} {dValue2}")
 
-    result = mpmath.gamma( dValue + 1 ) / mpmath.gamma( dValue - dValue2 + 1)
+    result = mpmath.gamma( dValue + 1 ) / mpmath.gamma( dValue - dValue2 + 1) #type:ignore
 
     # print( f"faillinffactorial: {result}")
     return result
@@ -147,15 +153,24 @@ class SymFuncFallingFactorial( symFuncBase.SymFuncBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
+  def _Check( testClass :SymFuncFallingFactorial
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
     if dValue != None:
-      dValue = round( float(dValue), 10 )
+      dValue = symexpress3.SymRound( dValue, 10 )
+
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

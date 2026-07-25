@@ -25,8 +25,8 @@
 
 """
 
-# import cmath
-import mpmath
+import typing
+import mpmath # type:ignore
 
 from symexpress3          import symexpress3
 from symexpress3.symfunc  import symFuncTrigonoBase
@@ -38,7 +38,7 @@ class SymFuncTan( symFuncTrigonoBase.SymFuncTrigonoBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name      = "tan"
     self._desc      = "tan"
@@ -47,10 +47,12 @@ class SymFuncTan( symFuncTrigonoBase.SymFuncTrigonoBase ):
     self._syntax    = "tan(<rad>)"
 
 
-  def functionToValue( self, elem ):
+  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
 
     if self._checkCorrectFunction( elem ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     result = self._convertFuncSinCosTan( elem )
     if result != None:
@@ -67,21 +69,28 @@ class SymFuncTan( symFuncTrigonoBase.SymFuncTrigonoBase ):
     return None
 
 
-  def _getValueSingle( self, dValue, dValue2 = None ):
-    # return cmath.tan( dValue )
+  def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
     return mpmath.tan( dValue )
 
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass, symTest, value, dValue, valueCalc, dValueCalc ):
-    dValue     = round( float(dValue)    , 10 )
+  def _Check( testClass :SymFuncTan
+            , symTest   :symexpress3.TypVarSym3Object
+            , value     :None|symexpress3.TypVarSym3Object
+            , dValue    :symexpress3.TypVarSym3Value
+            , valueCalc :str
+            , dValueCalc:symexpress3.TypVarSym3Value
+            ) -> None :
+
+    dValue = symexpress3.SymRound( dValue, 10 )
     if dValueCalc != None:
-      dValueCalc = round( float(dValueCalc), 10 )
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+
     if display == True :
       print( f"naam    : {testClass.name}" )
       print( f"function: {str( symTest )}" )

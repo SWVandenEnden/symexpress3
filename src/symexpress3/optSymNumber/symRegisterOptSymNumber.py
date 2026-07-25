@@ -20,6 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
+import typing
 
 from symexpress3              import symtables
 from symexpress3.optSymNumber import optSymNumberPower
@@ -30,7 +31,7 @@ from symexpress3.optSymNumber import optSymNumberOnlyOneRoot
 #
 # automatic called from symepxress3 too fill functionTable[]
 #
-def SymRegisterOptimize():
+def SymRegisterOptimize() -> None :
   """
   Register all the number optimize classes
   """
@@ -44,7 +45,7 @@ def SymRegisterOptimize():
 #
 # Get all the modules from the optSymNumber, used in testsymexpress3.py
 #
-def SymRegisterGetModuleNames():
+def SymRegisterGetModuleNames() -> list[typing.Any]:
   """
   Get all the modules of the number optimizes
   """

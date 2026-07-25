@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from  symexpress3 import symexpress3
 from  symexpress3 import optTypeBase
@@ -32,15 +33,18 @@ class OptSymNumberRadicalDenominatorToCounter( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "radicalDenominatorToCounter"
     self._symtype      = symexpress3.SymNumber
     self._desc         = "Move the radical from the denominator to the counter, principal root only"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymNumber, elem )
 
     if elem.powerSign != -1:
       return None
@@ -77,7 +81,7 @@ class OptSymNumberRadicalDenominatorToCounter( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """

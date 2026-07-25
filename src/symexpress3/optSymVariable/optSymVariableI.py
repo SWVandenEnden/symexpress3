@@ -21,6 +21,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -31,15 +32,18 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
   """
   __slots__ = ()
 
-  def __init__( self ):
+  def __init__( self ) -> None :
     super().__init__()
     self._name         = "i"
     self._symtype      = symexpress3.SymVariable
     self._desc         = "Simplify i"
 
-  def optimize( self, elem, action ):
+  def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:
+
     if self.checkType( elem, action ) != True:
       return None
+
+    elem = typing.cast( symexpress3.SymVariable, elem )
 
     if elem.name != 'i' :
       return None
@@ -94,7 +98,7 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
     # but it is the same ???
     #
     if ( elem.powerDenominator == 1 ) and (elem.powerCounter >= 4 ):
-      elemNew = elem.copy()
+      elemNew:symexpress3.TypVarSym3Object = elem.copy()
       elemNew.powerCounter %= 4
 
       if elemNew.powerCounter == 0 :
@@ -127,7 +131,7 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
 #
 # Test routine (unit test), see testsymexpress3.py
 #
-def Test( display = False):
+def Test( display:bool = False) -> None :
   """
   Unit test
   """
