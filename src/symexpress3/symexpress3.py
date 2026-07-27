@@ -2929,7 +2929,7 @@ def SymExpressTree( symexpress:TypVarSym3Object, filehandle:None|typing.TextIO =
 
 # iPosCur = 0    # Current position in the formula
 # def SymFormulaParser ( cFormula, iStartPos = -1, cEndChar = None ) :
-def SymFormulaParser ( cFormula:str ) -> SymExpress :
+def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
   """
   Parse a given string and make a SymExpress from it.
   Returns a SymExpress class.
@@ -3308,6 +3308,9 @@ def SymFormulaParser ( cFormula:str ) -> SymExpress :
     return oPlus
 
   iPosCur = 0    # Current position in the formula
+  if cFormula == None:
+    return SymExpress( '*' )
+
   return _symFormulaParser ( cFormula )
 
 # .........
