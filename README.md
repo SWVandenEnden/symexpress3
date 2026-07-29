@@ -163,6 +163,14 @@ python -m symexpress3
 - *Help*: python -m symexpress3  -h
 - *Direct optimize*: python -m symexpress3 "cos( pi / 4 )^^(1/3)"
 
+### MathMl colors
+| Color | Description |
+| ----- | ----------- |
+| <font color="black">Black</font> | Normal |
+| <font color="green">Green</font> | Principal root |
+| <font color="red">Red</font> | Incorrect number of parameters |
+| <font color="blue">Blue</font> | Display function like numberToPrimeFactors |
+| <font color="orange">Orange</font> | Display function with incorrect number of parameters |
 
 ### Notes
 - By big numbers set mpmatch precision accordingly (mpmath.mp.dps)

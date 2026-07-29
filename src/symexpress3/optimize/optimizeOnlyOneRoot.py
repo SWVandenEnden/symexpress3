@@ -318,6 +318,30 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
       return True
 
+    def _negativeRoot( symExpr:symexpress3.SymExpress ) -> bool :
+      # search of negative number in * expression by principal root 1/2
+      # ( -30)^^(1/2) -> i (30)^^(1/2)
+      if symExpr.symType == '*' and symExpr.onlyOneRoot == 1 and symExpr.powerCounter == 1 and symExpr.powerDenominator == 2:
+        foundNegative = 0
+        for elemCheck in symExpr.elements:
+          if isinstance( elemCheck, symexpress3.SymNumber ) and elemCheck.factSign == -1 and elemCheck.power == 1:
+            foundNegative += 1
+        if foundNegative == 1:
+          # ok replace expression
+          symCopy           = symExpr.copy()
+          symCopy.add ( symexpress3.SymNumber( -1, 1, 1,1 )) # -1
+          symCopy.powerSign = 1
+
+          symExpr.powerCounter     = 1
+          symExpr.powerDenominator = 1 # do not change power sign
+          symExpr.elements         = []
+          symExpr.add( symexpress3.SymVariable( 'i' ))
+          symExpr.add( symCopy )
+
+          return True
+
+      return False
+
 
     result = False
 
@@ -343,7 +367,11 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     # print( "Start 4: " + str( symExpr ))
 
     if symExpr.powerSign == -1:
+      # print( f"power negative {str(symExpr)}")
+      result = _negativeRoot( symExpr )
+      # print( f"Result: {result} : {str(symExpr)}")
       return result
+      # return result
 
     # print( "Start 5: " + str( symExpr ))
 
@@ -455,7 +483,9 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     # print( "check 3" )
 
     if len( arrFact ) == 0 and len( arrDenom ) == 0:
-      return False
+      # print( "Noting to do")
+      return _negativeRoot( symExpr )
+      # return False
 
     # print( "arrFact 2: " + str( arrFact  ))
     # print( "arrDemon2: " + str( arrDenom ))
@@ -663,6 +693,30 @@ def Test( display:bool = False) -> None:
   testClass.optimize( symTest, "onlyOneRoot" )
 
   _Check( testClass, symOrg, symTest, "2 * (1/3) * (((4/27) + (8/9) * a) * (2^^2 * (1/3)^^2)^^-1)^^(1/2)" )
+
+
+
+  symTest = symexpress3.SymFormulaParser( '(-1 * 5 * 6^^(1/3) )^^(1/2)' )
+  symTest.optimize()
+  symTest.optimize( "multiply" )
+  symTest.optimize()
+  symTest = symTest.elements [ 0 ]
+  symOrg = symTest.copy()
+  testClass.optimize( symTest, "onlyOneRoot" )
+
+  _Check( testClass, symOrg, symTest, "i * ((-5) * 6^^(1/3) * (-1))^^(1/2)" )
+
+
+  symTest = symexpress3.SymFormulaParser( '(-1 * 5 * 6^^(1/3) )^^(-1/2)' )
+  symTest.optimize()
+  symTest.optimize( "multiply" )
+  symTest.optimize()
+  symTest = symTest.elements [ 0 ]
+  symOrg = symTest.copy()
+  testClass.optimize( symTest, "onlyOneRoot" )
+
+  _Check( testClass, symOrg, symTest, "(i * ((-5) * 6^^(1/3) * (-1))^^(1/2))^^-1" )
+
 
 
 if __name__ == '__main__':
