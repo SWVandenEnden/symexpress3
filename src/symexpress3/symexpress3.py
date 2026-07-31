@@ -926,12 +926,14 @@ class SymNumber( SymBasePower ):
         # print( "number optimize none after: " + str( self ))
 
         result = True
+
       if self.power == -1 and self.factCounter != 0:
         # 3^-1 = 1/3
         self.factCounter, self.factDenominator = self.factDenominator, self.factCounter
         self.powerSign = 1
         result = True
-      if self.powerCounter == 0:
+
+      elif self.powerCounter == 0:
         self.factCounter      = 1
         self.factDenominator  = 1
         self.factSign         = 1

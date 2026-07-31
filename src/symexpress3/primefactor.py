@@ -238,45 +238,29 @@ def FactorizationDict(n:int) -> dict[int,int]:
   if n in globalCachePrimeFactors:
     # print( f"FactorizationDict cache used {n} : {globalCachePrimeFactors[ n ]}")
     return globalCachePrimeFactors[ n ].copy()
-    # pass
 
+  factorDict = {}
+  if n in( 1, 2, 3, 5, 7, 11, 13 ) :
+    factorDict[ n ] = 1
+  else:
+    # https://en.wikipedia.org/wiki/List_of_prime_numbers
+    lowPrimeList = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
 
-  # print( f"FactorizationDict: {n}" )
-  if len( str( n )) > globalMaxDigits:
-    # print( f"globalMaxDigits reached: {len( str( n ))}")
-    factorDict = {}
-
-    # some low level
     splitNumber = n
-    modRest = splitNumber % 2
-    while modRest == 0:
-      if 2 not in factorDict:
-        factorDict[ 2 ] = 1
-      else:
-        factorDict[ 2 ] += 1
+    for primeWalk in lowPrimeList :
 
-      splitNumber //= 2
-      modRest = splitNumber % 2
+      if n < primeWalk:
+        break
 
-    modRest = splitNumber % 3
-    while modRest == 0:
-      if 3 not in factorDict:
-        factorDict[ 3 ] = 1
-      else:
-        factorDict[ 3 ] += 1
+      modRest = splitNumber % primeWalk
+      while modRest == 0:
+        if primeWalk not in factorDict:
+          factorDict[ primeWalk ] = 1
+        else:
+          factorDict[ primeWalk ] += 1
 
-      splitNumber //= 3
-      modRest = splitNumber % 3
-
-    modRest = splitNumber % 5
-    while modRest == 0:
-      if 5 not in factorDict:
-        factorDict[ 5 ] = 1
-      else:
-        factorDict[ 5 ] += 1
-
-      splitNumber //= 5
-      modRest = splitNumber % 5
+        splitNumber //= primeWalk
+        modRest = splitNumber % primeWalk
 
     # number not factorized, to big to do it
     if splitNumber > 1:
@@ -287,18 +271,6 @@ def FactorizationDict(n:int) -> dict[int,int]:
         factorDict = factorDict | sympy.ntheory.factorint( splitNumber )
         # sympy (mpmath) give gmpy2 integers back, but I want Python integers
         factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
-
-
-  else:
-    # safety check, sympy.ntheory.factorint( n ) give wrong numbers if you do first a very big number and then a small number
-    if n in( 1, 2, 3, 5, 7, 11, 13 ) :
-      factorDict = {}
-      factorDict[ n ] = 1
-    else:
-      factorDict = sympy.ntheory.factorint( n )
-
-      # sympy (mpmath) give gmpy2 integers back, but I want Python integers
-      factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
 
   # print( f'After factorDict: {factorDict}' )
 

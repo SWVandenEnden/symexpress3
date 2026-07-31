@@ -574,7 +574,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     symNum1.optimize()
     symNum1.optimize( "power" )
     symNum1.optimize()
-    # TODO use optimizeNumberOnlyOneRoot insteed of _numberOptimize
+
     self._numberOptimize( symNum1 )  # should be optimizeNumberOnlyOneRoot but that gives a circle too...
     symNum1.optimize()
     self._numberOptimize( symNum1 )
