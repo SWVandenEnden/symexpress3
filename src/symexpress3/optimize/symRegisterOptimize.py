@@ -40,6 +40,8 @@ from symexpress3.optimize import optimizePowerArrays
 from symexpress3.optimize import optimizeUnnestingCubitRoot
 from symexpress3.optimize import optimizeInfinity
 from symexpress3.optimize import optimizeDivideDivide
+from symexpress3.optimize import optimizeRadicalFractionToWhole
+
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -48,22 +50,23 @@ def SymRegisterOptimize() -> None :
   """
   Register all the optimize action classes
   """
-  symtables.RegisterTableEntry( 'optimize', optimizeSinTwoCosTwo.OptimizeSinTwoCosTwo()                     )
-  symtables.RegisterTableEntry( 'optimize', optimizeMultiply.OptimizeMultiply()                             )
-  symtables.RegisterTableEntry( 'optimize', optimizeAdd.OptimizeAdd()                                       )
-  symtables.RegisterTableEntry( 'optimize', optimizePower.OptimizePower()                                   )
-  symtables.RegisterTableEntry( 'optimize', optimizeOnlyOneRoot.OptimizeOnlyOneRoot()                       )
-  symtables.RegisterTableEntry( 'optimize', optimizeSplitDenominator.OptimizeSplitDenominator()             )
-  symtables.RegisterTableEntry( 'optimize', optimizeNestedRadicals.OptimizeNestedRadicals()                 )
-  symtables.RegisterTableEntry( 'optimize', optimizeImaginairDenominator.OptimizeImaginairDenominator()     )
-  symtables.RegisterTableEntry( 'optimize', optimizeExpandArrays.OptimizeExpandArrays()                     )
-  symtables.RegisterTableEntry( 'optimize', optimizeUnnestingRadicals.OptimizeUnnestingRadicals()           )
-  symtables.RegisterTableEntry( 'optimize', optimizeRootToPrincipalRoot.OptimizeRootToPrincipalRoot()       )
-  symtables.RegisterTableEntry( 'optimize', optimizeRootOfImagNumToCosISin.OptimizeRootOfImagNumToCosISin() )
-  symtables.RegisterTableEntry( 'optimize', optimizePowerArrays.OptimizePowerArrays()                       )
-  symtables.RegisterTableEntry( 'optimize', optimizeUnnestingCubitRoot.OptimizeUnnestingCubitRoot()         )
-  symtables.RegisterTableEntry( 'optimize', optimizeInfinity.OptimizeInfinity()                             )
-  symtables.RegisterTableEntry( 'optimize', optimizeDivideDivide.OptimizeDivideDivide()                     )
+  symtables.RegisterTableEntry( 'optimize', optimizeSinTwoCosTwo.OptimizeSinTwoCosTwo()                       )
+  symtables.RegisterTableEntry( 'optimize', optimizeMultiply.OptimizeMultiply()                               )
+  symtables.RegisterTableEntry( 'optimize', optimizeAdd.OptimizeAdd()                                         )
+  symtables.RegisterTableEntry( 'optimize', optimizePower.OptimizePower()                                     )
+  symtables.RegisterTableEntry( 'optimize', optimizeOnlyOneRoot.OptimizeOnlyOneRoot()                         )
+  symtables.RegisterTableEntry( 'optimize', optimizeSplitDenominator.OptimizeSplitDenominator()               )
+  symtables.RegisterTableEntry( 'optimize', optimizeNestedRadicals.OptimizeNestedRadicals()                   )
+  symtables.RegisterTableEntry( 'optimize', optimizeImaginairDenominator.OptimizeImaginairDenominator()       )
+  symtables.RegisterTableEntry( 'optimize', optimizeExpandArrays.OptimizeExpandArrays()                       )
+  symtables.RegisterTableEntry( 'optimize', optimizeUnnestingRadicals.OptimizeUnnestingRadicals()             )
+  symtables.RegisterTableEntry( 'optimize', optimizeRootToPrincipalRoot.OptimizeRootToPrincipalRoot()         )
+  symtables.RegisterTableEntry( 'optimize', optimizeRootOfImagNumToCosISin.OptimizeRootOfImagNumToCosISin()   )
+  symtables.RegisterTableEntry( 'optimize', optimizePowerArrays.OptimizePowerArrays()                         )
+  symtables.RegisterTableEntry( 'optimize', optimizeUnnestingCubitRoot.OptimizeUnnestingCubitRoot()           )
+  symtables.RegisterTableEntry( 'optimize', optimizeInfinity.OptimizeInfinity()                               )
+  symtables.RegisterTableEntry( 'optimize', optimizeDivideDivide.OptimizeDivideDivide()                       )
+  symtables.RegisterTableEntry( 'optimize', optimizeRadicalFractionToWhole.OptimizeRadicalFractionToWhole()   )
 
 
 #
@@ -92,6 +95,7 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optimizeUnnestingCubitRoot     )
   symModules.append( optimizeInfinity               )
   symModules.append( optimizeDivideDivide           )
+  symModules.append( optimizeRadicalFractionToWhole )
 
   return symModules
 

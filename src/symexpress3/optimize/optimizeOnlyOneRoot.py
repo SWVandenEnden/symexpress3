@@ -375,6 +375,23 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
     # print( "Start 5: " + str( symExpr ))
 
+    # if this exist do nothing, first multiply
+    # 25 * 257 * 5^^-1
+    if symExpr.symType == '*':
+      iFoudnNumbers = 0
+      for elem in symExpr.elements :
+        if not isinstance( elem, symexpress3.SymNumber)  :
+          continue
+        if elem.powerCounter > 1:
+          continue
+        if elem.powerDenominator > 1:
+          continue
+        iFoudnNumbers += 1
+        if iFoudnNumbers > 1:
+          break
+
+      if iFoudnNumbers > 1:
+        return result
 
     # print(" Start _expressOptimze" )
 

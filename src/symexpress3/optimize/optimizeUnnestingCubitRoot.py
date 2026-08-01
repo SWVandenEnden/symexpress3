@@ -187,7 +187,7 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     factorDenominator = primefactor.FactorAllInt( numberPart.factDenominator )
 
     # TODO check (reason) why 2 must always in the denominator
-    # we can handle quations by whole numbers, work out how the handle it
+    # we can handle equations by whole numbers, work out how the handle it
 
     if 2 not in factorDenominator:
       factorDenominator.append( 2 )
