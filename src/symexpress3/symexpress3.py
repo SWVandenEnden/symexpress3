@@ -2537,7 +2537,7 @@ class SymExpress( SymBaseList ):
       _optimizeAction( ["sinXplusYtoSinCos"           ], 'sin(x+y) = sin(x)cos(y) + cos(x)sin(y)'      , iCntBig, 10 )
       # _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
       _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
-      _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  1 )
+      _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
 
 
       # _optimizeAction( ["cosAtanDiv3"                 ], 'cos( atan(x)/3)'                             , iCntBig,  1 )

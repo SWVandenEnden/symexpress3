@@ -60,6 +60,9 @@ class OptimizeRadicalFractionToWhole( optimizeBase.OptimizeBase ):
       if elem.onlyOneRoot != 1:
         continue
 
+      if elem.powerSign != 1:
+        continue
+
       if elem.powerCounter == 1 and elem.powerDenominator == 1:
         # need only 1 number
         if varSymNumber == None:

@@ -366,12 +366,12 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
     # print( "Start 4: " + str( symExpr ))
 
-    if symExpr.powerSign == -1:
-      # print( f"power negative {str(symExpr)}")
-      result = _negativeRoot( symExpr )
-      # print( f"Result: {result} : {str(symExpr)}")
-      return result
-      # return result
+    # if symExpr.powerSign == -1:
+    #  # print( f"power negative {str(symExpr)}")
+    #  result = _negativeRoot( symExpr )
+    #  # print( f"Result: {result} : {str(symExpr)}")
+    #  return result
+    #  # return result
 
     # print( "Start 5: " + str( symExpr ))
 
@@ -579,6 +579,8 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     # print( "symNum 1: " + str( symNum ))
 
     symNum1 = symexpress3.SymExpress( '*' )
+    symNum1.powerSign = symExpr.powerSign # set correct power sign
+
     symNum1.add( symNum )
     symNum1.powerCounter = orgPowerCounter
 
@@ -611,6 +613,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     symExpr.add( symNum1 )
     # add new to org
     symExpr.add( newSymExpr )
+    symExpr.powerSign = 1 # correct powersign
 
     # print( "New symexpress: " + str( symExpr ))
 
