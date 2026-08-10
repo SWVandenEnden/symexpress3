@@ -27,7 +27,7 @@ import math
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
-from symexpress3 import primefactor  as primefac
+from symexpress3 import primefactor
 
 
 
@@ -85,7 +85,7 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
     # return None
 
     # counter
-    dPrimeSet = primefac.factorint( elem.factCounter )
+    dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
     # print( f"Counter: {elem.factCounter} Primeset counter: {dPrimeSet}" )
     dChange   = {}
     for iPrime, iCount in dPrimeSet.items():
@@ -97,7 +97,7 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
       dChange[ iPrime ] = iCount
 
     # denominator
-    dPrimeSet2 = primefac.factorint( elem.factDenominator )
+    dPrimeSet2 = primefactor.FactorizationDict( elem.factDenominator )
     dChange2   = {}
     for iPrime, iCount in dPrimeSet2.items():
       if iCount < elem.powerDenominator:

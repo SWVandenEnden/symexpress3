@@ -183,8 +183,8 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     # sys.stderr.write( f"cubic root: {keyCache}\n" )
     #
     # need al the factors
-    factorCounter     = primefactor.FactorAllInt( numberPart.factCounter     )
-    factorDenominator = primefactor.FactorAllInt( numberPart.factDenominator )
+    factorCounter     = primefactor.Divisors( numberPart.factCounter     )
+    factorDenominator = primefactor.Divisors( numberPart.factDenominator )
 
     # TODO check (reason) why 2 must always in the denominator
     # we can handle equations by whole numbers, work out how the handle it

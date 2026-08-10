@@ -21,6 +21,7 @@
 
 """
 import typing
+import mpmath  # type: ignore
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -48,6 +49,21 @@ class OptimizeSplitDenominator( optimizeBase.OptimizeBase ):
 
     if symExpr.powerSign != -1:
       return result
+
+    # principal root, 1/x and x has different principal root
+    if symExpr.powerDenominator > 1:
+      try:
+        dCalc = symexpress3.SymRound( symExpr.getValue() )
+        if isinstance(dCalc, (mpmath.mpc, complex) ):
+          # if dCalc.real < 0 or dCalc.imag < 0:
+          if dCalc.imag < 0: # see OptimizeOnlyOneRoot.py & OptimizeRootOfImagNumToCosISin.py & OptimizeImaginairDenominator.py
+            return False
+        # else:
+        #   if dCalc < 0:
+        #     return False
+
+      except: # pylint: disable=bare-except
+        return False
 
     # set type for mypy
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html

@@ -19,6 +19,7 @@
 
 """
 import typing
+import mpmath  # type: ignore
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
@@ -52,12 +53,29 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
     # only 1 / (x * y)  accepted
     if (# symExpr.powerCounter     >  1 or
         symExpr.powerSign       != -1 or
-        # symExpr.powerDenominator >  1 or
+        # symExpr.powerDenominator >  1 or  # negative root give problems
         symExpr.onlyOneRoot     !=  1 or
         symExpr.numElements()    <  2
       ) :
       # print( f"divideDivide, afgekeurd: {str(symExpr)}, powerSign: {symExpr.powerSign}, numElements: {symExpr.numElements()}")
       return result
+
+    # principal root, 1/x and x has different principal root
+    if symExpr.powerDenominator > 1:
+      try:
+        dCalc = symexpress3.SymRound( symExpr.getValue() )
+        if isinstance(dCalc, (mpmath.mpc, complex) ):
+          # if dCalc.real < 0 or dCalc.imag < 0:
+          if dCalc.imag < 0:  # see OptimizeOnlyOneRoot.py & OptimizeRootOfImagNumToCosISin.py & OptimizeImaginairDenominator.py
+            return False
+        # else:
+        #  if dCalc < 0:
+        #    return False
+
+      except: # pylint: disable=bare-except
+        return False
+
+
 
     # print( f"divideDivide search 1/x: {str(symExpr)}")
     # search if there is a 1/x item
@@ -82,6 +100,9 @@ class OptimizeDivideDivide( optimizeBase.OptimizeBase ):
         elemUpper.elements.append( elem )
       else:
         elemDown.elements.append( elem )
+
+    # if symExpr.powerDenominator % 2 == 1:
+    #   elemUpper.add( symexpress3.SymNumber( -1, 1, 1)) # -1
 
     symExpr.powerSign = 1
     symExpr.elements = []

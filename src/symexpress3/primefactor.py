@@ -24,217 +24,26 @@
     https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm
 
 """
-import typing
 
-from math      import gcd
-# from math      import sqrt
-from threading import Thread
-from queue     import Queue
-# from functools import reduce
-
-# use it for prime factorization and divisors
-import sympy   #type: ignore
-# TO DO seek out, use sympy always and delete own implementation
-# for the moment let stay it. Looking for a smaller solution then sympy
-# https://stackoverflow.com/questions/4643647/fast-prime-factorization-module
+import flint # prime factorization, https://github.com/flintlib/python-flint
 
 
 globalCachePrimeFactors :dict[int,dict[int,int]] = {}
-globalCacheAllFactors   :dict[int,list[int]]     = {}
-globalMaxDigits         :int                     = 60 # 90 # TODO max number of digits for factorization
-
-#
-# only factor positive odd numbers
-#
-def FactorizationOddThread(n:int, resultQueue:None|Queue[typing.Any] = None) -> list[int]:
-  """
-  Factorization odd number with threads
-  """
-  factors = []
-
-  def GetFactor( n:int, x:int, q:Queue[typing.Any] ) -> int:
-    xFixed    = 2
-    cycleSize = 2
-    # x = 2
-    factor    = 1
-
-    while factor == 1:
-      for _ in range(cycleSize):
-        if factor > 1:
-          break
-        x = (x * x + 1) % n
-        factor = gcd(x - xFixed, n)
-
-      cycleSize *= 2
-      xFixed = x
-
-    q.put( factor )
-    return factor
-
-  # change this into threads ??
-  if n > 1:
-    q1:Queue[typing.Any] = Queue()
-    q2:Queue[typing.Any] = Queue()
-    q3:Queue[typing.Any] = Queue()
-    q4:Queue[typing.Any] = Queue()
-
-    t1 = Thread(target=GetFactor, args=(n , 2 ,q1,))
-    t2 = Thread(target=GetFactor, args=(n , 3 ,q2,))
-    t3 = Thread(target=GetFactor, args=(n , 4 ,q3,))
-    t4 = Thread(target=GetFactor, args=(n , 5 ,q4,))
-
-    t1.start()
-    t2.start()
-    t3.start()
-    t4.start()
-
-    t1.join()
-    t2.join()
-    t3.join()
-    t4.join()
-
-    next1 = q1.get()
-    next2 = q2.get()
-    next3 = q3.get()
-    next4 = q4.get()
-
-    nextVal = min( next1, next2, next3, next4 )
-
-    # next = GetFactor(n)
-    if nextVal > 1:
-      if nextVal == n :
-        factors.append(nextVal)
-      else:
-        n //= nextVal
-
-        q1 = Queue()
-        q2 = Queue()
-
-        t1 = Thread(target=FactorizationOddThread, args=(nextVal,q1,))
-        t2 = Thread(target=FactorizationOddThread, args=(n      ,q2,))
-
-        t1.start()
-        t2.start()
-
-        t1.join()
-        t2.join()
-
-        factors += q1.get() + q2.get()
-
-  if resultQueue != None:
-    resultQueue.put(factors)
-
-  return factors
+globalCacheDivisors     :dict[int,list[int]]     = {}
+globalMaxDigits         :int                     = 60 # 90 # max number of digits for factorization
 
 
 #
-# only factor positive odd numbers
+# factor all positive numbers (prime factors)
 #
-def FactorizationOdd(n:int)->list[int]:
-  """
-  Factorization odd number (no threads)
-  """
-
-  factors = []
-
-  def GetFactor( n:int ) ->  int :
-    xFixed    = 2
-    cycleSize = 2
-    x         = 2
-    factor    = 1
-    startX    = 2
-
-    # print( "get factor: " + str( n ))
-    while factor == 1:
-      for _ in range(cycleSize):
-        if factor > 1:
-          break
-        x = (x * x + 1) % n
-        factor = gcd(x - xFixed, n)
-
-      if factor == n :
-        if startX > 5:
-          break
-        # print( "factor: " + str( factor ) + " n: " + str( n ) + " startX: " + str( startX ))
-        xFixed = 2
-        startX += 1
-        x = startX
-        factor = 1
-        continue
-
-      cycleSize *= 2
-      xFixed = x
-
-    # print( "found factor: " + str( factor ))
-    return factor
-
-  # change this into threads ??
-  while n > 1:
-    nextVal = GetFactor(n)
-    factors.append(nextVal)
-    n //= nextVal
-
-  numFactors = len( factors )
-  if numFactors <= 1:
-    # print( "found factor: " + str( factors ))
-    return factors
-
-  newFactors = []
-  for numFact in factors:
-    # threads ???
-    # print( "Check factor: " + str( numFact ))
-    newFactors += FactorizationOdd( numFact )
-
-  return newFactors
-
-#
-# factor all (positive) numbers
-# give back: array of integers (factors)
-#
-def Factorization(n:int)-> list[int]:
-  """
-  Factorization of given number, give array of integer back
-  """
-  # print( f"Factorization: {n}" )
-  if n <= 1 :
-    return []
-
-  factors = []
-
-  # div by 2, 3 and 5 for speed start
-  modRest = n % 2
-  while modRest == 0:
-    factors.append( 2 )
-    n //= 2
-    modRest = n % 2
-
-  modRest = n % 3
-  while modRest == 0:
-    factors.append( 3 )
-    n //= 3
-    modRest = n % 3
-
-  modRest = n % 5
-  while modRest == 0:
-    factors.append( 5 )
-    n //= 5
-    modRest = n % 5
-
-  return factors + FactorizationOddThread( n )
-  # return factors + FactorizationOdd( n )
-
-#
-# factor all positive numbers
-# give back dictionary  { number: count }
 def FactorizationDict(n:int) -> dict[int,int]:
   """
-  Factorization given number, give dictionary back ( number: count )
+  Factorization given number into prime numbers, give dictionary back ( number: count )
   """
   # global globalCachePrimeFactors
 
   # print( f"FactorizationDict n: {n}  {type(n)}")
   # n = int( n )
-
   if n in globalCachePrimeFactors:
     # print( f"FactorizationDict cache used {n} : {globalCachePrimeFactors[ n ]}")
     return globalCachePrimeFactors[ n ].copy()
@@ -245,6 +54,7 @@ def FactorizationDict(n:int) -> dict[int,int]:
   else:
     # https://en.wikipedia.org/wiki/List_of_prime_numbers
     lowPrimeList = [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]
+    # lowPrimeList = [2]
 
     splitNumber = n
     for primeWalk in lowPrimeList :
@@ -254,10 +64,8 @@ def FactorizationDict(n:int) -> dict[int,int]:
 
       modRest = splitNumber % primeWalk
       while modRest == 0:
-        if primeWalk not in factorDict:
-          factorDict[ primeWalk ] = 1
-        else:
-          factorDict[ primeWalk ] += 1
+        factorDict.setdefault(primeWalk, 0)
+        factorDict[ primeWalk ] += 1
 
         splitNumber //= primeWalk
         modRest = splitNumber % primeWalk
@@ -268,90 +76,81 @@ def FactorizationDict(n:int) -> dict[int,int]:
         factorDict[ splitNumber ] = 1
       else:
         # factorDict += sympy.ntheory.factorint( n )
-        factorDict = factorDict | sympy.ntheory.factorint( splitNumber )
+
+        factorList = flint.fmpz( n ).factor()
+        for fact in factorList:
+          factorDict[ int(fact[0]) ] = int(fact[1])
+
+        # factorDict = factorDict | sympy.ntheory.factorint( splitNumber )
         # sympy (mpmath) give gmpy2 integers back, but I want Python integers
-        factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
+        # factorDict = {int(key):int(value) for ( key, value ) in factorDict.items()}
 
-  # print( f'After factorDict: {factorDict}' )
-
-  # pylint: disable=pointless-string-statement)
-  """
-  factors = Factorization( n )
-
-  factorDict = {}
-  for numFact in factors:
-    if numFact in factorDict :
-      factorDict[ numFact ] += 1
-    else:
-      factorDict[ numFact ] = 1
-  """
   globalCachePrimeFactors[ n ] = factorDict.copy()
 
   # print( f'After factorDict, count: { len(globalCachePrimeFactors)}' )
 
-  # print( f"FactorizationDict done: {n} : {factorDict}" )
-  # for key in factorDict:
-  #   if key > n:
-  #     print( f"FactorizationDict error: {n}, key : {key}")
-  #     quit()
-
   return factorDict
 
-#
-# Same function name as primefac used for Factorization
-# Give back a dictionary { number: count }
-#
-def factorint(n:int) -> dict[int,int] :  # pylint: disable=invalid-name
+
+# get all the factors (divisors) of the given n`
+def Divisors( n:int ) -> list[int] :
   """
-  Factorization of given number, give a dictionary back ( number: count )
-  Is equal to primefac
+  Get all the divisors (factors) of a given n
   """
-  return FactorizationDict(n)
+
+  n = abs( n )
+
+  if n in globalCacheDivisors:
+    return globalCacheDivisors[ n ].copy()
+
+  factPrime = FactorizationDict( n  )
+  primeKeys = sorted(factPrime.keys())
+  lenKeys   = len( primeKeys )
+
+  def NextDivisor( nPrimePos:int ) -> list[int]:
+
+    # no more primes
+    if nPrimePos >= lenKeys:
+      return [1]
+
+    # all the powers of the prime
+    powers = [1]
+
+    primeNr  = primeKeys[ nPrimePos ]
+    cntPrime = factPrime[ primeNr ]
+
+    # for iPowers in range( cntPrime ):
+    for _ in range( cntPrime ):
+      # powers.append(  primeNr ** ( iPowers + 1))
+      powers.append(  powers[-1] * primeNr )
+
+    # get all the next divisors
+    iNumbers = NextDivisor( nPrimePos + 1 )
+    result = []
+
+    # add current prime to the list
+    for iNumber in iNumbers :
+      for iPower in powers :
+        # print( f"iNumber: {iNumber}, iPower: {iPower}, nPrimePos: {nPrimePos}")
+        newNumber = iNumber * iPower
+        result.append(  newNumber )
+
+    return result
 
 
-# https://stackoverflow.com/questions/6800193/what-is-the-most-efficient-way-of-finding-all-the-factors-of-a-number-in-python
-# def FactorsAll(n:int):
-#  """
-#  Get all the factors of a given n`
-#  """
-#  step = 2 if n%2 else 1
-#  return set(reduce(list.__add__, ([i, n//i] for i in range(1, int(sqrt(n))+1, step) if n % i == 0)))
+  factors = NextDivisor( 0 ) # get all divisors
+  # Make unique and sorted
+  factors = sorted(list(set( factors )))
 
 
-# get all the factors of the given n`
-def FactorAllInt( n:int ) -> list[int] :
-  """
-  Get all the factors of a given n with caching
-  """
-  if n in globalCacheAllFactors:
-    return globalCacheAllFactors[ n ].copy()
-
-  factors = sympy.divisors( n )
+  # factors = sympy.divisors( n )
 
   # force Python integers sympy give gmpy2 integers
-  factors = [ int(key) for key in factors ]
+  # factors = [ int(key) for key in factors ]
 
-  # factors = FactorsAll( n )
 
-  globalCacheAllFactors[ n ] = factors.copy()
+  globalCacheDivisors[ n ] = factors.copy()
 
-  # print( f"FactorAllInt done: {n}  count: { len(globalCacheAllFactors[ n ]) }" )
+  # print( f"Divisors done: {n}  count: { len(globalCacheDivisors[ n ]) }" )
 
   return factors
-
-
-
-
-# print(Factorization(41612032092113))
-# print(FactorizationOddThread(4161203209211377777))
-# print(FactorizationOdd(4161203209211377777))
-# print(FactorizationOddThread(416120320921137777799999))
-# 169 = 13 * 13
-# print(Factorization(          78125 ))
-# print(FactorizationOddThread( 78125 ))
-# print(Factorization(169))
-# print(Factorization(125))
-
-
-# print( FactorizationDict( 845))
-# print( FactorizationDict( 75))

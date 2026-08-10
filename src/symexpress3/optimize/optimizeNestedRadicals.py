@@ -78,13 +78,13 @@ class OptimizeNestedRadicals( optimizeBase.OptimizeBase ):
 
           # check if number contains powers
           if lFoundFactor == False and elem.factCounter > 1:
-            dDict = primefactor.factorint( elem.factCounter )
+            dDict = primefactor.FactorizationDict( elem.factCounter )
             for iFactor in dDict.values() :
               if iFactor >= symExpr.powerDenominator:
                 lFoundFactor = True
                 break
           if lFoundFactor == False and elem.factDenominator > 1:
-            dDict = primefactor.factorint( elem.factDenominator )
+            dDict = primefactor.FactorizationDict( elem.factDenominator )
             for iFactor in dDict.values() :
               if iFactor >= symExpr.powerDenominator:
                 lFoundFactor = True

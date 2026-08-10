@@ -27,7 +27,7 @@ import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
-from symexpress3          import primefactor  as primefac
+from symexpress3          import primefactor
 
 class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
   """
@@ -78,7 +78,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
       symDeno = symexpress3.SymExpress( '*', 1, elem.powerCounter, elem.powerDenominator, elem.onlyOneRoot)
 
       lFoundOne = False
-      dPrimeSet = primefac.factorint( elem.factCounter )
+      dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
       for iPrime, iCount in dPrimeSet.items():
         # print( "iPrime: {}, iCount: {}, elem.powerDenominator: {}".format( iPrime, iCount,elem.powerDenominator ))
         if iCount >= elem.powerDenominator :
@@ -143,7 +143,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
       symDeno = symexpress3.SymExpress( '*', 1, elem.powerCounter, elem.powerDenominator, elem.onlyOneRoot)
 
       lFoundOne = False
-      dPrimeSet = primefac.factorint( elem.factDenominator )
+      dPrimeSet = primefactor.FactorizationDict( elem.factDenominator )
 
       # print ( "dPrimeSet factDenominator: {}".format( dPrimeSet ))
       for iPrime, iCount in dPrimeSet.items():
@@ -410,10 +410,10 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
         # no powers
         if elem.power != 1:
           continue
-        dPrimeSet = primefac.factorint( elem.factCounter )
+        dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
         arrFact.append( dPrimeSet )
 
-        dPrimeSet = primefac.factorint( elem.factDenominator )
+        dPrimeSet = primefactor.FactorizationDict( elem.factDenominator )
         arrDenom.append( dPrimeSet )
 
         found = True
@@ -438,10 +438,10 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
             # print( "Power - 1 not 1: " + str( elemplus ))
             return result
 
-          dPrimeSet = primefac.factorint( elemplus.factCounter )
+          dPrimeSet = primefactor.FactorizationDict( elemplus.factCounter )
           arrFact.append( dPrimeSet )
 
-          dPrimeSet = primefac.factorint( elemplus.factDenominator )
+          dPrimeSet = primefactor.FactorizationDict( elemplus.factDenominator )
           arrDenom.append( dPrimeSet )
 
         elif isinstance( elemplus, symexpress3.SymExpress ):
@@ -461,10 +461,10 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
             # no powers
             if elem.power != 1:
               continue
-            dPrimeSet = primefac.factorint( elem.factCounter )
+            dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
             arrFact.append( dPrimeSet )
 
-            dPrimeSet = primefac.factorint( elem.factDenominator )
+            dPrimeSet = primefactor.FactorizationDict( elem.factDenominator )
             arrDenom.append( dPrimeSet )
 
             found = True

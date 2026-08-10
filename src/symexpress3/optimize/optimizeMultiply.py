@@ -26,7 +26,7 @@ import typing
 
 from symexpress3          import symexpress3
 from symexpress3.optimize import optimizeBase
-from symexpress3          import primefactor  as primefac
+from symexpress3          import primefactor
 
 class OptimizeMultiply( optimizeBase.OptimizeBase ):
   """
@@ -511,8 +511,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               rem2PowerCounter  = 1
 
               if ( isinstance( elem, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
-                dPrimeSet1 = primefac.factorint( elem.factCounter  )
-                dPrimeSet2 = primefac.factorint( elem2.factCounter )
+                dPrimeSet1 = primefactor.FactorizationDict( elem.factCounter  )
+                dPrimeSet2 = primefactor.FactorizationDict( elem2.factCounter )
 
                 # print ( "dPrimeSet1: {}".format( dPrimeSet1 ))
                 # print ( "dPrimeSet2: {}".format( dPrimeSet2 ))

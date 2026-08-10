@@ -64,10 +64,10 @@ class OptSymFunctionNumberToDivisors( optFunctionBase.OptFunctionBase ):
     factDenom = None
 
     if elemParam.factCounter != 1:
-      factCount = primefactor.FactorAllInt( elemParam.factCounter )
+      factCount = primefactor.Divisors( elemParam.factCounter )
 
     if elemParam.factDenominator != 1:
-      factDenom = primefactor.FactorAllInt( elemParam.factDenominator )
+      factDenom = primefactor.Divisors( elemParam.factDenominator )
 
 
     elemSym = symexpress3.SymExpress( '+' )
@@ -124,7 +124,7 @@ def Test( display:bool = False) -> None :
 
     if str( symTest ).strip() != wanted:
       print( f"Error unit test {testClass.name} function" )
-      raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
+      raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, expected: {wanted}, value: {str( symOrg )}' )
 
 
   symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "numberToDivisors( -12 )" )

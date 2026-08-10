@@ -130,13 +130,13 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symOrg, symTest, "(25/5) * 10^^(1/2)" )
 
 
-  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( '25 * (2/5)^^(1/2) * (5/17)^^(1/5)' )
+  symTest = symexpress3.SymFormulaParser( '25 * (2/5)^^(1/2) * (5/17)^^(1/5)' )
   symTest.optimize()
   symTest.optimize( "multiply")
   symTest.optimize()
-  symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
   symTest = symTest.elements[ 0 ]
-  symOrg:symexpress3.TypVarSym3Object = symTest.copy()
+  symOrg = symTest.copy()
 
   testClass = OptimizeRadicalFractionToWhole()
   testClass.optimize( symTest, "radicalFractionToWhole" )
