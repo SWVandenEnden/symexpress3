@@ -1907,7 +1907,7 @@ class SymExpress( SymBaseList ):
       # elem is not an expression
       return elem.isEqualExpress( self, checkFactor )
 
-    if elem.power != self.power:
+    if checkPower == True and elem.power != self.power:
       if checkFactor == False:
         lElemFactor = False
         lSelfFactor = False
@@ -2538,6 +2538,7 @@ class SymExpress( SymBaseList ):
       # _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
       _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
       _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
+      _optimizeAction( ["compositeDenominator"        ], 'Composite denominator'                       , iCntBig,  2 ) # a/(a+b)+b/(a+b) = 1
 
 
       # _optimizeAction( ["cosAtanDiv3"                 ], 'cos( atan(x)/3)'                             , iCntBig,  1 )

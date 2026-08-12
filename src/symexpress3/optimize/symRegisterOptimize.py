@@ -41,6 +41,7 @@ from symexpress3.optimize import optimizeUnnestingCubitRoot
 from symexpress3.optimize import optimizeInfinity
 from symexpress3.optimize import optimizeDivideDivide
 from symexpress3.optimize import optimizeRadicalFractionToWhole
+from symexpress3.optimize import optimizeCompositeDenominator
 
 
 #
@@ -67,6 +68,7 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optimize', optimizeInfinity.OptimizeInfinity()                               )
   symtables.RegisterTableEntry( 'optimize', optimizeDivideDivide.OptimizeDivideDivide()                       )
   symtables.RegisterTableEntry( 'optimize', optimizeRadicalFractionToWhole.OptimizeRadicalFractionToWhole()   )
+  symtables.RegisterTableEntry( 'optimize', optimizeCompositeDenominator.OptimizeCompositeDenominator()       )
 
 
 #
@@ -96,6 +98,7 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optimizeInfinity               )
   symModules.append( optimizeDivideDivide           )
   symModules.append( optimizeRadicalFractionToWhole )
+  symModules.append( optimizeCompositeDenominator   )
 
   return symModules
 
