@@ -310,10 +310,10 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symOrg, symTest, "1 + 0" )
 
 
-  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'c + a/(a+b) + d/a + b/(a+b)' )
+  symTest = symexpress3.SymFormulaParser( 'c + a/(a+b) + d/a + b/(a+b)' )
   symTest.optimize()
-  symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
-  symOrg:symexpress3.TypVarSym3Object = symTest.copy()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
 
   testClass = OptimizeCompositeDenominator()
   testClass.optimize( symTest, "compositeDenominator" )
@@ -321,10 +321,10 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symOrg, symTest, "c + 1 + d * a^^-1 + 0" )
 
 
-  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'c * a/(a+b) + c * b/(a+b)' )
+  symTest = symexpress3.SymFormulaParser( 'c * a/(a+b) + c * b/(a+b)' )
   symTest.optimize()
-  symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
-  symOrg:symexpress3.TypVarSym3Object = symTest.copy()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
 
   testClass = OptimizeCompositeDenominator()
   testClass.optimize( symTest, "compositeDenominator" )
@@ -332,10 +332,10 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symOrg, symTest, "c + 0" )
 
 
-  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'd * c * a/(a+b) + d * c * b/(a+b)' )
+  symTest = symexpress3.SymFormulaParser( 'd * c * a/(a+b) + d * c * b/(a+b)' )
   symTest.optimize()
-  symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
-  symOrg:symexpress3.TypVarSym3Object = symTest.copy()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
 
   testClass = OptimizeCompositeDenominator()
   testClass.optimize( symTest, "compositeDenominator" )

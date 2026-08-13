@@ -202,42 +202,74 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
       if elem1.factDenominator == 1 and elem1.factSign == 1 and elem1.factCounter > 3:
         dictFactors = primefactor.FactorizationDict( elem1.factCounter )
 
-        # TODO log - for the moment only 1 number, not splitting into prime numbers
         # log( 156279375 ) = 6 log(3) + 4 log(5) + 3 log(7)
-        if len( dictFactors ) == 1:
-          highestPower = None
+        if len( dictFactors ) >= 1:
+          highestPower = 1
           for iNumber, iPower in dictFactors.items():
-            if highestPower == None:
-              highestPower = iPower
-            elif highestPower > iPower:
-              highestPower = iPower
+            highestPower = max( highestPower, iPower )
 
-          if highestPower != None and highestPower > 1:
-            elemNew    = symexpress3.SymExpress( '*' )
-            elemNew.powerSign        = elem.powerSign
-            elemNew.powerCounter     = elem.powerCounter
-            elemNew.powerDenominator = elem.powerDenominator
-            elemNew.onlyOneRoot      = elem.onlyOneRoot
+          if highestPower > 1:
+            elemPlus = symexpress3.SymExpress( '+' )
 
-            elemNew.add( symexpress3.SymNumber( 1, highestPower, 1 ) )
-
-            elemLog = elem.copy()
-            elemLog.powerSign        = 1
-            elemLog.powerCounter     = 1
-            elemLog.powerDenominator = 1
-
-            elemParam1 = symexpress3.SymExpress( '*' )
-
-            if elem1.factSign == -1:
-              elemParam1.add( symexpress3.SymNumber( -1, 1, 1 ) )
-
+            # get all numbers that has power 1
+            powerNumber = None
             for iNumber, iPower in dictFactors.items():
-              elemParam1.add( symexpress3.SymNumber( 1, iNumber, 1, 1, max( iPower - highestPower, 1), 1, 1 ) )
+              if iPower != 1:
+                continue
+              if powerNumber == None:
+                powerNumber = iNumber
+              else:
+                powerNumber *= iNumber
 
-            elemLog.elements[ 0 ] = elemParam1
-            elemNew.add( elemLog )
+            # add powers of 1
+            if powerNumber != None:
+              elemLog = elem.copy()
+              elemLog.powerSign        = 1
+              elemLog.powerCounter     = 1
+              elemLog.powerDenominator = 1
+              elemLog.elements[0] = symexpress3.SymNumber( 1, powerNumber, 1)
+              elemPlus.add( elemLog )
 
-            return elemNew
+            # add powers > 1
+            for iNumber, iPower in dictFactors.items():
+              if iPower == 1:
+                continue
+
+              elemNew    = symexpress3.SymExpress( '*' )
+              elemNew.powerSign        = elem.powerSign
+              elemNew.powerCounter     = elem.powerCounter
+              elemNew.powerDenominator = elem.powerDenominator
+              elemNew.onlyOneRoot      = elem.onlyOneRoot
+
+              elemNew.add( symexpress3.SymNumber( 1, iPower, 1 ) )
+
+              elemLog = elem.copy()
+              elemLog.powerSign        = 1
+              elemLog.powerCounter     = 1
+              elemLog.powerDenominator = 1
+              elemLog.elements[0] = symexpress3.SymNumber( 1, iNumber )
+
+              elemParam1 = symexpress3.SymExpress( '*' )
+
+              elemParam1.add( symexpress3.SymNumber( 1, iPower, 1 ))
+              elemParam1.add( elemLog )
+
+              elemPlus.add( elemParam1 )
+
+
+            # if elem1.factSign == -1:
+            #  elemParam1.add( symexpress3.SymNumber( -1, 1, 1 ) )
+
+            # for iNumber, iPower in dictFactors.items():
+            #  elemParam1.add( symexpress3.SymNumber( 1, iNumber, 1, 1, max( iPower - highestPower, 1), 1, 1 ) )
+
+            # elemLog.elements[ 0 ] = elemParam1
+            # elemNew.add( elemLog )
+
+
+            elem.copyPower( elemPlus )
+
+            return elemPlus
 
     # log( exp( 2 )) = log( e^^2 ) = 2 log( e )
     if (     isinstance ( elem1, symexpress3.SymFunction )
@@ -441,6 +473,16 @@ def Test( display:bool = False) -> None :
   dValue = None # fncLog.getValue(        symTest.elements[ 0 ] )
 
   _Check( fncLog, symTest, value, dValue, "log( 100 ) + i * pi", None  )
+
+
+  symTest = symexpress3.SymFormulaParser( ' log( 156279375 )' )
+  symTest.optimize()
+  # symTest.elements[ 0 ].elements[ 0 ] = symTest.elements[ 0 ].elements[ 0 ].elements[ 0 ]
+  fncLog = SymFuncLog()
+  value  = fncLog.functionToValue( symTest.elements[ 0 ] )
+  dValue = None # fncLog.getValue(        symTest.elements[ 0 ] )
+
+  _Check( fncLog, symTest, value, dValue, "6 *  log( 3 ) + 4 *  log( 5 ) + 3 *  log( 7 )", None  )
 
 
 if __name__ == '__main__':

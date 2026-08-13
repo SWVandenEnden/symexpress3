@@ -20,7 +20,7 @@
 """
 import typing
 
-# TODO this import give cyclic-import warnings (pylint) we need some sort of forward declaration
+# This import give cyclic-import warnings (pylint) we need some sort of forward declaration
 
 # from symexpress3          import optTypeBase
 # from symexpress3          import optFunctionBase
