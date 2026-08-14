@@ -36,7 +36,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
   Logarithm function, log( x, y ) = y^^answer = x
   Default for y = e
   """
-  __slots__ = ()
+  __slots__ = ( '_split', )
 
   def __init__( self ) -> None :
     super().__init__()
@@ -46,6 +46,21 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
     self._maxparams = 2    # maximum number of parameters
     self._syntax    = "log(<x> [,<y>])"
     self._synExplain= "log(<x> [,<y>]) => y^^answer = x, default is e (e^^answer = x)"
+    self._split     = False # see optSymFunctionLogSplit.py
+
+  @property
+  def split(self) -> bool:
+    """
+    Split log into multiple parts
+    """
+    return self._split
+
+  @split.setter
+  def split(self, val:bool ) -> None :
+    if not isinstance( val, bool ):
+      raise NameError( f'split is incorrect: {val}, expected bool value' )
+
+    self._split = val
 
   def mathMl( self, elem:None|symexpress3.TypVarSym3Object ) -> tuple[list[str], None|str]:
     if self._checkCorrectFunction( elem ) != True:
@@ -203,7 +218,7 @@ class SymFuncLog( symFuncBase.SymFuncBase ):
         dictFactors = primefactor.FactorizationDict( elem1.factCounter )
 
         # log( 156279375 ) = 6 log(3) + 4 log(5) + 3 log(7)
-        if len( dictFactors ) >= 1:
+        if self._split == True or len( dictFactors ) == 1:
           highestPower = 1
           for iNumber, iPower in dictFactors.items():
             highestPower = max( highestPower, iPower )
@@ -479,6 +494,7 @@ def Test( display:bool = False) -> None :
   symTest.optimize()
   # symTest.elements[ 0 ].elements[ 0 ] = symTest.elements[ 0 ].elements[ 0 ].elements[ 0 ]
   fncLog = SymFuncLog()
+  fncLog.split = True
   value  = fncLog.functionToValue( symTest.elements[ 0 ] )
   dValue = None # fncLog.getValue(        symTest.elements[ 0 ] )
 

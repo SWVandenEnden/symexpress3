@@ -495,8 +495,8 @@ testData = [ # 1
              }
             , # 85 -> log()
              { 'expression' : ' log( -156279375 )^^(-2/3)'
-             , 'result'     : '((pi^^2 + 36 * log( 3 )^^2 + 16 * log( 5 )^^2 + 24 * log( 5 ) * log( 7 ) + 9 * log( 7 )^^2 + 48 * log( 3 ) * log( 5 ) + 36 * log( 3 ) * log( 7 ))^^-1 * (-1) * i * pi + (pi^^2 + 36 * log( 3 )^^2 + 16 * log( 5 )^^2 + 24 * log( 5 ) * log( 7 ) + 9 * log( 7 )^^2 + 48 * log( 3 ) * log( 5 ) + 36 * log( 3 ) * log( 7 ))^^-1 * 6 * log( 3 ) + (pi^^2 + 36 * log( 3 )^^2 + 16 * log( 5 )^^2 + 24 * log( 5 ) * log( 7 ) + 9 * log( 7 )^^2 + 48 * log( 3 ) * log( 5 ) + 36 * log( 3 ) * log( 7 ))^^-1 * 4 * log( 5 ) + (pi^^2 + 36 * log( 3 )^^2 + 16 * log( 5 )^^2 + 24 * log( 5 ) * log( 7 ) + 9 * log( 7 )^^2 + 48 * log( 3 ) * log( 5 ) + 36 * log( 3 ) * log( 7 ))^^-1 * 3 * log( 7 ))^^(2/3)'
-             , 'actions'    : [ 'optimizeExtended' ]
+             , 'result'     : '((pi^^2 + 36 *  log( 3 )^^2 + 16 *  log( 5 )^^2 + 24 *  log( 5 ) *  log( 7 ) + 9 *  log( 7 )^^2 + 48 *  log( 3 ) *  log( 5 ) + 36 *  log( 3 ) *  log( 7 ))^^-1 * (-1) * i * pi + (pi^^2 + 36 *  log( 3 )^^2 + 16 *  log( 5 )^^2 + 24 *  log( 5 ) *  log( 7 ) + 9 *  log( 7 )^^2 + 48 *  log( 3 ) *  log( 5 ) + 36 *  log( 3 ) *  log( 7 ))^^-1 * 6 *  log( 3 ) + (pi^^2 + 36 *  log( 3 )^^2 + 16 *  log( 5 )^^2 + 24 *  log( 5 ) *  log( 7 ) + 9 *  log( 7 )^^2 + 48 *  log( 3 ) *  log( 5 ) + 36 *  log( 3 ) *  log( 7 ))^^-1 * 4 *  log( 5 ) + (pi^^2 + 36 *  log( 3 )^^2 + 16 *  log( 5 )^^2 + 24 *  log( 5 ) *  log( 7 ) + 9 *  log( 7 )^^2 + 48 *  log( 3 ) *  log( 5 ) + 36 *  log( 3 ) *  log( 7 ))^^-1 * 3 *  log( 7 ))^^(2/3)'
+             , 'actions'    : [ 'optimizeExtended','log', 'optimizeExtended' ]
              }
 
            ]
@@ -611,7 +611,8 @@ for dData in testData :
     elif cAction == 'optimizeExtended' :
       oExpress.optimizeExtended()
     else:
-      print( f'Unknown action "{cAction}" entry {iTests}' )
+      oExpress.optimize( cAction )
+      # print( f'Unknown action "{cAction}" entry {iTests}' )
 
   if not oResult.isEqual( oExpress ) :
     iBad += 1
