@@ -582,6 +582,10 @@ if len( sys.argv ) > 0 :
 iTests = 0
 iGood  = 0
 iBad   = 0
+
+# for check valid actions
+dictActions = symexpress3.GetAllOptimizeActions()
+
 # for iCntTestData in range( 0, len( testData )):
 for dData in testData :
   iTests += 1
@@ -598,21 +602,21 @@ for dData in testData :
   oExpress = symexpress3.SymFormulaParser( cExpress )
   oResult  = symexpress3.SymFormulaParser( cResult  )
 
-  if cActions[ 0 ] == 'optimize_writeOutSum' :
-    oResult.optimize()
-  else:
-    oResult.optimizeNormal()
+  # if cActions[ 0 ] == 'optimize_writeOutSum' :
+  #   oResult.optimize()
+  # else:
+  oResult.optimizeNormal()
 
-  # for iActions in range( 0, len( cActions )):
   for cAction in cActions :
     # cAction = cActions[ iActions ]
     if cAction == 'optimizeNormal' :
       oExpress.optimizeNormal()
     elif cAction == 'optimizeExtended' :
       oExpress.optimizeExtended()
-    else:
+    elif cAction in dictActions:
       oExpress.optimize( cAction )
-      # print( f'Unknown action "{cAction}" entry {iTests}' )
+    else:
+      print( f'Unknown action "{cAction}" entry {iTests}' )
 
   if not oResult.isEqual( oExpress ) :
     iBad += 1

@@ -104,7 +104,7 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
         # ok found x/(a+b)
         # splits into x and 1/(a+b)
         dictDemo = {}
-        dictDemo[ 'orginal'    ] = elemSub
+        dictDemo[ 'original'   ] = elemSub
         dictDemo[ 'posOrg'     ] = iPos
         dictDemo[ 'posSub'     ] = iPosSub
         dictDemo[ 'counterPart'] = symexpress3.SymExpress('*')
@@ -125,8 +125,8 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
       lFound = False
       # for iCntDemo, oDemo in enumerate( arrDemo ):
       for oDemo in arrDemo :
-        orgDemo = oDemo[ 'orginal']
-        if orgDemo.isEqual( dictDemo[ 'orginal' ] ):
+        orgDemo = oDemo[ 'original']
+        if orgDemo.isEqual( dictDemo[ 'original' ] ):
           # ok found another element
           # print( f"Update arrDemo record: posSub: {dictDemo[ 'posSub'     ]}")
           lFound = True
@@ -150,7 +150,7 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
     # for iCntDemo, oDemo in enumerate( arrDemo ):
     for oDemo in arrDemo :
       # print( f"Check demo: {    iCntDemo}")
-      # print( f"orginal   : {str(oDemo[ 'orginal'  ])}")
+      # print( f"orginal   : {str(oDemo[ 'original' ])}")
       # print( f"posOrg    :     {oDemo[ 'posOrg'   ]}" )
       # print( f"elemParts : {str(oDemo[ 'elemParts'])}")
       # print( f"elemPos   :     {oDemo[ 'elemPos'  ]}" )
@@ -161,11 +161,32 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
       # optimize internal structure for compare
       elemParts.optimize()
 
-      if oDemo[ 'orginal' ].numElements() != elemParts.numElements():
+      if oDemo[ 'original' ].numElements() < elemParts.numElements():
+        # more parts in the counter then in the denominator
+        # delete the parts that do not match
+        elemOrg    = oDemo[ 'original' ]
+        checkParts = True
+        while checkParts == True:
+          checkParts = False
+          for elemPos, elemPart in enumerate( elemParts.elements ):
+            lFound = False
+            for elem0 in elemOrg.elements:
+              if elem0.isEqual( elemPart, False, True ):
+                lFound = True
+                break
+            if lFound == False:
+              del elemParts.elements[ elemPos ]
+              del oDemo[ 'elemPos' ][ elemPos ]
+              checkParts = True
+              break
+
+
+      # number of elements must be equal otherwise it will not be equal...
+      if oDemo[ 'original' ].numElements() != elemParts.numElements():
         continue
 
       # print( "Tree original")
-      # symexpress3.SymExpressTree( oDemo[ 'orginal'  ] )
+      # symexpress3.SymExpressTree( oDemo[ 'original'  ] )
       # print( " ")
 
       # print( "Tree parts")
@@ -174,14 +195,17 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
 
       # from pudb import set_trace; set_trace()
 
-      isEqual = oDemo[ 'orginal' ].isEqual( elemParts, True, False )
+      isEqual = oDemo[ 'original' ].isEqual( elemParts, True, False )
 
-      # print( f"check equal: {isEqual}")
       equalElements = []
       if isEqual != True:
         # search for a part that exist in all elemParts -> a c + b c -> find c
         # and get that out of elemParts...
         elem0 = elemParts.elements[ 0 ]
+
+        # print( f"elem0    : {str(elem0)}")
+        # print( f"elemParts: {str(elemParts)}")
+
         if isinstance( elem0, symexpress3.SymExpress ) and elem0.symType == '*':
 
           # ok search for each elements if it contains in the others
@@ -190,6 +214,8 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
           for elem0Part in elem0.elements:
             equalElements.append( elem0Part)
 
+          # print( f"equalElements: {str(equalElements)}")
+
           # search in the other parts for equal elements
           for elemNr, elemNext in enumerate( elemParts.elements ):
             # skip yourself = first element
@@ -197,6 +223,7 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
               continue
 
             if not isinstance( elemNext, symexpress3.SymExpress):
+              # print( f"Not SymExpress, stop: {str(elemNext)}")
               equalElements = []
               break
 
@@ -219,7 +246,8 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
 
                 lFoundOne = False
                 for elmSub in elemNew :
-                  if elemE.isEqual( elmSub ):
+                  # print( f"Check equal elmSub: {str(elemSub)} - elemE: {str(elemE)}")
+                  if elemE.isEqual( elmSub, False, True ): # don't check factor but do check power
                     lFoundOne = True
                     break
 
@@ -232,11 +260,13 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
             #   equalElements = []
             #   break
 
+        # print( f"Found equalElements: {len(equalElements)}")
         if len( equalElements ) > 0:
           # print( f"Found equalElements: {len(equalElements)}")
           # isEqual = True
 
           # delete same part elements from elemParts
+
           # print( f"elemParts: {str(elemParts)}")
           for elemPart in elemParts.elements :
 
@@ -249,11 +279,65 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
 
 
           elemParts.optimize()
-          isEqual = oDemo[ 'orginal' ].isEqual( elemParts, True, False )
+          isEqual = oDemo[ 'original' ].isEqual( elemParts, True, False )
+
+        if isEqual == False:
+          # check if there is a factor different between elemParts and original
+
+          # print( f"elemParts: {str(elemParts )}")
+          # print( f"orignal: {str(oDemo[ 'original' ]) }")
+
+          # check if there is a number in it
+          numberInPart = None
+          for elemPart in elemParts.elements :
+            if isinstance( elemPart, symexpress3.SymNumber ):
+              if elemPart.power == 1:
+                numberInPart = elemPart
+                break
+
+          # ok number found, now search in orginal to number
+          numberInOrg = None
+          if numberInPart != None:
+            for elemOrg in oDemo[ 'original' ].elements:
+              if isinstance( elemOrg, symexpress3.SymNumber ):
+                if elemOrg.power == 1:
+                  numberInOrg = elemOrg
+                  break
+
+          # print( f"numberInPart: {str(numberInPart)}")
+          # print( f"numberInOrg : {str(numberInOrg)}")
+
+          if numberInOrg != None:
+            # oke 2 numbers
+            # factor for part = org / part -> org * 1 / part
+            symFactPart = numberInOrg.copy()
+            symFactPart.factCounter     = symFactPart.factCounter     * numberInPart.factDenominator # type:ignore
+            symFactPart.factDenominator = symFactPart.factDenominator * numberInPart.factCounter     # type:ignore
+            symFactPart.factSign        = symFactPart.factSign        * numberInPart.factSign        # type:ignore
+
+            elemPartNew = symexpress3.SymExpress( '*' )
+            elemPartNew.add( elemParts   )
+            elemPartNew.add( symFactPart )
+
+
+            # print( f"elemPartNew: {str(elemPartNew)}" )
+
+            elemParts = elemPartNew
+
+            # add factor to equalElements so it will be left over
+            symFactPart.powerSign = -1 # inverse for the equalElements (left over) part
+            equalElements.append( symFactPart )
+
+            elemParts.optimizeNormal()
+
+            # print( f"elemParts optimized: {str(elemParts)}" )
+
+            isEqual = oDemo[ 'original' ].isEqual( elemParts, True, False )
+
 
 
       if isEqual == True :
-        # ok make orginal 1
+        # ok make orginal 1 (or equalElements)
         # set all others on 0 (zero)
         # print( "change expression")
 
@@ -341,6 +425,40 @@ def Test( display:bool = False) -> None :
   testClass.optimize( symTest, "compositeDenominator" )
 
   _Check( testClass, symOrg, symTest, "d * c + 0" )
+
+
+  symTest = symexpress3.SymFormulaParser( '2 cos(x) sin(x) a / (a + b + 4) +  2 cos(x) sin(x) b /(a+b + 4) + 2 sin(x) 4 cos(x) / (a+b+4)' )
+  symTest.optimize()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
+
+  testClass = OptimizeCompositeDenominator()
+  testClass.optimize( symTest, "compositeDenominator" )
+
+  _Check( testClass, symOrg, symTest, "2 *  cos( x ) *  sin( x ) + 0 + 0" )
+
+
+
+  symTest = symexpress3.SymFormulaParser( '-a / (a + b + 4 ) +  -b /(a+b+4) + -4/(a+b+4)' )
+  symTest.optimize()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
+
+  testClass = OptimizeCompositeDenominator()
+  testClass.optimize( symTest, "compositeDenominator" )
+
+  _Check( testClass, symOrg, symTest, "(-4/4)^^-1 + 0 + 0" )
+
+
+  symTest = symexpress3.SymFormulaParser( 'a/(a+b+c) + b/(a+b+c) + c/(a+b+c) + d/(a+b+c)' )
+  symTest.optimize()
+  # symTest = typing.cast( symexpress3.SymExpress, symTest) # special for mypy
+  symOrg = symTest.copy()
+
+  testClass = OptimizeCompositeDenominator()
+  testClass.optimize( symTest, "compositeDenominator" )
+
+  _Check( testClass, symOrg, symTest, "1 + 0 + 0 + d * (a + b + c)^^-1" )
 
 
 if __name__ == '__main__':
