@@ -161,6 +161,10 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
       # optimize internal structure for compare
       elemParts.optimize()
 
+      # safety check
+      if oDemo[ 'elemParts'].numElements() != elemParts.numElements():
+        continue
+
       if oDemo[ 'original' ].numElements() < elemParts.numElements():
         # more parts in the counter then in the denominator
         # delete the parts that do not match

@@ -2538,7 +2538,9 @@ class SymExpress( SymBaseList ):
       # _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
       _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
       _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
+      _optimizeAction( ["numberOutDenominator"        ], 'Number out of denominator'                   , iCntBig,  2 ) # 1/(4a+4b) -> 1/4 * 1/(a+b)
       _optimizeAction( ["compositeDenominator"        ], 'Composite denominator'                       , iCntBig,  2 ) # a/(a+b)+b/(a+b) = 1
+      _optimizeAction( ["flipDenominator"             ], 'Flip denominator'                            , iCntBig,  2 ) # a/(a+b+c) + b/(a+b+c) = 1 - c/(a+b+c)
 
 
       # _optimizeAction( ["cosAtanDiv3"                 ], 'cos( atan(x)/3)'                             , iCntBig,  1 )

@@ -43,7 +43,7 @@ optSymFunctionTable :dict[str,typing.Any ] = {} # dictionary of optimize classes
 optSymAnyTable      :dict[str,typing.Any ] = {} # dictionary of optimize classes for any type, last resort if the optimize not fit in 1 of the above
 
 
-fixedVariables      :dict[str,str                            ] = {} # dictionary of fixed variables, see symtools.py
+fixedVariables      :dict[str,str        ] = {} # dictionary of fixed variables, see symtools.py
 
 
 # def RegisterTableEntry( cType:str, oEntry:optTypeBase.OptTypeBase|optFunctionBase.OptFunctionBase|optimizeBase.OptimizeBase ):
@@ -51,6 +51,12 @@ def RegisterTableEntry( cType:str, oEntry:typing.Any ) -> None :
   """
   Register the given optimize class
   """
+  #
+  # Not possible because of cyclic-import error
+  # Can use of collections.abc but then we have a made a second isinstance...
+  #
+  # if not isinstance( oEntry, "symexpress3.optTypeBase" ):
+  #   raise NameError( f"RegisterTableEntry, code: {cType} is not of type optTypeBase")
 
   # pylint: disable=multiple-statements
   if   cType == "optSymNumber"   :  optSymNumberTable[   oEntry.name ] = oEntry

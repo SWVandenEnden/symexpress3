@@ -42,6 +42,8 @@ from symexpress3.optimize import optimizeInfinity
 from symexpress3.optimize import optimizeDivideDivide
 from symexpress3.optimize import optimizeRadicalFractionToWhole
 from symexpress3.optimize import optimizeCompositeDenominator
+from symexpress3.optimize import optimizeFlipDenominator
+from symexpress3.optimize import optimizeNumberOutDenominator
 
 
 #
@@ -69,6 +71,8 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optimize', optimizeDivideDivide.OptimizeDivideDivide()                       )
   symtables.RegisterTableEntry( 'optimize', optimizeRadicalFractionToWhole.OptimizeRadicalFractionToWhole()   )
   symtables.RegisterTableEntry( 'optimize', optimizeCompositeDenominator.OptimizeCompositeDenominator()       )
+  symtables.RegisterTableEntry( 'optimize', optimizeFlipDenominator.OptimizeFlipDenominator()                 )
+  symtables.RegisterTableEntry( 'optimize', optimizeNumberOutDenominator.OptimizeNumberOutDenominator()       )
 
 
 #
@@ -99,6 +103,9 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optimizeDivideDivide           )
   symModules.append( optimizeRadicalFractionToWhole )
   symModules.append( optimizeCompositeDenominator   )
+  symModules.append( optimizeFlipDenominator        )
+  symModules.append( optimizeNumberOutDenominator   )
+
 
   return symModules
 
