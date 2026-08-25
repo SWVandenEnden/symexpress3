@@ -565,6 +565,7 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
 
       # check of elemParts is valid so it can be optimized
       if _checkValid( oDemo, elemParts ) != True:
+        # print( "flip not valid")
         continue
 
 
@@ -575,6 +576,7 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
       arrOrgElem:list[int]         = [0] * elemOrg.numElements()
 
       if _getMatches( oDemo, elemParts, arrMatch, arrOrgElem ) != True :
+        # print( "flip not matches")
         continue
 
       # oke, everything matched
