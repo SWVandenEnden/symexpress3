@@ -7,9 +7,9 @@
 __version__     = "0.0.19"
 
 __author__      = "Gien van den Enden"
-__copyright__   = "Copyright 2021, Gien van den Enden"
+__copyright__   = "Copyright (c) 2021, Gien van den Enden"
 __credits__     = [ "" ]
-__license__     = "GPL"
+__license__     = "GPL-3.0-or-later"
 
 __maintainer__  = "Gien van den Enden"
 __email__       = "swvandenenden@gmail.com"

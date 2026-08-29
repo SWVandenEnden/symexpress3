@@ -22,6 +22,8 @@
 """
 
 import sys
+import os
+
 from pathlib import Path
 
 import mpmath       # type: ignore
@@ -29,7 +31,19 @@ import symexpress3
 
 from symexpress3 import version
 
-def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:list[str] ) -> None:
+
+def TextOutput( cText:str, cFileName:None|str ) -> None:
+  """
+  Output text to the given filename. No filename given output to stdout
+  """
+  if cFileName != None:
+    with open( cFileName, mode="a", encoding="utf-8") as f:
+      f.write( cText + '\n' )
+  else:
+    print( cText )
+
+
+def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:list[str], exportFile:None|str ) -> None:
   """
   Optimize the given expression according the optimize actions
   Output the result for the given output types`
@@ -60,31 +74,41 @@ def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:l
       if optKey == "optimizeExtended":
         oExpress.optimizeExtended()
         continue
+      if optKey == "none":
+        oExpress.optimize()
+        continue
       oExpress.optimize( optKey )
       oExpress.optimize()
 
+
+  if exportFile != None:
+    try:
+      os.remove(exportFile)
+    except OSError:
+      pass
+
   # output expression
   if outputFormat == "":
-    print( str( oExpress ))
+    TextOutput( str( oExpress ), exportFile  )
   else:
     for outputType in outputFormat:
       if outputType == "c":
         try:
           dValue = oExpress.getValue()
-          print( dValue )
+          TextOutput( str( dValue ), exportFile  )
         except NameError as exceptInfo:
           print( "Error in getting the value of expression: " + cExpress )
           print( exceptInfo )
           return
 
       elif outputType == "s":
-        print( str( oExpress ))
+        TextOutput( str( oExpress ), exportFile  )
 
       elif outputType == "m":
-        print( oExpress.mathMl() )
+        TextOutput( oExpress.mathMl(), exportFile  )
 
       elif outputType == "h":
-        output = symexpress3.SymToHtml( None, "SymExpress 3" )
+        output = symexpress3.SymToHtml( exportFile, "SymExpress 3" )
         # try:
         output.writeSymExpress( oExpress )
         output.writeLine( str( oExpress ))
@@ -95,7 +119,11 @@ def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:l
         output.closeFile()
 
       elif outputType == "t":
-        symexpress3.SymExpressTree( oExpress )
+        if exportFile != None:
+          with open( exportFile, mode="a", encoding="utf-8") as f:
+            symexpress3.SymExpressTree( oExpress, f )
+        else:
+          symexpress3.SymExpressTree( oExpress )
 
       else:
         print( "Unknown output (-o) : {outputType}" )
@@ -111,15 +139,23 @@ def CheckOptimizeActions( cList:str ) -> list[str]:
 
   actions = cList.split(",")
   actions = [s.strip() for s in actions]
+
   for optKey in actions:
+
     if optKey == "optimizeNormal":
       continue
+
     if optKey == "optimizeExtended":
       continue
+
+    if optKey == "none":
+      continue
+
     if optKey in optDict:
       continue
 
     print( f"Unknown optimize action (-a) : {optKey}" )
+
   return actions
 
 
@@ -144,8 +180,9 @@ def DisplayList( listTypes:str ) -> None:
       optDict = symexpress3.GetAllOptimizeActions()
       optDict = dict(sorted(optDict.items()))
 
-      optDict[ "optimizeNormal"  ] = "Normal optimization"
+      optDict[ "optimizeNormal"   ] = "Normal optimization"
       optDict[ "optimizeExtended" ] = "Extended optimization"
+      optDict[ "none"             ] = "Optimize internal structure"
 
       for optKey, optValue in optDict.items():
         print( f"  {optKey: <30} - {optValue}" )
@@ -167,10 +204,10 @@ def DisplayVersion() -> None:
   print( "Version    : " + version.__version__    )
   # print( "Build number: " + symexpress3.symexpress3.__buildnumber__ )
 
-  print( "Author     : " + version.__author__     )
+  # print( "Author     : " + version.__author__     )
   print( "Copyright  : " + version.__copyright__  )
   print( "License    : " + version.__license__    )
-  print( "Maintainer : " + version.__maintainer__ )
+  # print( "Maintainer : " + version.__maintainer__ )
   print( "Email      : " + version.__email__      )
   print( "Status     : " + version.__status__     )
 
@@ -190,14 +227,15 @@ def DisplayHelp() -> None:
   print( "                 f = defined functions" )
   print( "                 a = optimize actions" )
   print( "                 v = fixed variables" )
-  print( "  -o <format>  : output format" )
+  print( "  -o <format>  : Output format" )
   print( "                 s - string format (default)" )
   print( "                 m - MathML (xml) format" )
   print( "                 c - Calculated value " )
   print( "                 t - tree view" )
   print( "                 h - html, formula in string and MathMl format" )
+  print( "  -e <file>    : Output file" )
   print( "  -f <file>    : Read formula from text file instead of the command line" )
-  print( " -dps <number> : Calculation precision, default is 20" )
+  print( "  -dps <number>: Calculation precision, default is 20" )
   print( " " )
   print( "arg:" )
   print( "<formula>" )
@@ -209,11 +247,11 @@ def CommandLine( argv:list[str] ) -> None:
   """
   Process the symexpres3 command line parameters
   """
-  outputFormat    = ""
-  optimizeActions = []
+  outputFormat        = ""
+  exportFile:None|str = None
+  optimizeActions     = []
 
   mpmath.mp.dps = 20 # precision for calculations, https://mpmath.org/doc/current/basics.html
-
 
   nrarg = len( argv )
 
@@ -223,66 +261,44 @@ def CommandLine( argv:list[str] ) -> None:
 
   mode        = ""
   expressions = []
+
   for iCnt in range( 1, nrarg ) :
     cArg = argv[ iCnt ]
 
-    if mode == "file":
-      data = Path( cArg ).read_text( encoding="utf-8" )
-      expressions.append( data )
-      continue
+    match mode :
+      case "file":
+        data = Path( cArg ).read_text( encoding="utf-8" )
+        expressions.append( data )
 
-    if mode == "list":
-      DisplayList( cArg )
+      case "list"      : DisplayList( cArg )
+      case "exportfile": exportFile      = cArg
+      case "output"    : outputFormat    = cArg
+      case "optimize"  : optimizeActions = CheckOptimizeActions( cArg )
+      case "precision" : mpmath.mp.dps   = int( cArg )
+
+    if mode != "":
       mode = ""
       continue
 
-    if mode == "output":
-      outputFormat = cArg
-      mode = ""
-      continue
-
-    if mode == "optimize":
-      optimizeActions = CheckOptimizeActions(cArg)
-      mode = ""
-      continue
-
-    if mode == "precision":
-      mpmath.mp.dps = int( cArg )
-      mode = ""
-      continue
-
-
-    if cArg == "-h" :
-      DisplayHelp()
-
-    elif cArg == "-v" :
-      DisplayVersion()
-
-    elif cArg == "-l" :
-      mode = "list"
-
-    elif cArg == "-o":
-      mode = "output"
-
-    elif cArg == "-a":
-      mode = "optimize"
-
-    elif cArg == "-f":
-      mode = "file"
-
-    elif cArg == "-dps":
-      mode = "precision"
-
-    else:
-      if cArg.startswith( "-" ):
-        print( f"Unknown option: {cArg}, use -h for help")
-      else:
-        # collect the given expression, process after all the options are read
-        expressions.append( cArg )
+    match cArg:
+      case "-h"  : DisplayHelp()
+      case "-v"  : DisplayVersion()
+      case "-l"  : mode = "list"
+      case "-o"  : mode = "output"
+      case "-a"  : mode = "optimize"
+      case "-f"  : mode = "file"
+      case "-e"  : mode = "exportfile"
+      case "-dps": mode = "precision"
+      case _:
+        if cArg.startswith( "-" ):
+          print( f"Unknown option: {cArg}, use -h for help")
+        else:
+          # collect the given expression, process after all the options are read
+          expressions.append( cArg )
 
   # process all the given expressions
   for key in expressions:
-    OptimzeFunction( key, outputFormat, optimizeActions )
+    OptimzeFunction( key, outputFormat, optimizeActions, exportFile )
 
 
 # ---------------------------

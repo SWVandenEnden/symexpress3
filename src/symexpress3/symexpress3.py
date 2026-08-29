@@ -92,7 +92,7 @@
 from __future__ import annotations
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20260616001" # build number
+__buildnumber__ = "20260828001" # build number
 
 import sys
 import math
@@ -2169,8 +2169,9 @@ class SymExpress( SymBaseList ):
       result = False
 
       # factor zero is no elements at all, and no elements is factor 0
-      if len( self.elements ) == 0:
-        self.elements          = []
+      # if len( self.elements ) == 0:
+      if not self.elements :
+        # self.elements          = []
         self.powerSign         = 1
         self.powerCounter      = 1
         self.powerDenominator  = 1
@@ -2179,7 +2180,8 @@ class SymExpress( SymBaseList ):
       # print( "SymExpress optimize 3: {}".format( str( self )))
 
       # power zero give always 1, is 1 element with value 1, factor is not changed
-      if self.power == 0:
+      # if self.power == 0:
+      if self.powerCounter == 0:
         self.elements          = []
         self.powerSign         = 1
         self.powerCounter      = 1
@@ -2190,7 +2192,7 @@ class SymExpress( SymBaseList ):
       # power of zero always give 1
       for iCnt, elem in enumerate( self.elements ) :
         if elem.powerCounter == 0:
-          self.elements[ iCnt ] = SymNumber()
+          self.elements[ iCnt ] = SymNumber() # one
           result                = True
 
       return result
@@ -2200,8 +2202,8 @@ class SymExpress( SymBaseList ):
       result = False
       for iCnt in range( len( self.elements ) - 1, -1, -1 ) :
         elem = self.elements[ iCnt ]
-        if (  ( isinstance( elem, SymNumber  ) and elem.factor        == 0 )
-           or ( isinstance( elem, SymExpress ) and elem.numElements() == 0 )
+        if (  ( isinstance( elem, SymNumber  ) and elem.factCounter == 0 )
+           or ( isinstance( elem, SymExpress ) and not elem.elements     )
            ):
           if self.symType == '*':
             self.elements = []
@@ -2222,11 +2224,13 @@ class SymExpress( SymBaseList ):
 
       for iCnt in range( len( self.elements ) - 1, -1, -1 ) :
         elem = self.elements[ iCnt ]
-        if isinstance( elem, SymExpress ) and elem.numElements() == 0:
+        # if isinstance( elem, SymExpress ) and elem.numElements() == 0:
+        if isinstance( elem, SymExpress ) and not elem.elements :
           del self.elements[ iCnt ]
           result = True
           continue
-        if ( isinstance( elem, SymNumber ) and elem.factor == 0 ) :
+        # if ( isinstance( elem, SymNumber ) and elem.factor == 0 ) :
+        if ( isinstance( elem, SymNumber ) and elem.factCounter == 0 ) :
           del self.elements[ iCnt ]
           result = True
           continue
@@ -2236,7 +2240,8 @@ class SymExpress( SymBaseList ):
     # kill 1 units. but never the last one
     def _optKillOneUnits() -> bool :
       result = False
-      if ( self.symType == '*' and len( self.elements ) > 1 ):
+      # if ( self.symType == '*' and len( self.elements ) > 1 ):
+      if self.symType == '*':
         # print ( "Test 1 units" )
         for iCnt in range( len( self.elements ) - 1, -1, -1) :
           elem = self.elements[ iCnt ]
@@ -2244,13 +2249,17 @@ class SymExpress( SymBaseList ):
           if not isinstance( elem, SymNumber ):
             continue
 
+          # in this case are multiple if's faster then one if with or
+          if elem.onlyOneRoot != 1:
+            continue
+
           if elem.factor != 1:
             continue
 
-          if elem.onlyOneRoot != 1 and elem.power != 1 and elem.power != -1:
+          if elem.power not in ( 1, -1 ):
             continue
 
-          if len( self.elements ) != 1:
+          if len( self.elements ) > 1:
             del self.elements[ iCnt ]
             result = True
 
@@ -2258,27 +2267,36 @@ class SymExpress( SymBaseList ):
 
     # get lower symexpress with same type and factor and power of 1
     def _optGetLowerSameType() -> bool :
-      result = False
-      lFound = True
-      while lFound == True:
-        lFound = False
-        for iCnt, elem in enumerate( self.elements ) :
-          if not isinstance( elem, SymExpress ):
-            continue
-          if elem.symType != self.symType:
-            continue
-          if elem.power != 1:
-            continue
+      result           = False
+      lFound           = True
+      arrDel:list[int] = []
+      # while lFound == True:
+      lFound = False
 
+      for iCnt, elem in enumerate( self.elements ) :
+        if iCnt in arrDel:
+          continue
+        if not isinstance( elem, SymExpress ):
+          continue
+        if elem.symType != self.symType:
+          continue
+        if elem.power != 1:
+          continue
+
+        # del self.elements[ iCnt ]
+        arrDel.append( iCnt )
+        lFound = True
+
+        for elem2 in elem.elements:
+          # self.add( elem2 )
+          self.elements.append( elem2 )
+
+          # break
+      if lFound == True:
+        for iCnt in sorted( arrDel, reverse=True):
           del self.elements[ iCnt ]
-          lFound = True
 
-          for elem2 in elem.elements:
-            # self.add( elem2 )
-            self.elements.append( elem2 )
-
-          break
-      return result
+      return result # always False
 
     #
     # main default optimize
@@ -3073,10 +3091,12 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
       elif cResult == '[':
         exp   = SymArray()
         oElem = _symFormulaParser( cFormula, iPosCur, '|]' )
-        exp.add( oElem )
+        # exp.add( oElem )
+        exp.elements.append( oElem )
         while CharCurrent() == '|':
           oElem = _symFormulaParser( cFormula, iPosCur, '|]' )
-          exp.add( oElem )
+          # exp.add( oElem )
+          exp.elements.append( oElem )
         return exp
       elif ( cEndChar == cResult or ( cEndChar != None and cEndChar.find( cResult ) >= 0 ) ):
         CharBack() # read 1 too many
@@ -3163,7 +3183,8 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
         if iExpt != 1 :
           cParam2 = SymExpress()
           cParam2.powerCounter = iExpt
-          cParam2.add( cParam ) # type:ignore
+          # cParam2.add( cParam ) # type:ignore
+          cParam2.elements.append( cParam )
           oExpress = cParam2
         else:
           oExpress = cParam # type:ignore
@@ -3178,10 +3199,12 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
           oExt     = _symFormulaParser( cFormula, iPosCur, ',)' )
           # print ('oExt: {}'.format( str( oExt )))
           oExpress = SymFunction( cParam, 1, iExpt, 1 ) # type:ignore
-          oExpress.add( oExt )
+          # oExpress.add( oExt )
+          oExpress.elements.append( oExt )
           while CharCurrent() == ',':
             oExt     = _symFormulaParser( cFormula, iPosCur, ',)' )
-            oExpress.add( oExt )
+            # oExpress.add( oExt )
+            oExpress.elements.append( oExt )
         else :
           # print ( "Found cChar: {}".format( cChar ))
           if cChar != None:
@@ -3269,13 +3292,16 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
       if cOpt == None:
         # end of formula
         if oExpress != None:
-          oMul.add( oExpress )
+          # oMul.add( oExpress )
+          oMul.elements.append( oExpress )
         elif oUnit != None:
-          oMul.add( oUnit )
+          # oMul.add( oUnit )
+          oMul.elements.append( oUnit )
         else:
           raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
 
-        oPlus.add( oMul )
+        # oPlus.add( oMul )
+        oPlus.elements.append( oMul )
         break
 
       if cOpt == '^':
@@ -3284,21 +3310,27 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
       if cOpt in [ '+', '-' ]:
         # put current list in plus list
         if oExpress != None:
-          oMul.add( oExpress )
+          # oMul.add( oExpress )
+          oMul.elements.append( oExpress )
         elif oUnit != None :
-          oMul.add( oUnit )
+          # oMul.add( oUnit )
+          oMul.elements.append( oUnit )
         else:
           raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
 
-        oPlus.add( oMul )
+        # oPlus.add( oMul )
+        oPlus.elements.append( oMul )
         oMul = SymExpress( '*' )
         if cOpt == '-':
-          oMul.add( SymNumber( -1, 1, 1, 1, 1, 1))
+          # oMul.add( SymNumber( -1, 1, 1, 1, 1, 1))
+          oMul.elements.append( SymNumber( -1, 1, 1, 1, 1, 1))
       else:
         if oExpress != None:
-          oMul.add( oExpress )
+          # oMul.add( oExpress )
+          oMul.elements.append( oExpress )
         elif oUnit != None:
-          oMul.add( oUnit )
+          # oMul.add( oUnit )
+          oMul.elements.append( oUnit )
         else:
           raise NameError( f'Internal error on position {GetCurPos()} cannot found token' )
 
@@ -3306,7 +3338,8 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
       cParam = GetParam()
       if cParam == None:
         if cOpt == '**':
-          oPlus.add( oMul )
+          # oPlus.add( oMul )
+          oPlus.elements.append( oMul )
           break
         # else:
         raise NameError( 'Incorrect end of formula' )

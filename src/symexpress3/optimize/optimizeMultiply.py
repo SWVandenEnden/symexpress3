@@ -129,7 +129,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             continue
           lFound = True
           for elem2 in elem1.elements :
-            symExpr.add( elem2 )
+            # symExpr.add( elem2 )
+            symExpr.elements.append( elem2 )
           del symExpr.elements[ iCnt ]
           result = True
           break
@@ -163,10 +164,10 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             if iCnt == iCnt2:
               iCnt2 += 1
               continue
-            elem2 = symExpr.elements[ iCnt2 ]
+            elem2  = symExpr.elements[ iCnt2 ]
             iCnt2 += 1
 
-            if not isinstance( elem2 , symexpress3.SymExpress ):
+            if not isinstance( elem2, symexpress3.SymExpress ):
               continue
 
             # only multiply no + expressions
@@ -203,13 +204,17 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elem1.powerDenominator = 1
 
             for iCntSub1 in range( 0, elem2.numElements() ) :
-              elem3 = elem2.elements[ iCntSub1 ]
+              elem3    = elem2.elements[ iCntSub1 ]
               elemnew2 = symexpress3.SymExpress( '*' )
-              elemnew2.add( elem1 )
-              elemnew2.add( elem3 )
-              elemnew.add ( elemnew2 )
+              # elemnew2.add( elem1 )
+              elemnew2.elements.append( elem1 )
+              # elemnew2.add( elem3 )
+              elemnew2.elements.append( elem3 )
+              # elemnew.add ( elemnew2 )
+              elemnew.elements.append( elemnew2 )
 
             symExpr.add( elemnew )
+            # symExpr.elements.append( elemnew ) -> Cannot do this. Elements out out symExpr are all ready append. see few lines above
 
           if lFound == True:
             # print( f"_multiplyElemUnitExpress found one: {str(symExpr)}")
@@ -399,8 +404,10 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       symExpr.symType  = '+'
       for elemsub in elemExpr.elements :
         elemnew = symexpress3.SymExpress( '*' )
-        elemnew.add( elemNum )
-        elemnew.add( elemsub )
+        # elemnew.add( elemNum )
+        elemnew.elements.append( elemNum )
+        # elemnew.add( elemsub )
+        elemnew.elements.append( elemsub )
         symExpr.add( elemnew )
         result = True
 
@@ -436,7 +443,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
         # print( 'SymMulti: {}'.format( str( SymMulti )))
 
-        if symMulti.numElements() == 0:
+        # if symMulti.numElements() == 0:
+        if not symMulti.elements:
           continue
 
         # import pudb; pudb.set_trace()
@@ -671,7 +679,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             elem2.powerCounter     = 1
             elem2.powerDenominator = 1
 
-            oExpr.add( elem2 )
+            # oExpr.add( elem2 )
+            oExpr.elements.append( elem2 )
 
             iCnt2 -= 1
             del symExpr.elements[ iCnt2 ]
@@ -684,7 +693,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             elem.powerCounter     = 1
             elem.powerDenominator = 1
 
-            oExpr.add( elem )
+            # oExpr.add( elem )
+            oExpr.elements.append( elem )
             del symExpr.elements[ iCnt ]
             symExpr.add( oExpr )
             result = True

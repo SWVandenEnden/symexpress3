@@ -53,8 +53,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html
     symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
-    if symExpr.symType != '+' :
-      return result
+    # if symExpr.symType != '+' :
+    #   return result
 
     if symExpr.numElements() <= 1 :
       return result
@@ -67,360 +67,390 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     # addBefore = str( symExpr )
     elemnum:None|symexpress3.TypVarSym3Object = None
 
-    lFound = True
-    while lFound == True :
-      lFound = False
-      for iCnt in range( 0, len( symExpr.elements ) - 1) :
+    arrDel:list[int] = []
+    lFound           = False
 
-        elem1 = symExpr.elements[ iCnt ]
+    # print( f"Repeat add: {str(symExpr)}")
 
-        # print( 'add start: {}'.format( str( elem1 )))
+    for iCnt in range( 0, len( symExpr.elements ) - 1) :
 
-        # search next elements that is the same
-        for iCnt2 in range( iCnt + 1, len( symExpr.elements )) :
-          if iCnt2 >= len( symExpr.elements ):
-            continue
+      if iCnt in arrDel:
+        continue
 
-          elem2 = symExpr.elements[ iCnt2 ]
+      elem1 = symExpr.elements[ iCnt ]
 
-          # print( 'elem2: {}'.format( str( elem2 )))
+      # print( 'add start: {}'.format( str( elem1 )))
 
-          # do not check the factors ( = numbers with power of 1)
-          if elem1.isEqual( elem2, False ) != True :
-            continue
+      # search next elements that is the same
+      for iCnt2 in range( iCnt + 1, len( symExpr.elements )) :
 
-          # print( "symExpr.getValue: {}".format( symExpr.getValue() ))
-          # print( "elem1: {}, type: {}".format( str( elem1 ), type( symExpr.elements[ iCnt  ] )))
-          # print( "elem2: {}, type: {}".format( str( elem2 ), type( symExpr.elements[ iCnt2 ] )))
+        if iCnt2 in arrDel:
+          continue
 
-          # same name, same power, found one
-          # add factors and delete cnt2
-          if ( isinstance( elem1, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
-            if ( elem1.power != 1 and elem1.power != -1 ): # pylint: disable=consider-using-in
+        if iCnt2 >= len( symExpr.elements ):
+          continue
 
-              if elem1.factor != elem2.factor :
-                continue
+        if lFound == True:
+          elem1 = symExpr.elements[ iCnt ]
+          lFound = False
 
-              elemnew = symexpress3.SymExpress( '*' )
-              elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
-              elemnew.add( elemnum )
-              elemnew.add( elem1   )
-              symExpr.elements[ iCnt ] = elemnew
-            else:
-              elem3 = symexpress3.SymNumber()
-              elem3.factSign        = elem1.factSign
-              elem3.factCounter     = elem1.factCounter
-              elem3.factDenominator = elem1.factDenominator
-              elem3.onlyOneRoot     = elem1.onlyOneRoot
+        elem2 = symExpr.elements[ iCnt2 ]
 
-              # elem1.factSign *= elem2.factSign
-              elem1.factCounter     *= elem2.factDenominator
-              elem1.factDenominator *= elem2.factDenominator
+        # print( 'elem2: {}'.format( str( elem2 )))
 
-              elem2.factCounter     *= elem3.factDenominator
-              elem2.factDenominator *= elem3.factDenominator
+        # do not check the factors ( = numbers with power of 1)
+        if elem1.isEqual( elem2, False ) != True :
+          continue
 
-              elem1factor = elem1.factSign * elem1.factCounter
-              elem2factor = elem2.factSign * elem2.factCounter
+        # print( "symExpr.getValue: {}".format( symExpr.getValue() ))
+        # print( "elem1: {}, type: {}".format( str( elem1 ), type( symExpr.elements[ iCnt  ] )))
+        # print( "elem2: {}, type: {}".format( str( elem2 ), type( symExpr.elements[ iCnt2 ] )))
 
-              elem1.factSign    = 1
-              elem1.factCounter = elem1factor + elem2factor
-              # elem1.onlyOneRoot = max( elem3.onlyOneRoot, elem2.onlyOneRoot )
-              elem1.onlyOneRoot = min( elem3.onlyOneRoot, elem2.onlyOneRoot )
+        # same name, same power, found one
+        # add factors and delete cnt2
+        if ( isinstance( elem1, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+          if ( elem1.power != 1 and elem1.power != -1 ): # pylint: disable=consider-using-in
 
-            # print( "elem1 new: {}".format( str( elem1 )))
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-            break
+            if elem1.factor != elem2.factor :
+              continue
 
-          if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
             elemnew = symexpress3.SymExpress( '*' )
             elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
             elemnew.add( elemnum )
             elemnew.add( elem1   )
             symExpr.elements[ iCnt ] = elemnew
-
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-            break
-
-          if ( not isinstance( elem1, symexpress3.SymExpress ) or not isinstance( elem2, symexpress3.SymExpress ) ):
-
-            # print( 'special, elem1: {}, elem2: {}'.format( str( elem1 ), str( elem2 )))
-
-            # 2 different types, 1 is an expression
-            elemnew = symexpress3.SymExpress( '*' )
-            elemnum = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
-            if isinstance( elem1, symexpress3.SymExpress ):
-              elemexp = elem1
-            else:
-              # is is always a SymExpress type
-              elemexp = elem2 # type:ignore
-            elemnew.onlyOneRoot      = elemexp.onlyOneRoot
-            elemnew.powerSign        = elemexp.powerSign
-            elemnew.powerCounter     = elemexp.powerCounter
-            elemnew.powerDenominator = elemexp.powerDenominator
-
-            # print( "elemnew stap 1: {}".format( elemnew ))
-            isinfinity = False
-            if "infinity" in elemexp.getVariables():
-              isinfinity = True
-              # print( "!! Infinity: " + str( elemexp ) )
-
-            # elemexp is now the symexpress
-            lOnlyOne  = True
-            lFoundOne = True
-            for iCnt3 in range( 0, elemexp.numElements()):
-              elemsub = elemexp.elements[ iCnt3 ]
-              if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
-
-                if isinfinity == True:
-                  #
-                  # infinity + infinity - infinity = infinity - infinity = 0
-                  # see optimzeInfinity.py
-                  #
-                  # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
-
-                  # pylint: disable=chained-comparison
-                  if elemnum.factSign < 0 and elemsub.factSign > 0:
-                    lFoundOne = False
-                    continue
-
-                  if elemnum.factSign > 0 and elemsub.factSign < 0:
-                    lFoundOne = False
-                    continue
-
-
-                lOnlyOne = False
-                # print( 'elemsub start: {}, power: {}'.format( str( elemsub ), elemsub.power ))
-                # print( 'elemnum start: {}'.format( str( elemnum )))
-
-                elem3 = symexpress3.SymNumber()
-                elem3.factSign        = elemnum.factSign
-                elem3.factCounter     = elemnum.factCounter
-                elem3.factDenominator = elemnum.factDenominator
-                elem3.onlyOneRoot     = elemnum.onlyOneRoot
-
-                # elem1.factSign *= elem2.factSign
-                elemnum.factCounter     *= elemsub.factDenominator
-                elemnum.factDenominator *= elemsub.factDenominator
-
-                elemsub.factCounter     *= elem3.factDenominator
-                elemsub.factDenominator *= elem3.factDenominator
-
-                elem1factor = elemnum.factSign * elemnum.factCounter
-                elem2factor = elemsub.factSign * elemsub.factCounter
-
-                # print( 'elem1factor: {}'.format( elem1factor ))
-                # print( 'elem2factor: {}'.format( elem2factor ))
-
-                # print( 'elemnum.factDenominator: {}'.format( elemnum.factDenominator ))
-                # print( 'elemsub.factDenominator: {}'.format( elemsub.factDenominator ))
-
-                elemnum.factSign    = 1
-                elemnum.factCounter = elem1factor + elem2factor
-                # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-                elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-
-                # print( "elemnum end: {}".format( elemnum ))
-              else:
-                elemnew.add( elemsub )
-
-            # print( "elemnum add: {}".format( elemnum ))
-            if lFoundOne == False:
-              continue
-
-            elemnew.add( elemnum )
-            symExpr.elements[ iCnt ] = elemnew
-
-            # print( 'special, elemnew : {}'.format( str( elemnew  )))
-
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-            break
-
-          if ( elem1.power != 1 and elem2.power != 1 ):
-            # cannot add power of infinity, see optimizeInfinity.py
-            if "infinity" in elem1.getVariables():
-              continue
-
-            # 2 expression with powers
-            elemnew = symexpress3.SymExpress( '*' )
-            elemnew.add( symexpress3.SymNumber( 1, 2, 1, 1,1,1 ))
-            elemnew.add( elem1 )
-
-            symExpr.elements[ iCnt ] = elemnew
-
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-          elif ( elem1.power != 1 or elem2.power != 1 ):
-            # cannot add power of infinity, see optimizeInfinity.py
-            if "infinity" in elem1.getVariables():
-              continue
-
-            # 2 expression, 1 with power and 1 without
-            if elem1.power == 1 :
-              elemnew = elem1
-            else:
-              elemnew = elem2
-            # search number in elemnew and increase it with 1
-            for iCnt3 in range( elemnew.numElements()):
-              elemsub = elemnew.elements[ iCnt3 ]
-              if not isinstance( elemsub, symexpress3.SymNumber ):
-                continue
-              iNumAdd = elemsub.factDenominator
-
-              iFactCount          = elemsub.factCounter * elemsub.factSign + iNumAdd
-              elemsub.factSign    = 1
-              elemsub.factCounter = iFactCount
-              break
-
-            symExpr.elements[ iCnt ] = elemnew
-
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-            break
-
           else:
-            # 2 expression , same
-            elemnew = symexpress3.SymExpress( '*' )
-            elemnum = None
-
-            # dVal1 = elem1.getValue()
-            # dVal2 = elem2.getValue()
-
-            # cElem1 = str( elem1 )
-            # cElem2 = str( elem2 )
-
-            # print( 'elem1: {} = {}'.format( str( elem1 ), dVal1 ))
-            # print( 'elem2: {} = {}'.format( str( elem2 ), dVal2 ))
-            # print( 'totaal: {}'.format( dVal1 + dVal2 ))
-
-            elemexp = elem1
-
-            isinfinity = False
-            if "infinity" in elemexp.getVariables():
-              isinfinity = True
-
-            # take all the numbers form elem2
-            for iCnt3 in range( 0, elem2.numElements()):
-              elemsub = elem2.elements[ iCnt3 ]
-              if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
-                if elemnum == None :
-                  elemnum = elemsub
-                  continue
-
-                # print( 'elemnum: {}'.format( str( elemnum )))
-                # print( 'elemsub: {}'.format( str( elemsub )))
-
-                elem3 = symexpress3.SymNumber()
-                elem3.factSign        = elemnum.factSign
-                elem3.factCounter     = elemnum.factCounter
-                elem3.factDenominator = elemnum.factDenominator
-                elem3.onlyOneRoot     = elemnum.onlyOneRoot
-
-                elemnum.factCounter     = elemnum.factCounter     * elemsub.factCounter
-                elemnum.factDenominator = elemnum.factDenominator * elemsub.factDenominator
-
-                elemnum.factSign = elem3.factSign * elemsub.factSign
-                # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-                elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-
-                # print( 'elemnnum new: {}'.format( str( elemnum )))
-
-            # first expression had no number so it is 1
-            if elemnum == None :
-              elemnum = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
-
-            elemnew.onlyOneRoot      = elemexp.onlyOneRoot
-            elemnew.powerSign        = elemexp.powerSign
-            elemnew.powerCounter     = elemexp.powerCounter
-            elemnew.powerDenominator = elemexp.powerDenominator
-
-            # lFoundNum = False
-            elemnum2  = None
-            # elemexp is now the symexpress
-            for iCnt3 in range( 0, elemexp.numElements()):
-              elemsub = elemexp.elements[ iCnt3 ]
-
-              if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
-                if elemnum2 == None :
-                  elemnum2 = elemsub
-                  continue
-
-                elem3 = symexpress3.SymNumber()
-                elem3.factSign        = elemnum2.factSign
-                elem3.factCounter     = elemnum2.factCounter
-                elem3.factDenominator = elemnum2.factDenominator
-                elem3.onlyOneRoot     = elemnum2.onlyOneRoot
-
-                elemnum2.factCounter     = elemnum2.factCounter     * elemsub.factCounter
-                elemnum2.factDenominator = elemnum2.factDenominator * elemsub.factDenominator
-
-                elemnum2.factSign    = elem3.factSign * elemsub.factSign
-                # elemnum2.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-                elemnum2.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-
-              else:
-                elemnew.add( elemsub )
-
-            # second had no number so it is 1
-            if elemnum2 == None:
-              elemnum2 = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
-
-            if isinfinity == True:
-              #
-              # infinity + infinity - infinity = infinity - infinity = 0
-              # see optimzeInfinity.py
-              #
-              # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
-
-              # pylint: disable=chained-comparison
-              if elemnum.factSign < 0 and elemnum2.factSign > 0:
-                continue
-
-              if elemnum.factSign > 0 and elemnum2.factSign < 0:
-                continue
-
             elem3 = symexpress3.SymNumber()
-            elem3.factSign        = elemnum.factSign
-            elem3.factCounter     = elemnum.factCounter
-            elem3.factDenominator = elemnum.factDenominator
-            elem3.onlyOneRoot     = elemnum.onlyOneRoot
+            elem3.factSign        = elem1.factSign
+            elem3.factCounter     = elem1.factCounter
+            elem3.factDenominator = elem1.factDenominator
+            elem3.onlyOneRoot     = elem1.onlyOneRoot
 
-            elemnum.factCounter     *= elemnum2.factDenominator
-            elemnum.factDenominator *= elemnum2.factDenominator
+            # elem1.factSign *= elem2.factSign
+            elem1.factCounter     *= elem2.factDenominator
+            elem1.factDenominator *= elem2.factDenominator
 
-            elemnum2.factCounter     *= elem3.factDenominator
-            elemnum2.factDenominator *= elem3.factDenominator
+            elem2.factCounter     *= elem3.factDenominator
+            elem2.factDenominator *= elem3.factDenominator
 
-            elem1factor = elemnum.factSign  * elemnum.factCounter
-            elem2factor = elemnum2.factSign * elemnum2.factCounter
+            elem1factor = elem1.factSign * elem1.factCounter
+            elem2factor = elem2.factSign * elem2.factCounter
 
-            elemnum.factSign    = 1
-            elemnum.factCounter = elem1factor + elem2factor
-            # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-            elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+            elem1.factSign    = 1
+            elem1.factCounter = elem1factor + elem2factor
+            # elem1.onlyOneRoot = max( elem3.onlyOneRoot, elem2.onlyOneRoot )
+            elem1.onlyOneRoot = min( elem3.onlyOneRoot, elem2.onlyOneRoot )
 
-            elemnew.add( elemnum )
+          # print( "elem1 new: {}".format( str( elem1 )))
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+          # break
+          continue
 
-            # if ( (dVal1 + dVal2) != elemnew.getValue() ):
-            #   print( 'result: {} = {} = {} = {}  +  {}'.format( elemnew.getValue(), dVal1 + dVal2, str( elemnew ), cElem1, cElem2 ))
+        if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
+          elemnew = symexpress3.SymExpress( '*' )
+          elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
+          elemnew.add( elemnum )
+          elemnew.add( elem1   )
+          symExpr.elements[ iCnt ] = elemnew
 
-            symExpr.elements[ iCnt ] = elemnew
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+          # break
+          continue
 
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
+        if ( not isinstance( elem1, symexpress3.SymExpress ) or not isinstance( elem2, symexpress3.SymExpress ) ):
+
+          # print( 'special, elem1: {}, elem2: {}'.format( str( elem1 ), str( elem2 )))
+
+          # 2 different types, 1 is an expression
+          elemnew = symexpress3.SymExpress( '*' )
+          elemnum = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
+          if isinstance( elem1, symexpress3.SymExpress ):
+            elemexp = elem1
+          else:
+            # is is always a SymExpress type
+            elemexp = elem2 # type:ignore
+          elemnew.onlyOneRoot      = elemexp.onlyOneRoot
+          elemnew.powerSign        = elemexp.powerSign
+          elemnew.powerCounter     = elemexp.powerCounter
+          elemnew.powerDenominator = elemexp.powerDenominator
+
+          # print( "elemnew stap 1: {}".format( elemnew ))
+          isinfinity = False
+          if "infinity" in elemexp.getVariables():
+            isinfinity = True
+            # print( "!! Infinity: " + str( elemexp ) )
+
+          # elemexp is now the symexpress
+          lOnlyOne  = True
+          lFoundOne = True
+          for iCnt3 in range( 0, elemexp.numElements()):
+            elemsub = elemexp.elements[ iCnt3 ]
+            if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+
+              if isinfinity == True:
+                #
+                # infinity + infinity - infinity = infinity - infinity = 0
+                # see optimzeInfinity.py
+                #
+                # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
+
+                # pylint: disable=chained-comparison
+                if elemnum.factSign < 0 and elemsub.factSign > 0:
+                  lFoundOne = False
+                  continue
+
+                if elemnum.factSign > 0 and elemsub.factSign < 0:
+                  lFoundOne = False
+                  continue
+
+
+              lOnlyOne = False
+              # print( 'elemsub start: {}, power: {}'.format( str( elemsub ), elemsub.power ))
+              # print( 'elemnum start: {}'.format( str( elemnum )))
+
+              elem3 = symexpress3.SymNumber()
+              elem3.factSign        = elemnum.factSign
+              elem3.factCounter     = elemnum.factCounter
+              elem3.factDenominator = elemnum.factDenominator
+              elem3.onlyOneRoot     = elemnum.onlyOneRoot
+
+              # elem1.factSign *= elem2.factSign
+              elemnum.factCounter     *= elemsub.factDenominator
+              elemnum.factDenominator *= elemsub.factDenominator
+
+              elemsub.factCounter     *= elem3.factDenominator
+              elemsub.factDenominator *= elem3.factDenominator
+
+              elem1factor = elemnum.factSign * elemnum.factCounter
+              elem2factor = elemsub.factSign * elemsub.factCounter
+
+              # print( 'elem1factor: {}'.format( elem1factor ))
+              # print( 'elem2factor: {}'.format( elem2factor ))
+
+              # print( 'elemnum.factDenominator: {}'.format( elemnum.factDenominator ))
+              # print( 'elemsub.factDenominator: {}'.format( elemsub.factDenominator ))
+
+              elemnum.factSign    = 1
+              elemnum.factCounter = elem1factor + elem2factor
+              # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+              elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+
+              # print( "elemnum end: {}".format( elemnum ))
+            else:
+              elemnew.add( elemsub )
+
+          # print( "elemnum add: {}".format( elemnum ))
+          if lFoundOne == False:
+            continue
+
+          elemnew.add( elemnum )
+          symExpr.elements[ iCnt ] = elemnew
+
+          # print( 'special, elemnew : {}'.format( str( elemnew  )))
+
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+          # break
+          continue
+
+        if ( elem1.power != 1 and elem2.power != 1 ):
+          # cannot add power of infinity, see optimizeInfinity.py
+          if "infinity" in elem1.getVariables():
+            continue
+
+          # 2 expression with powers
+          elemnew = symexpress3.SymExpress( '*' )
+          elemnew.add( symexpress3.SymNumber( 1, 2, 1, 1,1,1 ))
+          elemnew.add( elem1 )
+
+          symExpr.elements[ iCnt ] = elemnew
+
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+        elif ( elem1.power != 1 or elem2.power != 1 ):
+          # cannot add power of infinity, see optimizeInfinity.py
+          if "infinity" in elem1.getVariables():
+            continue
+
+          # 2 expression, 1 with power and 1 without
+          if elem1.power == 1 :
+            elemnew = elem1
+          else:
+            elemnew = elem2
+          # search number in elemnew and increase it with 1
+          for iCnt3 in range( elemnew.numElements()):
+            elemsub = elemnew.elements[ iCnt3 ]
+            if not isinstance( elemsub, symexpress3.SymNumber ):
+              continue
+            iNumAdd = elemsub.factDenominator
+
+            iFactCount          = elemsub.factCounter * elemsub.factSign + iNumAdd
+            elemsub.factSign    = 1
+            elemsub.factCounter = iFactCount
             break
 
-        if lFound == True:
-          break
+          symExpr.elements[ iCnt ] = elemnew
+
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+          # break
+          continue
+
+        else:
+          # 2 expression , same
+          elemnew = symexpress3.SymExpress( '*' )
+          elemnum = None
+
+          # dVal1 = elem1.getValue()
+          # dVal2 = elem2.getValue()
+
+          # cElem1 = str( elem1 )
+          # cElem2 = str( elem2 )
+
+          # print( 'elem1: {} = {}'.format( str( elem1 ), dVal1 ))
+          # print( 'elem2: {} = {}'.format( str( elem2 ), dVal2 ))
+          # print( 'totaal: {}'.format( dVal1 + dVal2 ))
+
+          elemexp = elem1
+
+          isinfinity = False
+          if "infinity" in elemexp.getVariables():
+            isinfinity = True
+
+          # take all the numbers form elem2
+          for iCnt3 in range( 0, elem2.numElements()):
+            elemsub = elem2.elements[ iCnt3 ]
+            if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+              if elemnum == None :
+                elemnum = elemsub
+                continue
+
+              # print( 'elemnum: {}'.format( str( elemnum )))
+              # print( 'elemsub: {}'.format( str( elemsub )))
+
+              elem3 = symexpress3.SymNumber()
+              elem3.factSign        = elemnum.factSign
+              elem3.factCounter     = elemnum.factCounter
+              elem3.factDenominator = elemnum.factDenominator
+              elem3.onlyOneRoot     = elemnum.onlyOneRoot
+
+              elemnum.factCounter     = elemnum.factCounter     * elemsub.factCounter
+              elemnum.factDenominator = elemnum.factDenominator * elemsub.factDenominator
+
+              elemnum.factSign = elem3.factSign * elemsub.factSign
+              # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+              elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+
+              # print( 'elemnnum new: {}'.format( str( elemnum )))
+
+          # first expression had no number so it is 1
+          if elemnum == None :
+            elemnum = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
+
+          elemnew.onlyOneRoot      = elemexp.onlyOneRoot
+          elemnew.powerSign        = elemexp.powerSign
+          elemnew.powerCounter     = elemexp.powerCounter
+          elemnew.powerDenominator = elemexp.powerDenominator
+
+          # lFoundNum = False
+          elemnum2  = None
+          # elemexp is now the symexpress
+          for iCnt3 in range( 0, elemexp.numElements()):
+            elemsub = elemexp.elements[ iCnt3 ]
+
+            if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+              if elemnum2 == None :
+                elemnum2 = elemsub
+                continue
+
+              elem3 = symexpress3.SymNumber()
+              elem3.factSign        = elemnum2.factSign
+              elem3.factCounter     = elemnum2.factCounter
+              elem3.factDenominator = elemnum2.factDenominator
+              elem3.onlyOneRoot     = elemnum2.onlyOneRoot
+
+              elemnum2.factCounter     = elemnum2.factCounter     * elemsub.factCounter
+              elemnum2.factDenominator = elemnum2.factDenominator * elemsub.factDenominator
+
+              elemnum2.factSign    = elem3.factSign * elemsub.factSign
+              # elemnum2.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+              elemnum2.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+
+            else:
+              elemnew.add( elemsub )
+
+          # second had no number so it is 1
+          if elemnum2 == None:
+            elemnum2 = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
+
+          if isinfinity == True:
+            #
+            # infinity + infinity - infinity = infinity - infinity = 0
+            # see optimzeInfinity.py
+            #
+            # print( f"elemnum.factSign: {elemnum.factSign}, elemsub.factSign: {elemsub.factSign}" )
+
+            # pylint: disable=chained-comparison
+            if elemnum.factSign < 0 and elemnum2.factSign > 0:
+              continue
+
+            if elemnum.factSign > 0 and elemnum2.factSign < 0:
+              continue
+
+          elem3 = symexpress3.SymNumber()
+          elem3.factSign        = elemnum.factSign
+          elem3.factCounter     = elemnum.factCounter
+          elem3.factDenominator = elemnum.factDenominator
+          elem3.onlyOneRoot     = elemnum.onlyOneRoot
+
+          elemnum.factCounter     *= elemnum2.factDenominator
+          elemnum.factDenominator *= elemnum2.factDenominator
+
+          elemnum2.factCounter     *= elem3.factDenominator
+          elemnum2.factDenominator *= elem3.factDenominator
+
+          elem1factor = elemnum.factSign  * elemnum.factCounter
+          elem2factor = elemnum2.factSign * elemnum2.factCounter
+
+          elemnum.factSign    = 1
+          elemnum.factCounter = elem1factor + elem2factor
+          # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+          elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+
+          elemnew.add( elemnum )
+
+          # if ( (dVal1 + dVal2) != elemnew.getValue() ):
+          #   print( 'result: {} = {} = {} = {}  +  {}'.format( elemnew.getValue(), dVal1 + dVal2, str( elemnew ), cElem1, cElem2 ))
+
+          symExpr.elements[ iCnt ] = elemnew
+
+          # del symExpr.elements[ iCnt2 ]
+          arrDel.append( iCnt2 )
+          lFound = True
+          result = True
+          # break
+          continue
+
+        # if lFound == True:
+        #   break
+
+    # del elements
+    for iCnt in sorted( arrDel, reverse=True):
+      del symExpr.elements[ iCnt ]
+
+    arrDel.append( iCnt2 )
     # print( 'add element end: {}'.format( str( symExpr )))
     # addAfter = str( symExpr )
     # if ( addBefore != addAfter ):
