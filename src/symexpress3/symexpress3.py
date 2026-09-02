@@ -99,6 +99,7 @@ import math
 # import warnings
 import typing
 # import gc
+from datetime import datetime
 
 # import traceback
 
@@ -129,7 +130,16 @@ type TypVarSym3VarDictNone= None|dict[str,str]
 
 type TypVarSym3GetVarFunc = dict[str,int]
 
-
+#
+# debug
+# 0 = no debug
+# 1 = show optimizeExtended actions
+# 2 = as 1 and show optimizeNormal actions
+#
+# use  symexpress3.symexpress3.globalDebugLevel = int( cArg )  to set variable
+#
+globalDebugLevel:int            = 0
+globalDebugFileFormula:None|str = None  # used for dump formula after each action in optimizeNormal
 
 # Classes:
 # - SymNumber      : Number
@@ -151,6 +161,13 @@ colorfuncspecbad = "#e67e22"  # orange, functions without calculations but with 
 
 # threads are slower then non-threads... to do (factor 9 for the test-script is len > 1)
 globalUseThreads      = False # use thread, see _optSubThread()
+
+def _debugMessage( cText:str ) -> None :
+  """
+  Print debug text to stdout
+  """
+  curDateTime = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+  print( f"{curDateTime} - {cText}" )
 
 #
 # rounding
@@ -2347,6 +2364,7 @@ class SymExpress( SymBaseList ):
     \n filehandle = file handle
     \n If output and/or a filehandle is given then all the sub-optimizations will be written to it.
     """
+
     def _printCalc() -> None :
       if ( extra != None and "calculation" in extra ):
         # dValue = self.getValue( varDict )
@@ -2375,7 +2393,18 @@ class SymExpress( SymBaseList ):
 
         for cAction in arrAction:
           # print( f"_optimizeAction: {cAction}" )
-          bChanged |= self.optimize( cAction )
+
+          if globalDebugLevel > 1 :
+            _debugMessage( f"start action: {cAction} count: {iCnt}")
+
+          bChanged |= self.optimize( None if cAction == "none" else cAction )
+
+          if globalDebugLevel > 1 :
+            _debugMessage( f"end   action: {cAction} count: {iCnt}, changed: {bChanged}")
+
+            if globalDebugFileFormula != None:
+              with open( globalDebugFileFormula, mode="w", encoding="utf-8") as f:
+                f.write( str( self ) )
 
           cCode = cAction
 
@@ -2385,12 +2414,12 @@ class SymExpress( SymBaseList ):
 
         # print( "optimizeAction after 2: " + cText + " " + str( self ) )
 
+        if bChanged == False:
+          break # nothing changed, leave loop
+
         # max iteration reached and no output, leave
         if iCnt >= maxCount and output == None and filehandle == None:
           break
-
-        if bChanged == False:
-          break # nothing changed, leave loop
 
         if output != None:
           output.writeLine( '<br>' + cText + ' [' + cCode + '] ' + str( iCnt ) )
@@ -2403,6 +2432,8 @@ class SymExpress( SymBaseList ):
 
         _printCalc()
 
+    if globalDebugLevel > 1 :
+      _debugMessage( "optimizeNormal start")
 
     if output != None:
       if not isinstance( output , SymToHtml ):
@@ -2426,19 +2457,23 @@ class SymExpress( SymBaseList ):
     cTestBig  = str( self )
     maxBig    = 10
     while( iCntBig < maxBig and cStartBig != cTestBig):
+
+      if globalDebugLevel > 1 :
+        _debugMessage( f"optimizeNormal iCntBig: {iCntBig}")
+
+
       cStartBig  = cTestBig
       iCntBig   += 1
 
       # print( f"optimizeNormal loop: {iCntBig}")
 
-      _optimizeAction( []                  , "Optimize expression"    ,  1 )
-      # _optimizeAction( [ "power"          ], "Eliminate powers"       , 10 )
-      _optimizeAction( [ "onlyOneRoot"    ], "Simplify only one roots",  1 )
-      _optimizeAction( [ "power"          ], "Eliminate powers"       , 10 )
-      _optimizeAction( [ "multiply"       ], "Multiply elements"      , 10 )
-      _optimizeAction( [ "i"              ], "Write out i"            ,  1 )
-      _optimizeAction( [ "add"            ], "Add elements"           , 10 )
-      _optimizeAction( [ "divideDivide"   ], "Divide divide"          ,  1 )
+      _optimizeAction( []                          , "Optimize expression"       ,  1 )
+      _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
+      _optimizeAction( [ "power"                  ], "Eliminate powers"          , 10 )
+      _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
+      _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
+      _optimizeAction( [ "add"                    ], "Add elements"              , 10 )
+      _optimizeAction( [ "divideDivide"           ], "Divide divide"             ,  1 )
 
 
       if iCntBig < maxBig:
@@ -2448,6 +2483,9 @@ class SymExpress( SymBaseList ):
       output.writeLine( '<br>' )
     if filehandle != None:
       print( " ", file=filehandle )
+
+    if globalDebugLevel > 1 :
+      _debugMessage( "optimizeNormal end")
 
     # cleanup memory
     # does not work...
@@ -2488,8 +2526,14 @@ class SymExpress( SymBaseList ):
         iCnt += 1
 
         for cAction in arrAction:
+          if globalDebugLevel > 0:
+            _debugMessage( f"start action: {cAction} count:{iCnt}")
+
           bChanged |= self.optimize( cAction )
           cCode     = cAction
+
+          if globalDebugLevel > 0:
+            _debugMessage( f"end   action: {cAction} count: {iCnt} changed: {bChanged}")
 
         # print( f"_optimizeAction: {cAction}, {iCnt}, bChanged: {bChanged}" )
 
@@ -2508,6 +2552,9 @@ class SymExpress( SymBaseList ):
         self.optimizeNormal( output, filehandle, extra, varDict )
         _printCalc( arrAction[0], iCnt, iCntBig )
 
+    if globalDebugLevel > 0:
+      _debugMessage( "optimizeExtended start")
+
     _printCalc( 'start', 0, 0 )
 
 
@@ -2520,6 +2567,10 @@ class SymExpress( SymBaseList ):
     cTest     = str( self )
     iBigMax   = 8
     while( iCntBig < iBigMax and cStartBig != cTest  ):
+
+      if globalDebugLevel > 0 :
+        _debugMessage( f"optimizeExtended iCntBig: {iCntBig}")
+
       cStartBig = cTest
       iCntBig  += 1
 
@@ -2573,6 +2624,9 @@ class SymExpress( SymBaseList ):
 
     if filehandle != None:
       print( " ", file=filehandle )
+
+    if globalDebugLevel > 0:
+      _debugMessage( "optimizeExtended end")
 
 
   # copy the expression (sort of deep copy)
@@ -3184,7 +3238,7 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
           cParam2 = SymExpress()
           cParam2.powerCounter = iExpt
           # cParam2.add( cParam ) # type:ignore
-          cParam2.elements.append( cParam )
+          cParam2.elements.append( cParam ) # type:ignore
           oExpress = cParam2
         else:
           oExpress = cParam # type:ignore
@@ -3353,7 +3407,20 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
   if cFormula == None:
     return SymExpress( '*' )
 
-  return _symFormulaParser ( cFormula )
+  #
+  # parser used optimizeNormal()
+  # but we don't want debug message from it
+  #
+  global globalDebugLevel  # pylint: disable=global-statement
+
+  rememberDebug    = globalDebugLevel
+  globalDebugLevel = 0
+
+  result = _symFormulaParser ( cFormula )
+
+  globalDebugLevel = rememberDebug
+
+  return result
 
 # .........
 # Last line

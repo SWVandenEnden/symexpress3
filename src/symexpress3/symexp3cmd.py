@@ -127,7 +127,8 @@ def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:l
 
       else:
         print( "Unknown output (-o) : {outputType}" )
-        return # stop by unknown output`
+        sys.exit(1)
+        # return # stop by unknown output`
 
 
 
@@ -155,6 +156,7 @@ def CheckOptimizeActions( cList:str ) -> list[str]:
       continue
 
     print( f"Unknown optimize action (-a) : {optKey}" )
+    sys.exit(1)
 
   return actions
 
@@ -195,6 +197,7 @@ def DisplayList( listTypes:str ) -> None:
 
     else:
       print( f"Unknown -list options: {listType}" )
+      sys.exit(1)
 
 def DisplayVersion() -> None:
   """
@@ -243,6 +246,9 @@ def DisplayHelp() -> None:
   print( "Example: " )
   print( 'python -m symexpress3 -v -l fav -o sc "cos( pi / 4 )^^(1/3)"' )
 
+  sys.exit(1)
+
+
 def CommandLine( argv:list[str] ) -> None:
   """
   Process the symexpres3 command line parameters
@@ -270,28 +276,37 @@ def CommandLine( argv:list[str] ) -> None:
         data = Path( cArg ).read_text( encoding="utf-8" )
         expressions.append( data )
 
-      case "list"      : DisplayList( cArg )
-      case "exportfile": exportFile      = cArg
-      case "output"    : outputFormat    = cArg
-      case "optimize"  : optimizeActions = CheckOptimizeActions( cArg )
-      case "precision" : mpmath.mp.dps   = int( cArg )
+      case "list"        : DisplayList( cArg )
+      case "exportfile"  : exportFile      = cArg
+      case "output"      : outputFormat    = cArg
+      case "optimize"    : optimizeActions = CheckOptimizeActions( cArg )
+      case "precision"   : mpmath.mp.dps   = int( cArg )
+
+      case "debug"       : symexpress3.symexpress3.globalDebugLevel       = int( cArg )
+      case "debugfrm"    : symexpress3.symexpress3.globalDebugFileFormula =      cArg
+
 
     if mode != "":
       mode = ""
       continue
 
     match cArg:
-      case "-h"  : DisplayHelp()
-      case "-v"  : DisplayVersion()
-      case "-l"  : mode = "list"
-      case "-o"  : mode = "output"
-      case "-a"  : mode = "optimize"
-      case "-f"  : mode = "file"
-      case "-e"  : mode = "exportfile"
-      case "-dps": mode = "precision"
+      case "-h"   : DisplayHelp()
+      case "-v"   : DisplayVersion()
+      case "-l"   : mode = "list"
+      case "-o"   : mode = "output"
+      case "-a"   : mode = "optimize"
+      case "-f"   : mode = "file"
+      case "-e"   : mode = "exportfile"
+      case "-dps" : mode = "precision"
+
+      case "-debug"   : mode = "debug"
+      case "-debugfrm": mode = "debugfrm"
+
       case _:
         if cArg.startswith( "-" ):
           print( f"Unknown option: {cArg}, use -h for help")
+          sys.exit(1)
         else:
           # collect the given expression, process after all the options are read
           expressions.append( cArg )
