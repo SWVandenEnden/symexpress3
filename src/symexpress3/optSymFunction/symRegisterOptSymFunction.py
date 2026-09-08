@@ -42,7 +42,7 @@ from symexpress3.optSymFunction import optSymFunctionAcosToSum
 from symexpress3.optSymFunction import optSymFunctionGammaToIntegral
 from symexpress3.optSymFunction import optSymFunctionHypergeometricToSum
 from symexpress3.optSymFunction import optSymFunctionLogSplit
-
+from symexpress3.optSymFunction import optSymFunctionGammaNegative
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -70,7 +70,7 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaToIntegral.OptSymFunctionGammaToIntegral()               )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionHypergeometricToSum.OptSymFunctionHypergeometricToSum()       )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionLogSplit.OptSymFunctionLogSplit()                             )
-
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaNegative.OptSymFunctionGammaNegative()                   )
 
 
 #
@@ -101,6 +101,8 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optSymFunctionGammaToIntegral        )
   symModules.append( optSymFunctionHypergeometricToSum    )
   # symModules.append( optSymFunctionLogSplit               ) do not register, test are in symFunclog.py
+  symModules.append( optSymFunctionGammaNegative          )
+
 
   return symModules
 

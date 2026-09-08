@@ -2357,7 +2357,7 @@ class SymExpress( SymBaseList ):
     return result
 
 
-  def optimizeNormal( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|dict[str,str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
+  def optimizeNormal( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|list[str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
     """
     Normalize the expression, this is a combination of optimize(), multiply, i, power and add optimize methods
     \n output = SymToHtml class
@@ -2395,16 +2395,18 @@ class SymExpress( SymBaseList ):
           # print( f"_optimizeAction: {cAction}" )
 
           if globalDebugLevel > 1 :
-            _debugMessage( f"start action: {cAction} count: {iCnt}")
+            if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+              _debugMessage( f"start action: {cAction} count: {iCnt}")
 
           bChanged |= self.optimize( None if cAction == "none" else cAction )
 
           if globalDebugLevel > 1 :
-            _debugMessage( f"end   action: {cAction} count: {iCnt}, changed: {bChanged}")
+            if extra == None or 'nodebug' not in extra:
+              _debugMessage( f"end   action: {cAction} count: {iCnt}, changed: {bChanged}")
 
-            if globalDebugFileFormula != None:
-              with open( globalDebugFileFormula, mode="w", encoding="utf-8") as f:
-                f.write( str( self ) )
+              if globalDebugFileFormula != None:
+                with open( globalDebugFileFormula, mode="w", encoding="utf-8") as f:
+                  f.write( str( self ) )
 
           cCode = cAction
 
@@ -2433,7 +2435,8 @@ class SymExpress( SymBaseList ):
         _printCalc()
 
     if globalDebugLevel > 1 :
-      _debugMessage( "optimizeNormal start")
+      if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+        _debugMessage( "optimizeNormal start")
 
     if output != None:
       if not isinstance( output , SymToHtml ):
@@ -2459,7 +2462,11 @@ class SymExpress( SymBaseList ):
     while( iCntBig < maxBig and cStartBig != cTestBig):
 
       if globalDebugLevel > 1 :
-        _debugMessage( f"optimizeNormal iCntBig: {iCntBig}")
+        if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+          _debugMessage( f"optimizeNormal iCntBig: {iCntBig}")
+        else:
+          _debugMessage( f"optimizeNormal nodebug flag iCntBig: {iCntBig}")
+
 
 
       cStartBig  = cTestBig
@@ -2470,7 +2477,8 @@ class SymExpress( SymBaseList ):
       _optimizeAction( []                          , "Optimize expression"       ,  1 )
       _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
       _optimizeAction( [ "power"                  ], "Eliminate powers"          , 10 )
-      _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
+      # _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
+      _optimizeAction( [ "multiply"               ], "Multiply"                  , 10 )
       _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
       _optimizeAction( [ "add"                    ], "Add elements"              , 10 )
       _optimizeAction( [ "divideDivide"           ], "Divide divide"             ,  1 )
@@ -2485,14 +2493,15 @@ class SymExpress( SymBaseList ):
       print( " ", file=filehandle )
 
     if globalDebugLevel > 1 :
-      _debugMessage( "optimizeNormal end")
+      if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+        _debugMessage( "optimizeNormal end")
 
     # cleanup memory
     # does not work...
     # gc.collect()
 
 
-  def optimizeExtended( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|dict[str,str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
+  def optimizeExtended( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|list[str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
     """
     Optimize the expression in all the possibilities, this use the power, multiply, i , add, radicals, unnestingRadicals, nestedRadicals, imaginairDenominator, splitDenominator, sinTwoCosTwo and functionToValues optimizations
     \n output = SymToHtml class

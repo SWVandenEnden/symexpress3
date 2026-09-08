@@ -21,11 +21,13 @@
 
 
     https://en.wikipedia.org/wiki/Binomial_theorem
+    https://en.wikipedia.org/wiki/Binomial_series
 
 """
 
 import typing
 import math
+import mpmath  # type:ignore
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symFuncBase
@@ -83,39 +85,81 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
 
     elem = typing.cast( symexpress3.SymFunction, elem )
 
+    # check if there are vars in expression...
+    dVars = elem.getVariables()
+
+    sDiff = dVars.keys() - ['i', 'e', 'pi'] # skip fixed vars
+
+    if sDiff:
+      return None
+
     elem1 = elem.elements[ 0 ]
     elem2 = elem.elements[ 1 ]
 
     # x over y  = x! / ( y! * (x - y)!)
     # (x)
     # (y)
+    #
+    # fallingfactorial( elem1, elem2 ) / factorial( elem2 )
+    # fallingfactorial( elem1, elem2 ) / gamma( elem2 + 1 )
+
+    elem1type = 'posint'
     if not isinstance( elem1, symexpress3.SymNumber):
-      return None
+      elem1type = 'falling'
+    elif elem1.factSign == -1:
+      elem1type = 'falling'
+    elif elem1.factDenominator != 1:
+      elem1type = 'falling'
+    elif elem1.power != 1:
+      elem1type = 'falling'
 
-    if elem1.power != 1:
-      return None
-
-    if elem1.factSign == -1:
-      return None
-
-    if elem1.factDenominator != 1:
-      return None
-
-
+    elem2type = "posint"
     if not isinstance( elem2, symexpress3.SymNumber ):
-      return None
+      elem2type = "gamma"
+    elif elem2.factSign == -1:
+      elem2type = "gamma"
+    elif elem2.factDenominator != 1:
+      elem2type = "gamma"
+    elif elem2.power != 1:
+      elem2type = "gamma"
 
-    if elem2.power != 1:
-      return None
+    fncSec:symexpress3.SymExpress|symexpress3.SymFunction|symexpress3.SymNumber
 
-    if elem2.factSign == -1:
-      return None
+    if elem1type == 'posint' and elem2type == 'posint' :
+      dValue  = math.comb( elem1.getValue(), elem2.getValue() ) # type:ignore
+      elemnew = symexpress3.SymFormulaParser( str( dValue ))
+    else:
+      fncFalling = symexpress3.SymFunction( 'fallingfactorial' )
+      fncFalling.add( elem1 )
+      fncFalling.add( elem2 )
 
-    if elem2.factDenominator != 1:
-      return None
+      if elem2type == "gamma" :
+        # special case if elem2 is a negative hole number then result is zero [gamma(-neg)=infinity, 1/fininity = 0]
+        if (   isinstance( elem2, symexpress3.SymNumber )
+           and elem2.factDenominator ==  1
+           and elem2.factSign        == -1
+           and elem2.power           ==  1
+           ):
+          fncSec = symexpress3.SymNumber( 1,0,1 ) #  zero
+        else:
+          fncParam = symexpress3.SymExpress( '+')
+          fncParam.add( symexpress3.SymNumber() ) # one (1)
+          fncParam.add( elem2 )
 
-    dValue  = math.comb( elem1.getValue(), elem2.getValue() ) # type:ignore
-    elemnew = symexpress3.SymFormulaParser( str( dValue ))
+          fncSec = symexpress3.SymFunction( 'gamma' )
+          fncSec.add( fncParam )
+          fncSec.powerSign = -1
+
+      else:
+        fncSec = symexpress3.SymFunction( 'factorial' )
+        fncSec.add( elem2 )
+        fncSec.powerSign = -1
+
+
+      elemnew = symexpress3.SymExpress( '*' )
+      elemnew.add( fncFalling )
+      elemnew.add( fncSec     )
+
 
     elemnew.powerSign        = elem.powerSign
     elemnew.powerCounter     = elem.powerCounter
@@ -124,7 +168,7 @@ class SymFuncBinomial( symFuncBase.SymFuncBase ):
     return elemnew
 
   def _getValueSingle( self, dValue:symexpress3.TypVarSym3Value, dValue2:None|symexpress3.TypVarSym3Value = None ) -> symexpress3.TypVarSym3Value :
-    return math.comb( dValue, dValue2 ) # type:ignore
+    return mpmath.binomial( dValue, dValue2 )
 
 #
 # Test routine (unit test), see testsymexpress3.py
@@ -161,6 +205,34 @@ def Test( display:bool = False) -> None :
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
   _Check(  testClass, symTest, value, dValue, "21", 21 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'binomial( 7, -1 )' )
+  symTest.optimize()
+  testClass = SymFuncBinomial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check(  testClass, symTest, value, dValue, "fallingfactorial( 7,(-1) ) * 0", 0 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'binomial( 1/2, 2 )' )
+  symTest.optimize()
+  testClass = SymFuncBinomial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check(  testClass, symTest, value, dValue, "fallingfactorial( (1/2),2 ) *  factorial( 2 )^^-1", -0.125 )
+
+
+  symTest = symexpress3.SymFormulaParser( 'binomial( 1/2, 17/5 )' )
+  symTest.optimize()
+  testClass = SymFuncBinomial()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check(  testClass, symTest, value, dValue, "fallingfactorial( (1/2),17 * (1/5) ) *  gamma( 1 + 17 * (1/5) )^^-1", 0.0157155437 )
+
 
 if __name__ == '__main__':
   Test( True )

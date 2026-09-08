@@ -45,6 +45,7 @@ from symexpress3.optimize import optimizeCompositeDenominator
 from symexpress3.optimize import optimizeFlipDenominator
 from symexpress3.optimize import optimizeNumberOutDenominator
 from symexpress3.optimize import optimizeCompactDenominator
+from symexpress3.optimize import optimizeAddSum
 
 
 #
@@ -75,6 +76,7 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optimize', optimizeFlipDenominator.OptimizeFlipDenominator()                 )
   symtables.RegisterTableEntry( 'optimize', optimizeNumberOutDenominator.OptimizeNumberOutDenominator()       )
   symtables.RegisterTableEntry( 'optimize', optimizeCompactDenominator.OptimizeCompactDenominator()           )
+  symtables.RegisterTableEntry( 'optimize', optimizeAddSum.OptimizeAddSum()                                   )
 
 
 
@@ -109,7 +111,7 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optimizeFlipDenominator        )
   symModules.append( optimizeNumberOutDenominator   )
   symModules.append( optimizeCompactDenominator     )
-
+  symModules.append( optimizeAddSum                 )
 
 
   return symModules

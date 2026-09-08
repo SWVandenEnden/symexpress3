@@ -27,6 +27,7 @@ from symexpress3.optSymNumber import optSymNumberPower
 from symexpress3.optSymNumber import optSymNumberNegRootToI
 from symexpress3.optSymNumber import optSymNumberRadicalDenominatorToCounter
 from symexpress3.optSymNumber import optSymNumberOnlyOneRoot
+from symexpress3.optSymNumber import optSymNumberRadicalNumberToSum
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -36,10 +37,12 @@ def SymRegisterOptimize() -> None :
   Register all the number optimize classes
   """
 
-  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberPower.OptSymNumberPower()           )
-  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberNegRootToI.OptSymNumberNegRootToI() )
+  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberPower.OptSymNumberPower()                                             )
+  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberNegRootToI.OptSymNumberNegRootToI()                                   )
   symtables.RegisterTableEntry( 'optSymNumber', optSymNumberRadicalDenominatorToCounter.OptSymNumberRadicalDenominatorToCounter() )
-  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberOnlyOneRoot.OptSymNumberOnlyOneRoot() )
+  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberOnlyOneRoot.OptSymNumberOnlyOneRoot()                                 )
+  symtables.RegisterTableEntry( 'optSymNumber', optSymNumberRadicalNumberToSum.OptSymNumberRadicalNumberToSum()                   )
+
 
 
 #
@@ -55,6 +58,7 @@ def SymRegisterGetModuleNames() -> list[typing.Any]:
   symModules.append( optSymNumberNegRootToI                  )
   symModules.append( optSymNumberRadicalDenominatorToCounter )
   symModules.append( optSymNumberOnlyOneRoot                 )
+  symModules.append( optSymNumberRadicalNumberToSum          )
 
   return symModules
 

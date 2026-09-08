@@ -230,14 +230,24 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       # print ( "_multiplyElemExpressExpress start")
+      arrDel:list[int] = []
 
-      lFound = True
-      while( lFound == True and len( symExpr.elements ) > 1 ):
+      # lFound = True
+      # while( lFound == True and len( symExpr.elements ) > 1 ):
+      if len( symExpr.elements ) > 1:
+
         lFound = False
 
         # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
 
-        for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
+        maxLen1 = len( symExpr.elements ) - 1
+        maxLen2 = len( symExpr.elements )
+        # for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
+        for iCnt in range( 0, maxLen1 ) :
+
+          if iCnt in arrDel:
+            continue
+
           elem1 = symExpr.elements[ iCnt ]
 
           # only multiple expressions
@@ -249,13 +259,27 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             continue
 
           # only multiply with power of 1
-          if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
+          # if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
+          if  elem1.power not in (1, -1):
             continue
 
-          iCnt2 = iCnt + 1
-          while( lFound == False and iCnt2 < len( symExpr.elements )):
+          # iCnt2 = iCnt + 1
+          # while( lFound == False and iCnt2 < len( symExpr.elements )):
+          # while( iCnt2 < len( symExpr.elements )):
+
+          # for iCnt2 in range( iCnt + 1, len( symExpr.elements )) :
+          for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+            if iCnt2 in arrDel:
+              continue
+
+            if lFound == True:
+              elem1 = symExpr.elements[ iCnt ]
+              elem1 = typing.cast( symexpress3.SymExpress, elem1)
+              lFound = False
+
             elem2  = symExpr.elements[ iCnt2 ]
-            iCnt2 += 1
+            # iCnt2 += 1
 
             # only multiply expressions
             if not isinstance( elem2 , symexpress3.SymExpress ):
@@ -263,8 +287,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             # only + expressions
             if elem2.symType != '+':
               continue
+
             # only multiply with power of 1
-            if elem2.power != elem1.power:
+            if elem2.power not in (1, -1):
+              continue
+            if elem2.powerSign != elem1.powerSign:
               continue
 
             # 2 plus expression with power of 1
@@ -294,15 +321,22 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
                 elem12.elements.append( elemSub2 )
                 elemnew.add( elem12 )
 
+            elemnew.optimizeNormal( extra=['nodebug']) # make's it smaller but is this wise on this level
+
             symExpr.elements[ iCnt ] = elemnew
-            del symExpr.elements[ iCnt2 - 1 ] # already has done +1
+            # del symExpr.elements[ iCnt2 - 1 ] # already has done +1
+            arrDel.append( iCnt2 )
             lFound = True
             result = True
 
-          if lFound == True:
-            break
+          # if lFound == True:
+          #   break
 
       # print ( f"_multiplyElemExpressExpress end: {result}")
+
+      # del elements
+      for iCnt in sorted( arrDel, reverse=True):
+        del symExpr.elements[ iCnt ]
 
       return result
 

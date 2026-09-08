@@ -23,6 +23,7 @@
     https://en.wikipedia.org/wiki/Gamma_function
 
     see also optSymFunctionGammaToIntegral.py
+             OptSymFunctionGammaNegative.py
 
 """
 
@@ -237,6 +238,8 @@ class SymFuncGamma( symFuncBase.SymFuncBase ):
     elemNew = _smallestGamma( elem1, elem )
     if elemNew != None:
       return elemNew
+
+    # negative integer gamma, see OptSymFunctionGammaNegative
 
     return elemNew
 

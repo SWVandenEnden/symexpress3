@@ -143,20 +143,23 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
 
     elemNew:symexpress3.TypVarSym3Object
 
-    for iCntVal in range( startVal, endVal + 1 ):
-      if isinstance( elemFunc, symexpress3.SymVariable ):
+    if isinstance( elemFunc, symexpress3.SymVariable ):
+      for iCntVal in range( startVal, endVal + 1 ):
         if elemFunc.name == varName:
           elemNew = symexpress3.SymNumber( 1, iCntVal, 1, elemFunc.powerSign, elemFunc.powerCounter, elemFunc.powerDenominator, 1 )
         else:
           elemNew = elemFunc
-      else:
-        dDict = {}
+        elemList.add( elemNew )
+    else:
+      dDict = {}
+      for iCntVal in range( startVal, endVal + 1 ):
         dDict[ varName ] = str( iCntVal )
 
         elemNew = elemFunc.copy()
         elemNew.replaceVariable( dDict )
 
-      elemList.add( elemNew )
+        elemList.add( elemNew )
+        elemList.optimizeNormal( extra=['nodebug'] )
 
     # self.elements[ iCnt ] = elemList
     return elemList
