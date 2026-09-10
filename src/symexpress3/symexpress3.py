@@ -140,6 +140,8 @@ type TypVarSym3GetVarFunc = dict[str,int]
 #
 globalDebugLevel:int            = 0
 globalDebugFileFormula:None|str = None  # used for dump formula after each action in optimizeNormal
+globalDebugNoDebugCount:int     = 0     # counter for nodebug
+globalDebugNoDebugLevel:int     = 0     # how many levels deep
 
 # Classes:
 # - SymNumber      : Number
@@ -2434,7 +2436,12 @@ class SymExpress( SymBaseList ):
 
         _printCalc()
 
+    global globalDebugNoDebugCount # pylint: disable=global-statement
+    global globalDebugNoDebugLevel # pylint: disable=global-statement
+
     if globalDebugLevel > 1 :
+      globalDebugNoDebugLevel += 1
+
       if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
         _debugMessage( "optimizeNormal start")
 
@@ -2455,6 +2462,7 @@ class SymExpress( SymBaseList ):
 
     # print( "optimizeNormal start")
 
+
     cStartBig = ''
     iCntBig   = 0
     cTestBig  = str( self )
@@ -2462,10 +2470,13 @@ class SymExpress( SymBaseList ):
     while( iCntBig < maxBig and cStartBig != cTestBig):
 
       if globalDebugLevel > 1 :
+
         if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
           _debugMessage( f"optimizeNormal iCntBig: {iCntBig}")
+          globalDebugNoDebugCount = 0
         else:
-          _debugMessage( f"optimizeNormal nodebug flag iCntBig: {iCntBig}")
+          globalDebugNoDebugCount += 1
+          _debugMessage( f"optimizeNormal nodebug flag (count:{globalDebugNoDebugCount}, level:{globalDebugNoDebugLevel}) iCntBig: {iCntBig}")
 
 
 
@@ -2493,6 +2504,8 @@ class SymExpress( SymBaseList ):
       print( " ", file=filehandle )
 
     if globalDebugLevel > 1 :
+      globalDebugNoDebugLevel -= 1
+
       if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
         _debugMessage( "optimizeNormal end")
 

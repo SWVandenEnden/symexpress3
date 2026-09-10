@@ -34,7 +34,6 @@ from symexpress3.optSymFunction import optSymFunctionCosAtanDiv3
 from symexpress3.optSymFunction import optSymFunctionCosToE
 from symexpress3.optSymFunction import optSymFunctionSinToE
 from symexpress3.optSymFunction import optSymFunctionEToCosSin
-from symexpress3.optSymFunction import optSymFunctionEToSum
 from symexpress3.optSymFunction import optSymFunctionNumberToPrimeFactors
 from symexpress3.optSymFunction import optSymFunctionNumberToDivisors
 from symexpress3.optSymFunction import optSymFunctionAsinToSum
@@ -43,6 +42,7 @@ from symexpress3.optSymFunction import optSymFunctionGammaToIntegral
 from symexpress3.optSymFunction import optSymFunctionHypergeometricToSum
 from symexpress3.optSymFunction import optSymFunctionLogSplit
 from symexpress3.optSymFunction import optSymFunctionGammaNegative
+from symexpress3.optSymFunction import optSymFunctionExpToSum
 
 #
 # automatic called from symepxress3 too fill functionTable[]
@@ -62,7 +62,6 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionCosToE.OptSymFunctionCosToE()                                 )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionSinToE.OptSymFunctionSinToE()                                 )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToCosSin.OptSymFunctionEToCosSin()                           )
-  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionEToSum.OptSymFunctionEToSum()                                 )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToPrimeFactors.OptSymFunctionNumberToPrimeFactors()     )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionNumberToDivisors.OptSymFunctionNumberToDivisors()             )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionAsinToSum.OptSymFunctionAsinToSum()                           )
@@ -71,6 +70,8 @@ def SymRegisterOptimize() -> None :
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionHypergeometricToSum.OptSymFunctionHypergeometricToSum()       )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionLogSplit.OptSymFunctionLogSplit()                             )
   symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionGammaNegative.OptSymFunctionGammaNegative()                   )
+  symtables.RegisterTableEntry( 'optSymFunction', optSymFunctionExpToSum.OptSymFunctionExpToSum()                             )
+
 
 
 #
@@ -93,7 +94,6 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optSymFunctionCosToE                 )
   symModules.append( optSymFunctionSinToE                 )
   symModules.append( optSymFunctionEToCosSin              )
-  symModules.append( optSymFunctionEToSum                 )
   symModules.append( optSymFunctionNumberToPrimeFactors   )
   symModules.append( optSymFunctionNumberToDivisors       )
   symModules.append( optSymFunctionAsinToSum              )
@@ -102,6 +102,7 @@ def SymRegisterGetModuleNames() -> list[typing.Any] :
   symModules.append( optSymFunctionHypergeometricToSum    )
   # symModules.append( optSymFunctionLogSplit               ) do not register, test are in symFunclog.py
   symModules.append( optSymFunctionGammaNegative          )
+  symModules.append( optSymFunctionExpToSum               )
 
 
   return symModules

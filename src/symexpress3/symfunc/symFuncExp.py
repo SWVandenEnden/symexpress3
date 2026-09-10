@@ -140,6 +140,33 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
 
         return elemNew
 
+
+    # exp( 3 log(2) ) = exp( 3, 2 )
+    if elem.numElements() == 1:
+      elem1 = elem.elements[ 0 ]
+      if isinstance( elem1, symexpress3.SymFunction ):
+        if elem1.name == 'log' and elem1.power == 1 :
+          if elem1.numElements() == 1:
+            elemNew = symexpress3.SymFunction( 'exp' )
+            elemNew.add( symexpress3.SymNumber( 1,1,1 ) ) # one
+            elemNew.add( elem1.elements[0] )
+
+            elemNew.powerSign        = elem.powerSign
+            elemNew.powerCounter     = elem.powerCounter
+            elemNew.powerDenominator = elem.powerDenominator
+
+            return elemNew
+      elif isinstance( elem1, symexpress3.SymExpress ):
+        if elem1.symType == '*' and elem1.power == 1:
+          for iCnt, elem2 in enumerate( elem1.elements ):
+            if isinstance( elem2, symexpress3.SymFunction ):
+              if elem2.name == 'log' and elem2.power == 1  and elem2.numElements() == 1:
+                elemNew = elem.copy()
+                elemNew.add( elem2.elements[0])
+                del elemNew.elements[ 0 ].elements[ iCnt ] # type:ignore
+                return elemNew
+
+
     #
     # x^y
     # elem1 = y
@@ -252,6 +279,26 @@ def Test( display:bool = False) -> None :
   dValue = None
 
   _Check( exp, symTest, value, dValue, "exp( (1/60) * i * pi * 5 )", None )
+
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( log(3))' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( 1,3 )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( 2 log(3))' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( 2,3 )", None )
+
 
 
 if __name__ == '__main__':

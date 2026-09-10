@@ -150,6 +150,8 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
         else:
           elemNew = elemFunc
         elemList.add( elemNew )
+
+      elemList.optimizeNormal( extra=['nodebug'] )
     else:
       dDict = {}
       for iCntVal in range( startVal, endVal + 1 ):
@@ -160,6 +162,12 @@ class SymFuncProduct( symFuncBase.SymFuncBase ):
 
         elemList.add( elemNew )
         elemList.optimizeNormal( extra=['nodebug'] )
+
+        if elemList.symType == '+':
+          elemNew = symexpress3.SymExpress( '*' )
+          elemNew.elements.append( elemList )
+          elemList = elemNew
+
 
     # self.elements[ iCnt ] = elemList
     return elemList
@@ -263,7 +271,17 @@ def Test( display:bool = False) -> None :
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
   dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  _Check( testClass, symTest, value, dValue, "1^^2 * 2^^2 * 3^^2 * 4^^2", 576 )
+  # _Check( testClass, symTest, value, dValue, "1^^2 * 2^^2 * 3^^2 * 4^^2", 576 )
+  _Check( testClass, symTest, value, dValue, "576", 576 )
+
+  symTest = symexpress3.SymFormulaParser( ' product( n9,1,4,(3/2) + (-1) * n9 ) ' )
+  symTest.optimize()
+  testClass = SymFuncProduct()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+  dValue    = testClass.getValue(        symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "(-15/16)", -0.9375 )
+
 
 if __name__ == '__main__':
   Test( True )

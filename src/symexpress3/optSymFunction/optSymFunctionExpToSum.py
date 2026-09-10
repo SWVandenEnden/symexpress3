@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-    e to sum for Sym Express 3
+    Sym Express 3
 
     Copyright (C) 2024 Gien van den Enden - swvandenenden@gmail.com
 
@@ -19,8 +19,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-    https://en.wikipedia.org/wiki/E_(mathematical_constant)
+    https://en.wikipedia.org/wiki/Exponential_function
 
 """
 import typing
@@ -29,16 +28,16 @@ from symexpress3 import symexpress3
 from symexpress3 import optFunctionBase
 from symexpress3 import symtools
 
-class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
+class OptSymFunctionExpToSum( optFunctionBase.OptFunctionBase ):
   """
-  Convert e power to sum
+  Convert exp into a sum
   """
   __slots__ = ()
 
   def __init__( self ) -> None :
     super().__init__()
-    self._name         = "eToSum"
-    self._desc         = "Convert e power to sum"
+    self._name         = "expToSum"
+    self._desc         = "Convert exp into a sum"
     self._funcName     = "exp"                    # name of the function
     self._minparams    = 1                        # minimum number of parameters
     self._maxparams    = 2                        # maximum number of parameters
@@ -51,33 +50,51 @@ class OptSymFunctionEToSum( optFunctionBase.OptFunctionBase ):
 
     elem = typing.cast( symexpress3.SymFunction, elem )
 
-    if elem.numElements() > 1:
-      # only e powers supported
-      elemPower = elem.elements[ 1 ]
-      if not isinstance( elemPower, symexpress3.SymVariable ):
-        return None
-      if elemPower.power != 1:
-        return None
-      if elemPower.name != 'e':
-        return None
-
     elemParam = elem.elements[ 0 ]
 
-    # https://en.wikipedia.org/wiki/E_(mathematical_constant)
+    if elem.numElements() > 1:
+      elemPar2 = elem.elements[ 1 ]
+      elemPar1 = symexpress3.SymExpress( '*' )
+
+      elemLog = symexpress3.SymFunction( 'log' )
+      elemLog.add( elemPar2 )
+
+      elemPar1.add( elemParam )
+      elemPar1.add( elemLog   )
+
+      elemParam = elemPar1
+
+    elemSum = symexpress3.SymFunction( 'sum' )
+
     varName = symtools.VariableGenerateGet()
-    elemSym = symexpress3.SymFormulaParser( "sum( " + varName + ", 0 ,infinity, exp(" + varName + ", x) / factorial( " + varName + " ) )" )
+    elemVar = symexpress3.SymVariable( varName )
 
-    dDict = {}
-    dDict[ 'x' ] = str( elemParam )
+    elemSum.add( elemVar )
+    elemSum.add( symexpress3.SymNumber( 1,0,1 )       ) # zero
+    elemSum.add( symexpress3.SymVariable( 'infinity') )
 
-    elemSym.replaceVariable( dDict )
+    elemFunc = symexpress3.SymExpress( '*' )
 
-    elemSym.powerCounter     = elem.powerCounter
-    elemSym.powerDenominator = elem.powerDenominator
-    elemSym.powerSign        = elem.powerSign
-    elemSym.onlyOneRoot      = elem.onlyOneRoot
+    elemPower = symexpress3.SymFunction( 'exp' )
+    elemPower.add( elemVar   )
+    elemPower.add( elemParam )
 
-    return elemSym
+    elemFunc.add( elemPower )
+
+    elemFact = symexpress3.SymFunction( 'factorial')
+    elemFact.add( elemVar )
+    elemFact.powerSign = -1
+
+    elemFunc.add( elemFact )
+
+    elemSum.add( elemFunc )
+
+    elemSum.powerCounter     = elem.powerCounter
+    elemSum.powerDenominator = elem.powerDenominator
+    elemSum.powerSign        = elem.powerSign
+    elemSum.onlyOneRoot      = elem.onlyOneRoot
+
+    return elemSum
 
 #
 # Test routine (unit test), see testsymexpress3.py
@@ -86,12 +103,12 @@ def Test( display:bool = False) -> None :
   """
   Unit test
   """
-  def _Check( testClass:OptSymFunctionEToSum
+
+  def _Check( testClass:OptSymFunctionExpToSum
             , symOrg   :symexpress3.TypVarSym3Object
             , symTest  :None|symexpress3.TypVarSym3Object
             , wanted   :str
             ) -> None :
-
     if display == True :
       print( f"naam      : {testClass.name}" )
       print( f"orginal   : {str( symOrg  )}" )
@@ -99,20 +116,32 @@ def Test( display:bool = False) -> None :
 
     if str( symTest ).strip() != wanted:
       print( f"Error unit test {testClass.name} function" )
-      raise NameError( f'optimize {testClass.name}, unit test error: {str( symTest )}, value: {str( symOrg )}' )
+      raise NameError( f'SymFunction optimize {testClass.name}, unit test error: {str( symTest )}, expected: {wanted}, value: {str( symOrg )}' )
 
   symtools.VariableGenerateReset()
 
-  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( 'exp( 3 i )' )
+  symTest:symexpress3.TypVarSym3Object = symexpress3.SymFormulaParser( "exp( 3 )" )
   symTest.optimize()
   symTest = typing.cast( symexpress3.SymFunction, symTest )
   symTest = symTest.elements[ 0 ]
-  symOrg  = symTest.copy()
 
-  testClass = OptSymFunctionEToSum()
-  symTest2   = testClass.optimize( symTest, "eToSum" )
+  testClass = OptSymFunctionExpToSum()
+  symNew    = testClass.optimize( symTest, "expToSum" )
 
-  _Check( testClass, symOrg, symTest2, "sum( n1,0,infinity, exp( n1,3 * i ) *  factorial( n1 )^^-1 )" )
+  _Check( testClass, symTest, symNew, "sum( n1,0,infinity, exp( n1,3 ) *  factorial( n1 )^^-1 )" )
+
+
+  symtools.VariableGenerateReset()
+
+  symTest = symexpress3.SymFormulaParser( "exp( x, 3 )" )
+  symTest.optimize()
+  symTest = typing.cast( symexpress3.SymFunction, symTest )
+  symTest = symTest.elements[ 0 ]
+
+  testClass = OptSymFunctionExpToSum()
+  symNew    = testClass.optimize( symTest, "expToSum" )
+
+  _Check( testClass, symTest, symNew, "sum( n1,0,infinity, exp( n1,x *  log( 3 ) ) *  factorial( n1 )^^-1 )" )
 
 if __name__ == '__main__':
   Test( True )
