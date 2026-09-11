@@ -20,6 +20,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+    https://en.wikipedia.org/wiki/Sine_and_cosine
 
 """
 import typing

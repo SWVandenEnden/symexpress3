@@ -97,6 +97,9 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
 
     elem = typing.cast( symexpress3.SymFunction, elem )
 
+    if elem.onlyOneRoot != 1:
+      return None
+
     # exp(a)^^2 = exp( 2 * a )
     if elem.onlyOneRoot == 1 and (elem.powerSign != 1 or elem.powerCounter != 1 or elem.powerDenominator != 1):
       elemPower = symexpress3.SymNumber( elem.powerSign, elem.powerCounter, elem.powerDenominator )
@@ -125,20 +128,32 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
         elemXNew.powerSign        = 1
         elemXNew.powerCounter     = 1
         elemXNew.powerDenominator = 1
-        elemYNew = symexpress3.SymExpress( '*' )
-        elemYNew.add( elem1 )
-        elemXPower = symexpress3.SymNumber( elem2.powerSign, elem2.powerCounter, elem2.powerDenominator )
-        elemYNew.add( elemXPower )
 
-        elemNew = symexpress3.SymFunction( 'exp' )
-        elemNew.add( elemYNew )
-        elemNew.add( elemXNew )
+        # may not if elemXNew <= 0
+        # below transformation is only valid if valX > 0
+        posVal = True
+        try:
+          valX = elemXNew.getValue()
+          if valX <= 0 : #type:ignore
+            posVal = False
+        except: # pylint: disable=bare-except
+          posVal = False
 
-        elemNew.powerSign        = elem.powerSign
-        elemNew.powerCounter     = elem.powerCounter
-        elemNew.powerDenominator = elem.powerDenominator
+        if posVal == True:
+          elemYNew = symexpress3.SymExpress( '*' )
+          elemYNew.add( elem1 )
+          elemXPower = symexpress3.SymNumber( elem2.powerSign, elem2.powerCounter, elem2.powerDenominator )
+          elemYNew.add( elemXPower )
 
-        return elemNew
+          elemNew = symexpress3.SymFunction( 'exp' )
+          elemNew.add( elemYNew )
+          elemNew.add( elemXNew )
+
+          elemNew.powerSign        = elem.powerSign
+          elemNew.powerCounter     = elem.powerCounter
+          elemNew.powerDenominator = elem.powerDenominator
+
+          return elemNew
 
 
     # exp( 3 log(2) ) = exp( 3, 2 )
@@ -166,6 +181,34 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
                 del elemNew.elements[ 0 ].elements[ iCnt ] # type:ignore
                 return elemNew
 
+    # exp( 3 log(5,2) ,2 ) = exp( 3, 5 )
+    if elem.numElements() == 2:
+      if isinstance( elem1, symexpress3.SymFunction ):
+        if elem1.name == 'log' and elem1.power == 1 :
+          if elem1.numElements() == 2 and elem1.elements[1].isEqual( elem.elements[1]):
+            elemNew = symexpress3.SymFunction( 'exp' )
+            elemNew.add( symexpress3.SymNumber( 1,1,1 ) ) # one
+            elemNew.add( elem1.elements[0] )
+
+            elemNew.powerSign        = elem.powerSign
+            elemNew.powerCounter     = elem.powerCounter
+            elemNew.powerDenominator = elem.powerDenominator
+
+            return elemNew
+
+      elif isinstance( elem1, symexpress3.SymExpress ):
+        if elem1.symType == '*' and elem1.power == 1:
+          for iCnt, elem2 in enumerate( elem1.elements ):
+            if isinstance( elem2, symexpress3.SymFunction ):
+              if (    elem2.name == 'log'
+                  and elem2.power == 1
+                  and elem2.numElements() == 2
+                  and elem2.elements[1].isEqual( elem.elements[1] )
+                 ):
+                elemNew = elem.copy()
+                elemNew.elements[1] = elem2.elements[0]
+                del elemNew.elements[ 0 ].elements[ iCnt ] # type:ignore
+                return elemNew
 
     #
     # x^y
@@ -225,7 +268,7 @@ def Test( display:bool = False) -> None :
             , symTest   :symexpress3.TypVarSym3Object
             , value     :None|symexpress3.TypVarSym3Object
             , dValue    :symexpress3.TypVarSym3Value
-            , valueCalc :str
+            , valueCalc :None|str
             , dValueCalc:symexpress3.TypVarSym3Value
             ) -> None :
 
@@ -240,6 +283,9 @@ def Test( display:bool = False) -> None :
       print( f"function: {str( symTest )}" )
       print( f"Value   : {str( value   )}" )
       print( f"DValue  : {str( dValue  )}" )
+
+    if value == None and valueCalc == None:
+      return
 
     if str( value ).strip() != valueCalc or (dValueCalc != None and dValue != dValueCalc) : # pylint: disable=consider-using-in
       print( f"Error unit test {testClass.name} function" )
@@ -269,7 +315,8 @@ def Test( display:bool = False) -> None :
   value  = exp.functionToValue( symTest.elements[ 0 ] )
   dValue = None
 
-  _Check( exp, symTest, value, dValue, "exp( (2 * n + 1) * 3,x )", None )
+  # _Check( exp, symTest, value, dValue, "exp( (2 * n + 1) * 3,x )", None )
+  _Check( exp, symTest, value, dValue, None, None )
 
 
   symTest = symexpress3.SymFormulaParser( 'exp( (1/60) * i * pi )^^5' )
@@ -298,6 +345,33 @@ def Test( display:bool = False) -> None :
   dValue = None
 
   _Check( exp, symTest, value, dValue, "exp( 2,3 )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( log(5,2) ,2 )' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( 1,5 )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( 3 * log(5,2) ,2 )' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, "exp( 3,5 )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'exp( 3 * log(5,-2) ,-2^^2 )' )
+  symTest.optimize()
+  exp    = SymFuncExp()
+  value  = exp.functionToValue( symTest.elements[ 0 ] )
+  dValue = None
+
+  _Check( exp, symTest, value, dValue, None, None )
 
 
 
