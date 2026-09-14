@@ -62,6 +62,10 @@ class SymFuncTan( symFuncTrigonoBase.SymFuncTrigonoBase ):
     if result != None:
       return result
 
+    result = self._convertSinCosAtan( elem )
+    if result != None:
+      return result
+
     result = self._optimizeSinCosTan( elem )
     if result != None:
       return result
@@ -125,6 +129,31 @@ def Test( display:bool = False) -> None :
   value     = testClass.functionToValue( symTest.elements[ 0 ] )
 
   _Check( testClass, symTest, value, dValue, "tan( 1 * pi )", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'tan( atan(x) )' )
+  symTest.optimize()
+  testClass = SymFuncTan()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "x", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'tan( asin(x) )' )
+  symTest.optimize()
+  testClass = SymFuncTan()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "x * (1 + (-1) * x^^2)^^(-1/2)", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'tan( acos(x) )' )
+  symTest.optimize()
+  testClass = SymFuncTan()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "(1 + (-1) * x^^2)^^(1/2) * x^^-1", None )
+
 
 if __name__ == '__main__':
   Test( True )

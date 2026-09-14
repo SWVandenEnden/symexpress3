@@ -93,8 +93,10 @@ def Test( display:bool = False) -> None :
             , dValueCalc:symexpress3.TypVarSym3Value
             ) -> None :
 
-    dValue     = symexpress3.SymRound( dValue    , 10 )
-    dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
+    if dValue != None:
+      dValue     = symexpress3.SymRound( dValue    , 10 )
+    if dValueCalc != None:
+      dValueCalc = symexpress3.SymRound( dValueCalc, 10 )
 
     if display == True :
       print( f"naam    : {testClass.name}" )
@@ -143,13 +145,29 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symTest, value, dValue, "cos( 1 * pi )", -1 )
 
 
-  # symTest = symexpress3.SymFormulaParser( 'cos(atan(x)/3)' )
-  # symTest.optimize()
-  # testClass = SymFuncCos()
-  # value     = testClass.funcionToComplexValue( symTest.elements[ 0 ] )
-  # dValue    = testClass.getValue(        symTest.elements[ 0 ] )
 
-  # _Check( testClass, symTest, value, dValue, "(1/2) * ( cos(  atan( x ) ) + i *  sin(  atan( x ) ))^^(1/3) + (1/2) * ( cos(  atan( x ) ) + (-1) * i *  sin(  atan( x ) ))^^(1/3)", None)
+  symTest = symexpress3.SymFormulaParser( 'cos( acos(x) )' )
+  symTest.optimize()
+  testClass = SymFuncCos()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "x", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'cos( asin(x) )' )
+  symTest.optimize()
+  testClass = SymFuncCos()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "(1 + (-1) * x^^2)^^(1/2)", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'cos( atan(x) )' )
+  symTest.optimize()
+  testClass = SymFuncCos()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "(1 + x^^2)^^(-1/2)", None )
 
 
 if __name__ == '__main__':

@@ -2398,13 +2398,13 @@ class SymExpress( SymBaseList ):
 
           if globalDebugLevel > 1 :
             if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
-              _debugMessage( f"start action: {cAction} count: {iCnt}")
+              _debugMessage( f"start action: {cAction} count: {iCnt}, type: {self.symType}, number of elements: {self.numElements()}")
 
           bChanged |= self.optimize( None if cAction == "none" else cAction )
 
           if globalDebugLevel > 1 :
             if extra == None or 'nodebug' not in extra:
-              _debugMessage( f"end   action: {cAction} count: {iCnt}, changed: {bChanged}")
+              _debugMessage( f"end   action: {cAction} count: {iCnt}, type: {self.symType}, number of elements: {self.numElements()}, changed: {bChanged}")
 
               if globalDebugFileFormula != None:
                 with open( globalDebugFileFormula, mode="w", encoding="utf-8") as f:
@@ -2476,7 +2476,7 @@ class SymExpress( SymBaseList ):
           globalDebugNoDebugCount = 0
         else:
           globalDebugNoDebugCount += 1
-          _debugMessage( f"optimizeNormal nodebug flag (count:{globalDebugNoDebugCount}, level:{globalDebugNoDebugLevel}) iCntBig: {iCntBig}")
+          _debugMessage( f"optimizeNormal nodebug flag (count:{globalDebugNoDebugCount}, level:{globalDebugNoDebugLevel}) iCntBig: {iCntBig}, type: {self.symType}, number of elements: {self.numElements()}")
 
 
 
@@ -2549,13 +2549,13 @@ class SymExpress( SymBaseList ):
 
         for cAction in arrAction:
           if globalDebugLevel > 0:
-            _debugMessage( f"start action: {cAction} count:{iCnt}")
+            _debugMessage( f"start action: {cAction} count:{iCnt}, type: {self.symType}, number of elements: {self.numElements()}")
 
           bChanged |= self.optimize( cAction )
           cCode     = cAction
 
           if globalDebugLevel > 0:
-            _debugMessage( f"end   action: {cAction} count: {iCnt} changed: {bChanged}")
+            _debugMessage( f"end   action: {cAction} count: {iCnt}, type: {self.symType}, number of elements: {self.numElements()}, changed: {bChanged}")
 
         # print( f"_optimizeAction: {cAction}, {iCnt}, bChanged: {bChanged}" )
 

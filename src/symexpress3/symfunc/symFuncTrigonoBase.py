@@ -26,7 +26,6 @@
 
 import typing
 import math
-import uuid
 
 from symexpress3         import symexpress3
 from symexpress3.symfunc import symTrigonometricData
@@ -534,43 +533,78 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
   def _convertSinCosAtan( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
     #
-    # https://math.stackexchange.com/questions/1894265/how-do-i-show-this-cos2-arctanx-frac11x2/2121833#2121833
-    # cos( atan( 11/3 ) / 2 )
-    # sqrt( 1/4 (  ((i−11/3)/(i+11/3))^(1/2) + 2 + ((i+11/3)/(i−11/3))^(1/2) ))
+    # convert sin/cos/tan( asin/acos/atan() )
+    # convert sin/cos(x/2))
     #
-    # y is a number with power of 1
-    # cos( atan( x ) * y ) = ( 1/4 ( ((i -x)/(i+x))^^(y) + 2 + ((i+x)/(i-x))^^(y) ))^^(1/2)
-    # But this give an another cos( atan( ... )) -> imaginary number in a sqrt
-
-    # Example:
-    # -1 = 5^^(1/2) * i * (2/5) + cos( atan( 4 * 5^^(1/2) ) * (1/2) ) * 5^^(1/2) * (-3/5) + i * sin( atan( 4 * 5^^(1/2) ) * (1/2) ) * 5^^(1/2) * (-3/5)
-
-
-    # cos(atan(x)/y) = sqrt( (1 + cos(atan(x)) / (y/2) )
-    # sin(atan(x)/y) = sqrt( (1 - cos(atan(x)) / (y/2) )
-    # replace 2 to a power of 2 and make x atan(y) then that's it
-
-
+    # https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+    #
     if elem.numElements() != 1:
       return None
 
     if isinstance( elem.elements[ 0 ], symexpress3.SymFunction ):
       elemfunc = elem.elements[ 0 ]
-      if not elemfunc.name == 'atan':
-        return None
 
-      # sin( arctan(x)) = x / sqrt( 1+x^2 )
-      # cos( arctan(x)) = 1 / sqrt( 1+x^2)
-      strFunc   = '(' + str( elemfunc.elements[ 0 ] ) + ')'
-      strSqrt   = '( 1 + ' + strFunc + '^^2)^^(1/2)'
-      strResult = ''
-      if elem.name == 'sin':
-        strResult = strFunc + '/' + strSqrt
+      if elemfunc.name == 'atan':
+
+        # sin( arctan(x)) = x / sqrt( 1+x^2 )
+        # cos( arctan(x)) = 1 / sqrt( 1+x^2)
+        # tan( arctan(x)) = x
+
+        if elem.name == 'tan':
+          strResult = str( elemfunc.elements[ 0 ] )
+        else:
+          strFunc   = '(' + str( elemfunc.elements[ 0 ] ) + ')'
+          strSqrt   = '( 1 + ' + strFunc + '^^2)^^(1/2)'
+          strResult = ''
+          if elem.name == 'sin':
+            strResult = strFunc + '/' + strSqrt
+          elif elem.name == 'cos':
+            # cos
+            strResult = '1 /' + strSqrt
+          else:
+            return None # should not occur
+
+      elif elemfunc.name == 'asin':
+
+        # sin( asin(x)) = x
+        # cos( asin(x)) = sqrt( 1 - x^2)
+        # tan( asin(x)) = x / sqrt( 1 - x^2 )
+
+        if elem.name == 'sin':
+          strResult = str( elemfunc.elements[ 0 ] )
+        else:
+          strFunc   = '(' + str( elemfunc.elements[ 0 ] ) + ')'
+          strSqrt   = '( 1 - ' + strFunc + '^^2)^^(1/2)'
+          strResult = ''
+          if elem.name == 'tan':
+            strResult = strFunc + '/' + strSqrt
+          elif elem.name == 'cos':
+            # cos
+            strResult = strSqrt
+          else:
+            return None # should not occur
+
+      elif elemfunc.name == 'acos':
+
+        # sin( acos(x)) = sqrt( 1 - x^2 )
+        # cos( acos(x)) = x
+        # tan( acos(x)) = sqrt( 1 - x^2 ) / x
+
+        if elem.name == 'cos':
+          strResult = str( elemfunc.elements[ 0 ] )
+        else:
+          strFunc   = '(' + str( elemfunc.elements[ 0 ] ) + ')'
+          strSqrt   = '( 1 - ' + strFunc + '^^2)^^(1/2)'
+          strResult = ''
+          if elem.name == 'tan':
+            strResult = strSqrt + '/' + strFunc
+          elif elem.name == 'sin':
+            # cos
+            strResult = strSqrt
+          else:
+            return None # should not occur
       else:
-        # cos
-        strResult = '1 /' + strSqrt
-
-      # print( 'strResult: {}'.format( strResult ))
+        return None # nothing to do
 
       exprResult = symexpress3.SymFormulaParser( '(' + strResult + ')' )
       exprResult.powerSign        = elem.powerSign
@@ -583,9 +617,11 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       return exprResult
 
     if isinstance( elem.elements[ 0 ], symexpress3.SymExpress ):
+      #
       # cos(x/2) = sqrt( (1 + cos(x)) / 2 )
       # sin(x/2) = sqrt( (1 - cos(x)) / 2 )
       # replace 2 to a power of 2 and make x atan(y) then that's it
+      #
       elemexpr = elem.elements[ 0 ]
       # elemexpr = typing.cast( symexpress3.SymExpress, elemexpr )
 
@@ -630,138 +666,6 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
 
               return exprResult
 
-
-
-
-    if ( isinstance( elem.elements[ 0 ], symexpress3.SymExpress) and elem.name == 'cos' ):
-      #
-      # https://de.wikipedia.org/wiki/Formelsammlung_Trigonometrie
-      #
-      # n = oneven
-      # cos(x)^n = "1/exp(n-1,2) * sum( k, 0, (n-1)/2, binomial( n, k ) * cos( (n - 2k ) * x ))"
-      #
-      # n = even
-      # cos(x)^n = "1/exp(n,2) * binomial( n, n / 2 )  +  1/exp(n-1,2) * sum( k, 0, n/2 - 1, binomial( n, k ) * cos( (n - 2k ) * x ))"
-      #
-      # format cos( ... )
-      #
-      # never ending loop -> give another cos( atan(...))
-
-      # TODO sort out, solve others = disconnect... = cleaning needed, is solved with unnesting. Maybe create a optSymFunction routine
-      return None
-      # pylint: disable=unreachable
-
-      # global debugonlyonce
-
-      # if ( debugonlyonce != 0  ):
-      #    return None
-
-      # debugonlyonce = 1
-
-      elemexpress = elem.elements[ 0 ]
-      if elemexpress.symType != '*':
-        return None
-      if elemexpress.numElements() != 2:
-        return None
-      if elemexpress.power != 1:
-        return None
-
-      # need a arctan(x) and a number with power of 1
-      elemfunc = None
-      elemnum  = None
-
-      if isinstance( elemexpress.elements[ 0 ], symexpress3.SymFunction ):
-        elemfunc = elemexpress.elements[ 0 ]
-        elemnum  = elemexpress.elements[ 1 ]
-      elif isinstance( elemexpress.elements[ 1 ], symexpress3.SymFunction ):
-        elemfunc = elemexpress.elements[ 1 ]
-        elemnum  = elemexpress.elements[ 0 ]
-
-      if elemfunc == None:
-        return None
-      if elemfunc.name != 'atan':
-        return None
-      if elemfunc.numElements() != 1:
-        return None
-
-      if not isinstance( elemnum, symexpress3.SymNumber ):
-        return None
-      if elemnum.power != 1:
-        return None
-
-
-      if elemnum.factSign != 1:
-        return None
-      if elemnum.factDenominator == 1:
-        return None
-
-
-      # cos(x)^^3 = 3/4 cos(x) + cos(3x)
-      # cos(3x) = 4 cos(x)^^3 - 3 cos(x)
-
-      # strFunc = "4 cos( replace_x )^^3 - 3 cos( replace_x )"
-
-      if elemnum.factDenominator % 2 == 1:
-        # oneven
-        strFunc = "1/exp( replace_n - 1,2) * sum( replace_k, 0, (replace_n - 1)/2, binomial( replace_n, replace_k ) * cos( (replace_n - 2 * replace_k ) * replace_x ))"
-      else:
-        # even
-        strFunc = "1/exp(replace_n,2) * binomial( replace_n, replace_n / 2 )  +  1/exp(replace_n - 1,2) * sum( replace_k, 0, replace_n / 2 - 1, binomial( replace_n, replace_k ) * cos( (replace_n - 2 * replace_k ) * replace_x ))"
-
-      print( f"strFunc: {strFunc}" )
-
-      elemStr = "(" + str( elemexpress ) + ")"
-      # elemStr = "(" + str( elemfunc ) + ")"
-      strFunc = strFunc.replace( "replace_n", str( elemnum.factDenominator ) )
-      strFunc = strFunc.replace( "replace_k", "k" + str( uuid.uuid4().int ) + "k" )
-      strFunc = strFunc.replace( "replace_x", elemStr )
-
-      strFunc = "(" + strFunc + ")^^( 1/" + str( elemnum.factDenominator ) + ")"
-
-      print( f"strFunc filled in: {strFunc}" )
-
-      exprResult = symexpress3.SymFormulaParser( strFunc )
-
-      return exprResult
-
-      # old solution below
-      strNum  = '(' + str( elemnum )  + ')'
-      strFunc = '(' + str( elemfunc.elements[ 0 ] ) + ')'
-
-      # cos(x/3) = ((cos(x) + i sin(x))^(1/3) + (cos(x) - i sin(x))^(1/3) ) / 2
-      # cos(x/y) = ((cos(x) + i sin(x))^(1/y) + (cos(x) - i sin(x))^(1/y) ) / 2
-
-      # cos(atan(x)) = '(1 / ( (1+(x)^2)^(1/2)))'
-      # sin(atan(x)) = '((x) / ( (1+(x)^2)^(1/2)))'
-
-      # cos(atan(x)/y) = (( (1 / ( (1+(x)^2)^(1/2))) + i ((x) / ( (1+(x)^2)^(1/2))) )^(1/y) + ( (1 / ( (1+(x)^2)^(1/2))) - i ((x) / ( (1+(x)^2)^(1/2))) )^(1/y) ) / 2
-
-      print( f'strNum : {strNum}'  )
-      print( f'strFunc: {strFunc}' )
-
-
-      strResult  = '(( (1 / ( (1+('+strFunc+')^^2)^^(1/2))) + i (('+strFunc+') / ( (1+('+strFunc+')^^2)^^(1/2))) )^^('+strNum+') + ( (1 / ( (1+('+strFunc+')^^2)^^(1/2))) - i (('+strFunc+') / ( (1+('+strFunc+')^^2)^^(1/2))) )^^('+strNum+') ) / 2'
-
-      # y is a number with power of 1
-      # cos( atan( x ) * y ) = ( 1/4 ( ((i−x)/(i+x))^^(y) + 2 + ((i+x)/(i−x))^^(y) ))^^(1/2)
-
-      print( f'strNum : {strNum}'  )
-      print( f'strFunc: {strFunc}' )
-
-
-      # # strResult = '(1/4((( i - ' + strFunc + ')/(i + ' + strFunc + '))^^(' + strNum + ') + 2 + ((i + ' + strFunc + ')/(i - ' + strFunc + '))^^(' + strNum + ') ))^^(1/2)'
-      # # (  (( ( 1 + 2iy - y^^2 ) / (1+y^^2) )^^z + 2 + ( ( 1 - 2iy - y^^2 ) / ( 1 + y^^2 ) )^^z ) / 4  )^^(1/2)
-      # strResult = '(  (( ( 1 + 2 i ' + strFunc + ' - ' + strFunc + '^^2 ) / (1 + ' + strFunc + '^^2) )^^' + strNum + ' + 2 + ( ( 1 - 2 i ' + strFunc + ' - ' + strFunc + '^^2 ) / ( 1 + ' + strFunc + '^^2 ) )^^' + strNum + ' ) / 4  )^^(1/2)'
-
-      print( f'strResult: {strResult}' )
-
-      exprResult = symexpress3.SymFormulaParser( strResult )
-      exprResult.optimizeNormal()
-
-      print( f'strResult normalized: {str( exprResult )}' )
-
-      return exprResult
-
     return None
 
   def _convertSinCosTanAtanSign( self, elem:symexpress3.SymFunction ) -> None|symexpress3.TypVarSym3Object :
@@ -771,8 +675,6 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
     # atan( -x ) = - atan( x )
     # asin( -x ) = - asin( x )
     # acos( -x ) = pi - acos( x )
-
-    # TODO sin(asin)), cos(acos), etc
 
     if elem.numElements() != 1:
       return None

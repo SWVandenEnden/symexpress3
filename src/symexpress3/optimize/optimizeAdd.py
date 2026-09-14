@@ -53,9 +53,6 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     # https://mypy.readthedocs.io/en/stable/type_narrowing.html
     symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
-    # if symExpr.symType != '+' :
-    #   return result
-
     if symExpr.numElements() <= 1 :
       return result
 

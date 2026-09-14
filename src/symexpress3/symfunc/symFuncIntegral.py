@@ -249,7 +249,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
       https://en.wikipedia.org/wiki/Integration_by_parts
       """
 
-      # TODO it can generate an never ending loop. Need to remember the original and look if it appears in the sub integrals...
+      # It can generate an never ending loop. Need to remember the original and look if it appears in the sub integrals...
       # but how....
 
       elemFunc = elem.elements[ 0 ]
@@ -1065,7 +1065,7 @@ class SymFuncIntegral( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # TODO integral by parts
+    # integral by parts, disabled, can generate an never ending loop...
     # elemNew = _integralByParts( elem )
     if elemNew != None:
       return elemNew

@@ -141,6 +141,31 @@ def Test( display:bool = False) -> None :
   _Check( testClass, symTest, value, dValue, "sin( 1 * pi )", None )
 
 
+  symTest = symexpress3.SymFormulaParser( 'sin( asin(x) )' )
+  symTest.optimize()
+  testClass = SymFuncSin()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "x", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'sin( acos(x) )' )
+  symTest.optimize()
+  testClass = SymFuncSin()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "(1 + (-1) * x^^2)^^(1/2)", None )
+
+
+  symTest = symexpress3.SymFormulaParser( 'sin( atan(x) )' )
+  symTest.optimize()
+  testClass = SymFuncSin()
+  value     = testClass.functionToValue( symTest.elements[ 0 ] )
+
+  _Check( testClass, symTest, value, dValue, "x * (1 + x^^2)^^(-1/2)", None )
+
+
+
   # symTest = symexpress3.SymFormulaParser( 'sin(atan(x)/3)' )
   # symTest.optimize()
   # testClass = SymFuncSin()

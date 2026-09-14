@@ -493,7 +493,7 @@ class SymFuncHypergeometric( symFuncBase.SymFuncBase ):
     if elemNew != None:
       return elemNew
 
-    # TODO p+1 F q+1 => gamma * integral( ... * pFq )
+    # p+1 F q+1 => gamma * integral( ... * pFq ) -> not in the standard, make this a routine of it's own'
     # elemNew = _transPPlusQPlus( valP, valQ, startP, startQ, elemZ, elem )
     if elemNew != None:
       return elemNew
