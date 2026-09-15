@@ -332,8 +332,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin = symexpress3.SymFormulaParser( formulaSin )
       oFormulaCos = symexpress3.SymFormulaParser( formulaCos )
 
-      oFormulaSin.optimizeNormal()
-      oFormulaCos.optimizeNormal()
+      oFormulaSin.optimizeNormal( extra=['nodebug'] )
+      oFormulaCos.optimizeNormal( extra=['nodebug'] )
 
       triRec = [
           "sin"
@@ -373,8 +373,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin = symexpress3.SymFormulaParser( formulaSin )
       oFormulaCos = symexpress3.SymFormulaParser( formulaCos )
 
-      oFormulaSin.optimizeNormal()
-      oFormulaCos.optimizeNormal()
+      oFormulaSin.optimizeNormal( extra=['nodebug'] )
+      oFormulaCos.optimizeNormal( extra=['nodebug'] )
 
       triRec = [
           "sin"
@@ -418,8 +418,8 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       oFormulaSin = symexpress3.SymFormulaParser( formulaSin )
       oFormulaCos = symexpress3.SymFormulaParser( formulaCos )
 
-      oFormulaSin.optimizeNormal()
-      oFormulaCos.optimizeNormal()
+      oFormulaSin.optimizeNormal( extra=['nodebug'] )
+      oFormulaCos.optimizeNormal( extra=['nodebug'] )
 
       triRec = [
            "sin"
@@ -610,7 +610,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       exprResult.powerSign        = elem.powerSign
       exprResult.powerCounter     = elem.powerCounter
       exprResult.powerDenominator = elem.powerDenominator
-      exprResult.optimizeNormal()
+      exprResult.optimizeNormal( extra=['nodebug'] )
 
       # print( 'exprResult: {}'.format( str( exprResult ) ))
 
@@ -662,7 +662,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
               exprResult.powerSign        = elem.powerSign
               exprResult.powerCounter     = elem.powerCounter
               exprResult.powerDenominator = elem.powerDenominator
-              exprResult.optimizeNormal()
+              exprResult.optimizeNormal( extra=['nodebug'] )
 
               return exprResult
 
@@ -776,7 +776,7 @@ class SymFuncTrigonoBase( symFuncBase.SymFuncBase ):
       # convert string to expression
       if tri[ 5 ] == None:
         tri[ 5 ] = symexpress3.SymFormulaParser( tri[ 4 ] )
-        tri[ 5 ].optimizeNormal()
+        tri[ 5 ].optimizeNormal( extra=['nodebug'] )
         if tri[ 5 ].numElements() == 1:
           tri[ 5 ] = tri[ 5 ].elements[ 0 ]
 

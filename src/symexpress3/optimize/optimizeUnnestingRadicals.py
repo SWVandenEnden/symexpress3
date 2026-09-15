@@ -178,9 +178,9 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
 
       # print( "power form: " + str( oFormulaRoot ) )
 
-      oFormulaRoot.optimizeNormal()
+      oFormulaRoot.optimizeNormal( extra=['nodebug'] )
       oFormulaRoot.optimize( "power" )
-      oFormulaRoot.optimizeNormal()
+      oFormulaRoot.optimizeNormal( extra=['nodebug'] )
 
       # print( f"dVars: {dVars}" )
       # print( "power form: " + str( oFormulaRoot ) )
@@ -219,7 +219,7 @@ class OptimizeUnnestingRadicals( optimizeBase.OptimizeBase ):
 
       # print( "Formula: " + str( oFormulaRoot ))
 
-      oFormulaRoot.optimizeNormal()
+      oFormulaRoot.optimizeNormal( extra=['nodebug'] )
 
       symExpr.powerCounter     = oFormulaRoot.powerCounter
       symExpr.powerDenominator = oFormulaRoot.powerDenominator * (symExpr.powerDenominator // 2)

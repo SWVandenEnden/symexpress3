@@ -396,10 +396,10 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
 
       # print( f"elemPartNew: {str(elemPartNew)}" )
 
-      elemPartNew.optimizeNormal()
+      elemPartNew.optimizeNormal( extra=['nodebug'] )
 
       elemParts.elements = elemPartNew.elements
-      elemParts.optimizeNormal()
+      elemParts.optimizeNormal( extra=['nodebug'] )
 
       return symFactPart
 

@@ -64,7 +64,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     # addBefore = str( symExpr )
     elemnum:None|symexpress3.TypVarSym3Object = None
 
-    arrDel:list[int] = []
+    arrDel:set[int] = set()
     lFound           = False
 
     # print( f"Repeat add: {str(symExpr)}")
@@ -140,7 +140,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           # print( "elem1 new: {}".format( str( elem1 )))
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
           # break
@@ -154,7 +154,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           symExpr.elements[ iCnt ] = elemnew
 
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
           # break
@@ -252,7 +252,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           # print( 'special, elemnew : {}'.format( str( elemnew  )))
 
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
           # break
@@ -271,7 +271,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           symExpr.elements[ iCnt ] = elemnew
 
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
         elif ( elem1.power != 1 or elem2.power != 1 ):
@@ -299,7 +299,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           symExpr.elements[ iCnt ] = elemnew
 
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
           # break
@@ -434,7 +434,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           symExpr.elements[ iCnt ] = elemnew
 
           # del symExpr.elements[ iCnt2 ]
-          arrDel.append( iCnt2 )
+          arrDel.add( iCnt2 )
           lFound = True
           result = True
           # break
@@ -447,7 +447,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     for iCnt in sorted( arrDel, reverse=True):
       del symExpr.elements[ iCnt ]
 
-    arrDel.append( iCnt2 )
+    # arrDel.append( iCnt2 )
     # print( 'add element end: {}'.format( str( symExpr )))
     # addAfter = str( symExpr )
     # if ( addBefore != addAfter ):

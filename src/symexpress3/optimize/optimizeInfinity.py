@@ -120,6 +120,21 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
 
       return -1 # nothing found
 
+    def _powerInfinity( symExpr:symexpress3.SymExpress, elemNr:int ) -> int :
+      """
+      Give power sign of infinity back
+      """
+      elem = symExpr.elements[ elemNr ]
+      if isinstance( elem, symexpress3.SymVariable ):
+        return elem.powerSign
+      if isinstance ( elem, symexpress3.SymExpress ):
+        if elem.symType == '*':
+          for elemSub in elem.elements:
+            if isinstance( elemSub, symexpress3.SymVariable):
+              if elemSub.name == 'infinity':
+                return elemSub.powerSign
+      return 0
+
     result = False
 
     # ----
@@ -230,6 +245,7 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
       # loop list
       # if 2 types the same but other sign then make it zero
       #
+
       normalPos = []
       normalNeg = []
       imagPos   = []
@@ -320,6 +336,7 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
 
       # print( f"normalPos: {normalPos}, normalNeg: {normalNeg}" )
       # print( f"imagPos  : {imagPos}  , imagNeg  : {imagNeg}"   )
+      # print( f"result: {result}")
 
       # first at the same, so there can be only 1 of each
       if len( normalPos ) > 1 or len( normalNeg ) > 1:
@@ -329,21 +346,50 @@ class OptimizeInfinity( optimizeBase.OptimizeBase ):
         return result
 
       if len( normalPos ) == 1 and len( normalNeg ) == 1:
-        symExpr.elements[ normalPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
-        symExpr.elements[ normalNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
-        # 1 positive and 1 negative found, so make them zero
 
-        result = True
+        # print( f"symExpr.elements[ normalPos[0]]: {_powerInfinity( symExpr, normalPos[0])}")
+        # print( f"symExpr.elements[ normalNeg[0]]: {_powerInfinity( symExpr, normalNeg[0])}")
+        powerPos = _powerInfinity( symExpr, normalPos[0] )
+        powerNeg = _powerInfinity( symExpr, normalNeg[0] )
+
+        if powerPos == powerNeg:
+          symExpr.elements[ normalPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          symExpr.elements[ normalNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          # 1 positive and 1 negative found, so make them zero
+
+          result = True
+        else:
+          if powerPos == -1:
+            symExpr.elements[ normalPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+            result = True
+
+          if powerNeg == -1:
+            symExpr.elements[ normalNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+            result = True
+
 
       if len( imagPos ) == 1 and len( imagNeg ) == 1:
-        symExpr.elements[ imagPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
-        symExpr.elements[ imagNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
-        # 1 positive and 1 negative found, so make them zero
-        result = True
+        powerPos = _powerInfinity( symExpr, imagPos[0] )
+        powerNeg = _powerInfinity( symExpr, imagNeg[0] )
+
+        if powerPos == powerNeg :
+          symExpr.elements[ imagPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          symExpr.elements[ imagNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          # 1 positive and 1 negative found, so make them zero
+          result = True
+
+        if powerPos == -1:
+          symExpr.elements[ imagPos[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          result = True
+
+        if powerNeg == -1:
+          symExpr.elements[ imagNeg[0] ] = symexpress3.SymNumber( 1, 0, 1, 1 )
+          result = True
+
+
 
       if result == True:
         return result
-
 
       # type of infinity needed
       # - imaginary
@@ -585,6 +631,29 @@ def Test( display:bool = False) -> None:
   result |= testClass.optimize( symTest, "infinity" )
 
   _Check( testClass, symOrg, symTest, "infinity * i + a * i" )
+
+
+  result  = False
+  symTest = symexpress3.SymFormulaParser( 'infinity + (-1)*infinity^^-1' )
+  symTest.optimize()
+  symOrg  = symTest.copy()
+
+  testClass = OptimizeInfinity()
+  result |= testClass.optimize( symTest, "infinity" )
+
+  _Check( testClass, symOrg, symTest, "infinity + 0" )
+
+
+  result  = False
+  symTest = symexpress3.SymFormulaParser( 'i * infinity - i * infinity^^-1' )
+  symTest.optimize()
+  symOrg  = symTest.copy()
+
+  testClass = OptimizeInfinity()
+  result |= testClass.optimize( symTest, "infinity" )
+
+  _Check( testClass, symOrg, symTest, "i * infinity + 0" )
+
 
 
 if __name__ == '__main__':

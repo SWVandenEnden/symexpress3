@@ -94,7 +94,7 @@ class OptSymFunctionCosAtanDivNToSinICos( optFunctionBase.OptFunctionBase ):
     convertFrm = convertFrm.replace( "atan(x)", str( elemA ))
 
     exprResult = symexpress3.SymFormulaParser( convertFrm  )
-    exprResult.optimizeNormal()
+    exprResult.optimizeNormal( extra=['nodebug'] )
 
     return exprResult
 

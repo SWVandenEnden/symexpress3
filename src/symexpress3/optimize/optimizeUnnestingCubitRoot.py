@@ -238,16 +238,16 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
     #
     strA     = "( ((" + str( numberPart ) + ") - (bs * b^^3)) / ( 3 * bs * b ))^^(1/2)"
     expressA = symexpress3.SymFormulaParser( strA )
-    expressA.optimizeNormal()
+    expressA.optimizeNormal( extra=['nodebug'] )
 
     strCheck     = "a^^3 + 3 * b^^2 * a - " + str( rootPart )
     expressCheck = symexpress3.SymFormulaParser( strCheck )
-    expressCheck.optimizeNormal()
+    expressCheck.optimizeNormal( extra=['nodebug'] )
 
     # strA = sqrt() it can be + and -
     strCheck2     = "a^^3 + 3 * b^^2 * a + " + str( rootPart )
     expressCheck2 = symexpress3.SymFormulaParser( strCheck2 )
-    expressCheck2.optimizeNormal()
+    expressCheck2.optimizeNormal( extra=['nodebug'] )
 
 
     # print( f"strA        : {strA}" )
@@ -296,7 +296,7 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
 
           copyA.replaceVariable( dictVar )
           # print( f"after copyA: {copyA} " )
-          copyA.optimizeNormal()
+          copyA.optimizeNormal( extra=['nodebug'] )
           # print( f"optimized copyA: {copyA} " )
 
           # print( f"CopyA: {copyA} " )
@@ -308,7 +308,7 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
 
           # print( f"before copyCheck: {copyCheck} " )
 
-          copyCheck.optimizeNormal()
+          copyCheck.optimizeNormal( extra=['nodebug'] )
 
           # print( f"after copyCheck: {copyCheck} " )
           # print( f"value copyCheck: {copyCheck.getValue()} " )
@@ -316,7 +316,7 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
           if foundVariable == True and str( copyCheck ) != "0":
             # print( "Use negRootToI" )
             copyCheck.optimize( "negRootToI" )
-            copyCheck.optimizeNormal()
+            copyCheck.optimizeNormal( extra=['nodebug'] )
             # print( f"After negRootToI: {copyCheck}" )
 
           # check the negative a
@@ -325,11 +325,11 @@ class OptimizeUnnestingCubitRoot( optimizeBase.OptimizeBase ):
             copyCheck = expressCheck2.copy()
             dictVar[ 'a' ] = str( copyA )
             copyCheck.replaceVariable( dictVar )
-            copyCheck.optimizeNormal()
+            copyCheck.optimizeNormal( extra=['nodebug'] )
             # print( f"heg check copy: {copyCheck}" )
             if foundVariable == True and str( copyCheck ) != "0":
               copyCheck.optimize( "negRootToI" )
-              copyCheck.optimizeNormal()
+              copyCheck.optimizeNormal( extra=['nodebug'] )
               # print( f"heg check 2 copy: {copyCheck}" )
 
             if str( copyCheck ) == "0":

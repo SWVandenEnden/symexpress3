@@ -230,7 +230,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       # print ( "_multiplyElemExpressExpress start")
-      arrDel:list[int] = []
+      arrDel:set[int] = set()
 
       # lFound = True
       # while( lFound == True and len( symExpr.elements ) > 1 ):
@@ -321,11 +321,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
                 elem12.elements.append( elemSub2 )
                 elemnew.add( elem12 )
 
-            elemnew.optimizeNormal( extra=['nodebug']) # make's it smaller but is this wise on this level
+            elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
 
             symExpr.elements[ iCnt ] = elemnew
             # del symExpr.elements[ iCnt2 - 1 ] # already has done +1
-            arrDel.append( iCnt2 )
+            arrDel.add( iCnt2 )
             lFound = True
             result = True
 

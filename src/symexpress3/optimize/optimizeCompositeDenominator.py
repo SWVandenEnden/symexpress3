@@ -332,7 +332,7 @@ class OptimizeCompositeDenominator( optimizeBase.OptimizeBase ):
             symFactPart.powerSign = -1 # inverse for the equalElements (left over) part
             equalElements.append( symFactPart )
 
-            elemParts.optimizeNormal()
+            elemParts.optimizeNormal( extra=['nodebug'] )
 
             # print( f"elemParts optimized: {str(elemParts)}" )
 
