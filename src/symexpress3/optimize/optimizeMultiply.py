@@ -232,11 +232,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       # print ( "_multiplyElemExpressExpress start")
       arrDel:set[int] = set()
 
-      # lFound = True
-      # while( lFound == True and len( symExpr.elements ) > 1 ):
       if len( symExpr.elements ) > 1:
-
-        lFound = False
 
         # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
 
@@ -248,7 +244,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           if iCnt in arrDel:
             continue
 
-          elem1 = symExpr.elements[ iCnt ]
+          elem1:symexpress3.TypVarSym3Object = symExpr.elements[ iCnt ]
 
           # only multiple expressions
           if not isinstance( elem1 , symexpress3.SymExpress ):
@@ -263,23 +259,12 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           if  elem1.power not in (1, -1):
             continue
 
-          # iCnt2 = iCnt + 1
-          # while( lFound == False and iCnt2 < len( symExpr.elements )):
-          # while( iCnt2 < len( symExpr.elements )):
-
-          # for iCnt2 in range( iCnt + 1, len( symExpr.elements )) :
           for iCnt2 in range( iCnt + 1, maxLen2 ) :
 
             if iCnt2 in arrDel:
               continue
 
-            if lFound == True:
-              elem1 = symExpr.elements[ iCnt ]
-              elem1 = typing.cast( symexpress3.SymExpress, elem1)
-              lFound = False
-
             elem2  = symExpr.elements[ iCnt2 ]
-            # iCnt2 += 1
 
             # only multiply expressions
             if not isinstance( elem2 , symexpress3.SymExpress ):
@@ -311,6 +296,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             #  with open("formula_elem2.txt", mode="w", encoding="utf-8") as f:
             #    f.write( str(elem2) )
 
+            elem1 = typing.cast( symexpress3.SymExpress, elem1 )
+
             for elemSub1 in elem1.elements:
 
               for elemSub2 in elem2.elements:
@@ -324,13 +311,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
 
             symExpr.elements[ iCnt ] = elemnew
-            # del symExpr.elements[ iCnt2 - 1 ] # already has done +1
+
             arrDel.add( iCnt2 )
-            lFound = True
+            elem1  = symExpr.elements[ iCnt ]
             result = True
 
-          # if lFound == True:
-          #   break
 
       # print ( f"_multiplyElemExpressExpress end: {result}")
 

@@ -65,11 +65,12 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     elemnum:None|symexpress3.TypVarSym3Object = None
 
     arrDel:set[int] = set()
-    lFound           = False
 
     # print( f"Repeat add: {str(symExpr)}")
 
-    for iCnt in range( 0, len( symExpr.elements ) - 1) :
+    maxLen1 = len( symExpr.elements ) - 1
+    maxLen2 = len( symExpr.elements )
+    for iCnt in range( 0, maxLen1) :
 
       if iCnt in arrDel:
         continue
@@ -79,17 +80,10 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
       # print( 'add start: {}'.format( str( elem1 )))
 
       # search next elements that is the same
-      for iCnt2 in range( iCnt + 1, len( symExpr.elements )) :
+      for iCnt2 in range( iCnt + 1, maxLen2 ) :
 
         if iCnt2 in arrDel:
           continue
-
-        if iCnt2 >= len( symExpr.elements ):
-          continue
-
-        if lFound == True:
-          elem1 = symExpr.elements[ iCnt ]
-          lFound = False
 
         elem2 = symExpr.elements[ iCnt2 ]
 
@@ -141,9 +135,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           # print( "elem1 new: {}".format( str( elem1 )))
           # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
-          # break
           continue
 
         if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
@@ -153,11 +146,9 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           elemnew.add( elem1   )
           symExpr.elements[ iCnt ] = elemnew
 
-          # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
-          # break
           continue
 
         if ( not isinstance( elem1, symexpress3.SymExpress ) or not isinstance( elem2, symexpress3.SymExpress ) ):
@@ -253,9 +244,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
-          # break
           continue
 
         if ( elem1.power != 1 and elem2.power != 1 ):
@@ -270,9 +260,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           symExpr.elements[ iCnt ] = elemnew
 
-          # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
         elif ( elem1.power != 1 or elem2.power != 1 ):
           # cannot add power of infinity, see optimizeInfinity.py
@@ -298,11 +287,9 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           symExpr.elements[ iCnt ] = elemnew
 
-          # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
-          # break
           continue
 
         else:
@@ -433,15 +420,11 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           symExpr.elements[ iCnt ] = elemnew
 
-          # del symExpr.elements[ iCnt2 ]
           arrDel.add( iCnt2 )
-          lFound = True
+          elem1  = symExpr.elements[ iCnt ]
           result = True
-          # break
           continue
 
-        # if lFound == True:
-        #   break
 
     # del elements
     for iCnt in sorted( arrDel, reverse=True):
