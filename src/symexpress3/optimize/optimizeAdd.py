@@ -46,11 +46,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
     """
     result = False
     if self.checkExpression( symExpr, action ) != True:
-      # print( "Afgekeurd: " + symExpr.symType )
       return result
 
-    # set type for mypy
-    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
     symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     if symExpr.numElements() <= 1 :
@@ -70,6 +67,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
     maxLen1 = len( symExpr.elements ) - 1
     maxLen2 = len( symExpr.elements )
+
     for iCnt in range( 0, maxLen1) :
 
       if iCnt in arrDel:
@@ -100,9 +98,14 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
         # same name, same power, found one
         # add factors and delete cnt2
         if ( isinstance( elem1, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
-          if ( elem1.power != 1 and elem1.power != -1 ): # pylint: disable=consider-using-in
+          # if ( elem1.power != 1 and elem1.power != -1 ): # pylint: disable=consider-using-in
+          if elem1.powerIsOneOrMinusOne() == False :
 
-            if elem1.factor != elem2.factor :
+            # if elem1.factor != elem2.factor :
+            if (  elem1.factSign        != elem2.factSign
+               or elem1.factCounter     != elem2.factCounter
+               or elem2.factDenominator != elem2.factDenominator
+               ):
               continue
 
             elemnew = symexpress3.SymExpress( '*' )
@@ -179,7 +182,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           lFoundOne = True
           for iCnt3 in range( 0, elemexp.numElements()):
             elemsub = elemexp.elements[ iCnt3 ]
-            if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+            if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
 
               if isinfinity == True:
                 #
@@ -248,7 +251,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           result = True
           continue
 
-        if ( elem1.power != 1 and elem2.power != 1 ):
+        if ( elem1.powerIsOne() == False and elem2.powerIsOne() == False ):
           # cannot add power of infinity, see optimizeInfinity.py
           if "infinity" in elem1.getVariables():
             continue
@@ -263,13 +266,13 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           arrDel.add( iCnt2 )
           elem1  = symExpr.elements[ iCnt ]
           result = True
-        elif ( elem1.power != 1 or elem2.power != 1 ):
+        elif ( elem1.powerIsOne() == False or elem2.powerIsOne() == False ):
           # cannot add power of infinity, see optimizeInfinity.py
           if "infinity" in elem1.getVariables():
             continue
 
           # 2 expression, 1 with power and 1 without
-          if elem1.power == 1 :
+          if elem1.powerIsOne() == True :
             elemnew = elem1
           else:
             elemnew = elem2
@@ -316,7 +319,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           # take all the numbers form elem2
           for iCnt3 in range( 0, elem2.numElements()):
             elemsub = elem2.elements[ iCnt3 ]
-            if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+            if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
               if elemnum == None :
                 elemnum = elemsub
                 continue
@@ -354,7 +357,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           for iCnt3 in range( 0, elemexp.numElements()):
             elemsub = elemexp.elements[ iCnt3 ]
 
-            if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.power == 1 ):
+            if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
               if elemnum2 == None :
                 elemnum2 = elemsub
                 continue

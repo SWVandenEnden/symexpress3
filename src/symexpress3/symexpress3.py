@@ -303,7 +303,7 @@ class SymBase( ABC ):
     if elem.numElements() != 2:
       return False
 
-    if  elem.power != 1:
+    if  elem.powerIsOne() == False :
       return False
 
     elem1 = elem.elements[ 0 ]
@@ -312,7 +312,7 @@ class SymBase( ABC ):
     # don't want to change this construction, readable...
     # pylint: disable=no-else-return
     if isinstance( elem1, SymNumber ):
-      if elem1.power != 1:
+      if elem1.powerIsOne() == False :
         return False
       return self.isEqual( elem2 )
     else:
@@ -525,6 +525,41 @@ class SymBasePower( SymBase ):
     return self.powerSign * self.powerCounter
 
 
+  def powerIsOne(self) -> bool:
+    """
+    Give True is if power is 1
+    """
+    if self.powerSign == -1:
+      return False
+
+    if self.powerCounter == self.powerDenominator :
+      return True
+
+    return False
+
+
+  def powerIsMinusOne(self) -> bool:
+    """
+    Give True is if power is -1
+    """
+    if self.powerSign == 1:
+      return False
+
+    if self.powerCounter == self.powerDenominator :
+      return True
+
+    return False
+
+  def powerIsOneOrMinusOne(self) -> bool:
+    """
+    Give True is if power is 1 or -1
+    """
+    if self.powerCounter == 1 and self.powerDenominator == 1:
+      return True
+
+    return False
+
+
   def valuePow( self, dValue:TypVarSym3ValueList ) -> TypVarSym3ValueList :
     """
     Pow the given value according the object
@@ -534,7 +569,7 @@ class SymBasePower( SymBase ):
     if isinstance( dValue, list ):
       dResult = []
       for dValEnum in dValue:
-        if self.power < 0:
+        if self.powerSign == -1 :
           dValSub = dValEnum ** mpmath.mpf( self.power )
         else:
           dValSub = dValEnum ** self.power
@@ -551,7 +586,7 @@ class SymBasePower( SymBase ):
       #   # dResult = dValue ** mpmath.mpf( self.power )
       # else:
       #   dResult = dValue ** self.power
-      if self.power < 0:
+      if self.powerSign == -1 :
         dResult = dValue ** mpmath.mpf( self.power )
       else:
         dResult = dValue ** self.power
@@ -617,7 +652,7 @@ class SymBasePower( SymBase ):
     if 'NP' in defaults:
       return startPower, endPower
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.powerSign == -1:
         startPower += '<mfrac>'
         startPower += '<mn>1</mn>'
@@ -826,11 +861,21 @@ class SymNumber( SymBasePower ):
 
       return self.isEqualExpress( elem, checkFactor )
 
-    if ( checkPower == True and self.power != elem.power ):
-      return False
+    # if ( checkPower == True and self.power != elem.power ):
+    if checkPower == True:
+      if (  self.powerSign        != elem.powerSign
+         or self.powerCounter     != elem.powerCounter
+         or self.powerDenominator != elem.powerDenominator
+         ):
+        return False
 
-    if ( checkFactor == True and self.factor != elem.factor ):
-      return False
+    # if ( checkFactor == True and self.factor != elem.factor ):
+    if checkFactor == True:
+      if (   self.factSign        != elem.factSign
+          or self.factCounter     != elem.factCounter
+          or self.factDenominator != elem.factDenominator
+         ):
+        return False
 
     return True
 
@@ -852,7 +897,7 @@ class SymNumber( SymBasePower ):
     # print( f"getValue start: {dValue}")
 
     # print( "dValue before: {}".format( dValue ))
-    if self.power < 0:
+    if self.powerSign == -1 :
       dValue = dValue ** mpmath.mpf( self.power )
     else:
       dValue = dValue ** self.power
@@ -946,7 +991,7 @@ class SymNumber( SymBasePower ):
 
         result = True
 
-      if self.power == -1 and self.factCounter != 0:
+      if self.powerIsMinusOne() == True and self.factCounter != 0:
         # 3^-1 = 1/3
         self.factCounter, self.factDenominator = self.factDenominator, self.factCounter
         self.powerSign = 1
@@ -992,7 +1037,7 @@ class SymNumber( SymBasePower ):
     else:
       output += self.factorStr()
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.onlyOneRoot == 1:
         output += '^'
       output += '^' + self.powerStr()
@@ -1071,8 +1116,14 @@ class SymVariable( SymBasePower ):
     if not isinstance( elem, SymVariable ):
       return self.isEqualExpress( elem, checkFactor )
 
-    if (checkPower == True and elem.power != self.power  ):
-      return False
+    # if (checkPower == True and elem.power != self.power  ):
+    if checkPower == True:
+      if (   self.powerSign        != elem.powerSign
+          or self.powerCounter     != elem.powerCounter
+          or self.powerDenominator != elem.powerDenominator
+         ):
+        return False
+
     if elem.name != self.name:
       return False
 
@@ -1136,7 +1187,7 @@ class SymVariable( SymBasePower ):
 
     #   print( f"dValue is string: {dValue}" )
 
-    if self.power < 0:
+    if self.powerSign == -1 :
       dValue = dValue ** mpmath.mpf( self.power )
     else:
       dValue = dValue ** self.power
@@ -1194,7 +1245,7 @@ class SymVariable( SymBasePower ):
     output = ''
     output += self.name
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.onlyOneRoot == 1:
         output += '^'
       output += '^' + self.powerStr()
@@ -1490,7 +1541,7 @@ class SymArray( SymBaseList ):
         result                 = True
 
       # power zero give always 1, is 1 element with value 1, factor is not changed
-      if self.power == 0:
+      if self.powerCounter == 0:
         self.elements          = []
         self.powerSign         = 1
         self.powerCounter      = 1
@@ -1519,8 +1570,13 @@ class SymArray( SymBaseList ):
     if not isinstance( elem, SymArray ):
       return self.isEqualExpress( elem, checkFactor )
 
-    if (checkPower == True and elem.power != self.power  ):
-      return False
+    # if (checkPower == True and elem.power != self.power  ):
+    if checkPower == True:
+      if (   self.powerSign         != elem.powerSign
+          or self.powerCounter     != elem.powerCounter
+          or self.powerDenominator != elem.powerDenominator
+         ):
+        return False
 
     if elem.numElements() != self.numElements():
       return False
@@ -1623,7 +1679,7 @@ class SymArray( SymBaseList ):
 
     output += ' ]'
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.onlyOneRoot == 1:
         output += '^'
       output += '^' + self.powerStr()
@@ -1710,11 +1766,12 @@ class SymFunction( SymBaseList ):
       if ( isinstance( elem, SymExpress ) and elem.numElements() == 1 ):
         elem1 = elem.elements[0]
         # counter & denominator can be equal
-        if ( elem.power == 1 and elem.powerDenominator == 1):
+        # if ( elem.power == 1 and elem.powerDenominator == 1):
+        if elem.powerIsOne() == True:
           self.elements[ iCnt ]  = elem1
           result = True
 
-        elif ( isinstance( elem1 , SymVariable ) and elem1.power == 1):
+        elif ( isinstance( elem1 , SymVariable ) and elem1.powerIsOne() == True ):
           elem1.powerSign        *= elem.powerSign
           elem1.powerCounter     *= elem.powerCounter
           elem1.powerDenominator *= elem.powerDenominator
@@ -1722,7 +1779,7 @@ class SymFunction( SymBaseList ):
           self.elements[ iCnt ]   = elem1
           result = True
 
-        elif ( isinstance( elem1 , SymExpress ) and elem1.power == 1):
+        elif ( isinstance( elem1 , SymExpress ) and elem1.powerIsOne() == True ):
           elem1.powerSign        *= elem.powerSign
           elem1.powerCounter     *= elem.powerCounter
           elem1.powerDenominator *= elem.powerDenominator
@@ -1730,7 +1787,7 @@ class SymFunction( SymBaseList ):
           self.elements[ iCnt ]   = elem1
           result = True
 
-        elif ( isinstance( elem1, SymNumber ) and elem.power > 0 and elem1.power == -1):
+        elif ( isinstance( elem1, SymNumber ) and elem.powerSign == 1 and elem1.powerIsMinusOne() == True ):
           elem1.powerCounter     = elem.powerCounter
           elem1.powerDenominator = elem.powerDenominator
 
@@ -1755,8 +1812,13 @@ class SymFunction( SymBaseList ):
     if self.name != elem.name:
       return False
 
-    if (checkPower == True and elem.power != self.power ):
-      return False
+    # if (checkPower == True and elem.power != self.power ):
+    if checkPower == True:
+      if (   self.powerSign        != elem.powerSign
+          or self.powerCounter     != elem.powerCounter
+          or self.powerDenominator != elem.powerDenominator
+         ):
+        return False
 
     if elem.numElements() != self.numElements():
       return False
@@ -1858,7 +1920,7 @@ class SymFunction( SymBaseList ):
 
     output += ' )'
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.onlyOneRoot == 1:
         output += '^'
       output += '^' + self.powerStr()
@@ -1926,7 +1988,8 @@ class SymExpress( SymBaseList ):
       # elem is not an expression
       return elem.isEqualExpress( self, checkFactor )
 
-    if checkPower == True and elem.power != self.power:
+    # if checkPower == True and elem.power != self.power:
+    if checkPower == True and ( self.powerSign != elem.powerSign or self.powerCounter != elem.powerCounter or self.powerDenominator != elem.powerDenominator ):
       if checkFactor == False:
         lElemFactor = False
         lSelfFactor = False
@@ -1985,7 +2048,8 @@ class SymExpress( SymBaseList ):
       return False
 
     # only power of 1 can have a factor
-    if ( checkFactor == False and (self.power != 1 or elem.power != 1 )):
+    # if ( checkFactor == False and (self.power != 1 or elem.power != 1 )):
+    if ( checkFactor == False and (self.powerIsOne() == False or elem.powerIsOne() == False )):
       checkFactor = True
 
     # skip factor for 1 unit expressions or multiply (*) expressions
@@ -2011,7 +2075,7 @@ class SymExpress( SymBaseList ):
     for iCnt in range( 0, self.numElements()):
       elem1  = self.elements[ iCnt ]
 
-      if ( checkFactor == False and isinstance( elem1, SymNumber ) and elem1.power == 1 ):
+      if ( checkFactor == False and isinstance( elem1, SymNumber ) and elem1.powerIsOne() == True ):
         continue
 
       lFound = False
@@ -2020,7 +2084,7 @@ class SymExpress( SymBaseList ):
           continue
         elem2 = elem.elements[ iCnt2 ]
 
-        if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.power == 1 ):
+        if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
           checkArr[ iCnt2 ] = True
           continue
 
@@ -2029,6 +2093,7 @@ class SymExpress( SymBaseList ):
 
         if elem1.isEqual( elem2 ) != True:
           continue
+
         checkArr[ iCnt2 ] = True
         lFound = True
         break
@@ -2042,8 +2107,9 @@ class SymExpress( SymBaseList ):
     for iCnt2 in range( 0, elem.numElements()):
       if checkArr[ iCnt2 ] == True:
         continue
+
       elem2 = elem.elements[ iCnt2 ]
-      if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.power == 1 ):
+      if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
         checkArr[ iCnt2 ] = True
         continue
 
@@ -2272,10 +2338,18 @@ class SymExpress( SymBaseList ):
           if elem.onlyOneRoot != 1:
             continue
 
-          if elem.factor != 1:
+          # if elem.factor != 1:
+          #   continue
+
+          if elem.factSign != 1:
             continue
 
-          if elem.power not in ( 1, -1 ):
+          if elem.factCounter != elem.factDenominator:
+            continue
+
+
+          # if elem.power not in ( 1, -1 ):
+          if elem.powerIsOneOrMinusOne() == False :
             continue
 
           if len( self.elements ) > 1:
@@ -2299,7 +2373,7 @@ class SymExpress( SymBaseList ):
           continue
         if elem.symType != self.symType:
           continue
-        if elem.power != 1:
+        if elem.powerIsOne() == False :
           continue
 
         # del self.elements[ iCnt ]
@@ -2683,7 +2757,7 @@ class SymExpress( SymBaseList ):
       output += '<mn>0</mn>'
 
     specicalVar = False
-    if (self.symType == "*" and self.power == 1 and len( self.elements ) == 2 ):
+    if (self.symType == "*" and self.powerIsOne() == True and len( self.elements ) == 2 ):
       elem1 = self.elements[ 0 ]
       elem2 = self.elements[ 1 ]
       if  ( ( isinstance( elem1, SymNumber ) and isinstance( elem2, SymVariable )) or
@@ -2692,7 +2766,7 @@ class SymExpress( SymBaseList ):
           elem1 = self.elements[ 1 ]
           elem2 = self.elements[ 0 ]
         # construction too complex for mypy.  elem1 is always a SymNumber on this point
-        if ( elem1.power == 1 and elem1.factor == -1 and elem2.power == 1 ): # type: ignore
+        if ( elem1.powerIsOne() == True and elem1.factor == -1 and elem2.powerIsOne() == True ): # type: ignore
           specicalVar = True
           output += '<mi>-</mi>' + elem2.mathMl()
 
@@ -2704,14 +2778,15 @@ class SymExpress( SymBaseList ):
               and isinstance( elem, SymNumber )
               and elem.factSign        == -1
               and elem.factDenominator ==  1
-              and elem.power           ==  1 ):
+              and elem.powerIsOne()    ==  True
+             ):
             output += '<mspace width="4px"></mspace>'
           else:
             output += '<mspace width="4px"></mspace>'
             output += '<mo>' + self.symType + '</mo> '
             output += '<mspace width="4px"></mspace>'
 
-        if ( isinstance( elem, SymExpress ) and elem.symType != '*' and elem.power == 1 ):
+        if ( isinstance( elem, SymExpress ) and elem.symType != '*' and elem.powerIsOne() == True ):
           # output += "<mfenced separators=''>"
           output += "<mrow>"
           output += "<mo>(</mo>"
@@ -2732,7 +2807,7 @@ class SymExpress( SymBaseList ):
   def __str__( self ) -> str :
     output = ''
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       output += '('
 
     if len( self.elements ) == 0:
@@ -2743,17 +2818,17 @@ class SymExpress( SymBaseList ):
         output += ' ' + self.symType + ' '
 
       if ( self.symType == '*' and isinstance( elem, SymExpress ) and elem.symType != '*' ) :
-        if ( elem.power == 1 and ( elem.numElements() ) > 1 ):
+        if ( elem.powerIsOne() == True and ( elem.numElements() ) > 1 ):
           output += '(' + str( elem ) + ')'
         else:
           output += str( elem )
       else:
         output += str( elem )
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       output += ')'
 
-    if self.power != 1:
+    if self.powerIsOne() == False :
       if self.onlyOneRoot == 1:
         output += '^'
       output += '^' + self.powerStr()
@@ -3319,7 +3394,7 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
           # print( "cParam2 (2) : {}".format ( str( cParam2 )))
           # SymExpressTree( cParam2 )
 
-          if not cParam2.power == 1:
+          if not cParam2.powerIsOne() == True:
             raise NameError( f'Incorrect power {cParam2} on position {GetCurPos()} power on power is not supported')
           # SymExpressTree( cParam2 )
           # need the factor, so no name and no factor on the expression, the factor is placed in the symunit

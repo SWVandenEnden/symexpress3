@@ -125,7 +125,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             continue
           if elem1.symType != '*':
             continue
-          if elem1.power != 1:
+          # if elem1.power != 1:
+          if elem1.powerIsOne() == False:
             continue
           lFound = True
           for elem2 in elem1.elements :
@@ -175,7 +176,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               continue
 
             # only power of 1 is supported or same powers (numbers of roots must be the same)
-            if (elem2.power == 1 or ( elem2.power == elem1.power and ( elem1.powerDenominator == 1 or elem1.onlyOneRoot == elem2.onlyOneRoot ) ) ):
+            # if (elem2.power == 1 or ( elem2.power == elem1.power and ( elem1.powerDenominator == 1 or elem1.onlyOneRoot == elem2.onlyOneRoot ) ) ):
+            if (elem2.powerIsOne() == True or ( elem2.power == elem1.power and ( elem1.powerDenominator == 1 or elem1.onlyOneRoot == elem2.onlyOneRoot ) ) ):
               pass
             else:
               continue
@@ -256,7 +258,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
           # only multiply with power of 1
           # if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
-          if  elem1.power not in (1, -1):
+          # if  elem1.power not in (1, -1):
+          if elem1.powerIsOneOrMinusOne() == False:
             continue
 
           for iCnt2 in range( iCnt + 1, maxLen2 ) :
@@ -274,7 +277,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               continue
 
             # only multiply with power of 1
-            if elem2.power not in (1, -1):
+            # if elem2.power not in (1, -1):
+            if elem2.powerIsOneOrMinusOne() == False:
               continue
             if elem2.powerSign != elem1.powerSign:
               continue
@@ -416,18 +420,20 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       if elemExpr.symType != '+':
         return result
-      if elemExpr.power != 1:
+      if elemExpr.powerIsOne() == False :
         return result
 
       symExpr.elements = []
       symExpr.symType  = '+'
       for elemsub in elemExpr.elements :
         elemnew = symexpress3.SymExpress( '*' )
-        # elemnew.add( elemNum )
-        elemnew.elements.append( elemNum )
-        # elemnew.add( elemsub )
+        # elemnew.elements.append( elemNum )
+        elemnew.add( elemNum )
         elemnew.elements.append( elemsub )
-        symExpr.add( elemnew )
+
+        # symExpr.add( elemnew )
+        symExpr.elements.append( elemnew )
+
         result = True
 
       return result
@@ -449,7 +455,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           continue
         if elem.numElements() <= 1:
           continue
-        if elem.power != 1:
+        if elem.powerIsOne() == False :
           continue
         # found a plus expression within a multiply express
         # make it a plus expression
@@ -473,11 +479,12 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         result           = True
         for elemSub2 in elem.elements :
           symNew = symexpress3.SymExpress( '*' )
-          # symNew.add( symMulti )
-          symNew.elements.append( symMulti )
-          # symNew.add( elemSub2 )
+          # symNew.elements.append( symMulti )
+          symNew.add( symMulti )
           symNew.elements.append( elemSub2 )
-          symExpr.add( symNew )
+
+          # symExpr.add( symNew )
+          symExpr.elements.append( symNew )
 
         # SymExpress is now a plus expression
         return result
@@ -494,42 +501,28 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       while lFound == True:
         lFound = False
         for iCnt, elem in enumerate( symExpr.elements ) :
+
           if elem.powerDenominator == 1:
             continue
+
           if elem.onlyOneRoot == 0:
             continue
-
-          elemcheck1 = None
 
           # print( "_multplyPlusMultiplyOnlyRoots elem1: {}".format( str( elem )) )
 
           # search for the next element with the same base
           for iCnt2 in range( iCnt + 1 , len( symExpr.elements )):
+
             elem2 = symExpr.elements[ iCnt2 ]
+
             if elem2.onlyOneRoot != 1:
               continue
+
             if elem2.powerDenominator == 1:
               continue
 
-            if elemcheck1 == None:
-              elemcheck1 = elem.copy()
-              elemcheck1.powerSign        = 1
-              elemcheck1.powerDenominator = 1
-              elemcheck1.powerCounter     = 1
-
-            elemcheck2 = elem2.copy()
-            elemcheck2.powerSign        = 1
-            elemcheck2.powerDenominator = 1
-            elemcheck2.powerCounter     = 1
-
-            # print( "_multplyPlusMultiplyOnlyRoots elem1: {} == {}".format( str( elemcheck1 ), str( elem ) ) )
-            # print( "_multplyPlusMultiplyOnlyRoots elem2: {} == {}".format( str( elemcheck2 ), str( elem2) ) )
-
-            if not elemcheck1.isEqual( elemcheck2 ):
+            if not elem.isEqual( elem2, True, False ):
               lOk = False
-
-              elemcheck1 = typing.cast( symexpress3.SymNumber, elemcheck1)
-              elemcheck2 = typing.cast( symexpress3.SymNumber, elemcheck2)
 
               # needed this 4 variable to initialize, but the initialize value is never used (pylint)
               rem1FactCounter   = 1
@@ -551,7 +544,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
                     # print( "list( dPrimeSet1)[ 0 ]: {}".format( list( dPrimeSet1.values())[ 0 ] ))
                     # print( "list( dPrimeSet2)[ 0 ]: {}".format( list( dPrimeSet2.values() )[ 0 ] ))
 
-                    # TODO, not a nice solution but for the moment
+                    # not a nice solution but for the moment
                     elemcheck1 = elem.copy()
                     elemcheck1.powerSign        = 1
                     elemcheck1.powerDenominator = 1
@@ -586,7 +579,6 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elemcheck2.powerCounter     = 1
 
               if not elemcheck1.isEqual( elemcheck2 ):
-                # print( "afgekeurd" )
                 continue
 
               elem  = typing.cast( symexpress3.SymNumber, elem  )
@@ -597,28 +589,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elem.powerCounter   = rem1PowerCounter
               elem2.powerCounter  = rem2PowerCounter
 
-            # print( "_multplyPlusMultiplyOnlyRoots elem1: {} == {}".format( str( elemcheck1 ), str( elem ) ) )
-            # print( "_multplyPlusMultiplyOnlyRoots elem2: {} == {}".format( str( elemcheck2 ), str( elem2) ) )
-
-            # print( "_multplyPlusMultiplyOnlyRoots 2 elem1: {}".format( str( elem ) ) )
-            # print( "_multplyPlusMultiplyOnlyRoots 2 elem2: {}".format( str( elem2) ) )
-
-            elemcheck1 = None
-
-            # print( "elem1: {}".format( str( elem  )))
-            # print( "elem2: {}".format( str( elem2 )))
-
-            # print( "_multplyPlusMultiplyOnlyRoots 0 elem1.powerCounter    : {}".format( elem.powerCounter      ) )
-            # print( "_multplyPlusMultiplyOnlyRoots 0 elem2.powerCounter    : {}".format( elem2.powerCounter     ) )
-
-            # print( "_multplyPlusMultiplyOnlyRoots 0 elem1.factCounter    : {}".format( elem.factCounter      ) )
-            # print( "_multplyPlusMultiplyOnlyRoots 0 elem2.factCounter    : {}".format( elem2.factCounter     ) )
-
             # 2 radicals with the same denominator
             # add the powers
             if elem.powerDenominator != elem2.powerDenominator:
-              # print( "_multplyPlusMultiplyOnlyRoots 1 elem1.powerDenominator: {}".format( elem.powerDenominator  ) )
-              # print( "_multplyPlusMultiplyOnlyRoots 1 elem2.powerDenominator: {}".format( elem2.powerDenominator ) )
 
               # iPowerCounter1       = elem.powerCounter
               iPowerDenominator1   = elem.powerDenominator
@@ -629,23 +602,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elem2.powerCounter     *= iPowerDenominator1
               elem2.powerDenominator *= iPowerDenominator1
 
-               # print( "_multplyPlusMultiplyOnlyRoots 2 elem1.powerCounter    : {}".format( elem.powerCounter      ) )
-               # print( "_multplyPlusMultiplyOnlyRoots 2 elem1.powerDenominator: {}".format( elem.powerDenominator  ) )
-               # print( "_multplyPlusMultiplyOnlyRoots 2 elem2.powerCounter    : {}".format( elem2.powerCounter     ) )
-               # print( "_multplyPlusMultiplyOnlyRoots 2 elem2.powerDenominator: {}".format( elem2.powerDenominator ) )
-
             iCounter = elem.powerCounter * elem.powerSign + elem2.powerCounter * elem2.powerSign
-
-            # print( "_multplyPlusMultiplyOnlyRoots 3 elem1.factCounter    : {}".format( elem.factCounter      ) )
-            # print( "_multplyPlusMultiplyOnlyRoots 3 elem2.factCounter    : {}".format( elem2.factCounter     ) )
-
-            # print( "_multplyPlusMultiplyOnlyRoots 3 elem1.powerCounter    : {}".format( elem.powerCounter      ) )
-            # print( "_multplyPlusMultiplyOnlyRoots 3 elem2.powerCounter    : {}".format( elem2.powerCounter     ) )
-
-            # print( "_multplyPlusMultiplyOnlyRoots iCounter: {}".format( iCounter ) )
-
-            # print( "_multplyPlusMultiplyOnlyRoots last elem1: {}".format( str( elem ) ) )
-            # print( "_multplyPlusMultiplyOnlyRoots last elem2: {}".format( str( elem2) ) )
 
             elem.powerSign     = 1
             elem.powerCounter  = iCounter

@@ -653,7 +653,6 @@ def Test( display:bool = False) -> None:
   """
   Unit test
   """
-
   def _Check( testClass :OptimizeOnlyOneRoot
             , symOrg    :symexpress3.TypVarSym3Object
             , symTest   :symexpress3.TypVarSym3Object
@@ -736,7 +735,6 @@ def Test( display:bool = False) -> None:
   testClass.optimize( symTest, "onlyOneRoot" )
 
   _Check( testClass, symOrg, symTest, "(i * ((-5) * 6^^(1/3) * (-1))^^(1/2))^^-1" )
-
 
 
 if __name__ == '__main__':
