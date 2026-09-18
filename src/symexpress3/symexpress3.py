@@ -554,7 +554,8 @@ class SymBasePower( SymBase ):
     """
     Give True is if power is 1 or -1
     """
-    if self.powerCounter == 1 and self.powerDenominator == 1:
+    # if self.powerCounter == 1 and self.powerDenominator == 1:
+    if self.powerCounter == self.powerDenominator :
       return True
 
     return False
@@ -852,7 +853,8 @@ class SymNumber( SymBasePower ):
     """
     if not isinstance( elem, SymNumber ):
       if ( self.factCounter == 0 and isinstance( elem, SymExpress ) == True ):
-        if elem.numElements() == 0:
+        # if elem.numElements() == 0:
+        if not elem.elements :
           return True
 
         if ( elem.numElements() == 1 and isinstance( elem.elements [ 0 ], SymNumber )):
@@ -1533,7 +1535,8 @@ class SymArray( SymBaseList ):
     result = False
     if cAction == None:
       #  factor zero is no elements at all, and no elements is factor 0
-      if len( self.elements ) == 0:
+      # if len( self.elements ) == 0:
+      if not any( self.elements ) :
         self.elements          = []
         self.powerSign         = 1
         self.powerCounter      = 1
@@ -2053,11 +2056,12 @@ class SymExpress( SymBaseList ):
       checkFactor = True
 
     # skip factor for 1 unit expressions or multiply (*) expressions
-    if ( self.symType == '+' and self.numElements() > 1 ):
-      checkFactor = True
+    if checkFactor == False:
+      if ( self.symType == '+' and self.numElements() > 1 ):
+        checkFactor = True
 
-    if ( elem.symType == '+' and elem.numElements() > 1 ):
-      checkFactor = True
+      if ( elem.symType == '+' and elem.numElements() > 1 ):
+        checkFactor = True
 
     if ( checkFactor == True and elem.numElements() != self.numElements() ):
       return False
@@ -2066,23 +2070,25 @@ class SymExpress( SymBaseList ):
 
 
     # array to remember if element is already used
-    checkArr = []
-    for iCnt in range( 0, elem.numElements() ):
-      checkArr.append( False )
+    checkArr = [False] * elem.numElements()
+    # for iCnt in range( 0, elem.numElements() ):
+    #   checkArr.append( False )
 
     # print( "before check loop number of elements: " +str( self.numElements() ) )
 
-    for iCnt in range( 0, self.numElements()):
-      elem1  = self.elements[ iCnt ]
+    # for iCnt in range( 0, self.numElements()):
+    for elem1 in self.elements:
+      # elem1  = self.elements[ iCnt ]
 
       if ( checkFactor == False and isinstance( elem1, SymNumber ) and elem1.powerIsOne() == True ):
         continue
 
       lFound = False
-      for iCnt2 in range( 0, elem.numElements()) :
+      # for iCnt2 in range( 0, elem.numElements()) :
+      for iCnt2, elem2 in enumerate( elem.elements ):
         if checkArr[ iCnt2 ] == True:
           continue
-        elem2 = elem.elements[ iCnt2 ]
+        # elem2 = elem.elements[ iCnt2 ]
 
         if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
           checkArr[ iCnt2 ] = True
@@ -2104,11 +2110,12 @@ class SymExpress( SymBaseList ):
     # print( "check all used" )
 
     # now check off all the elem units are used
-    for iCnt2 in range( 0, elem.numElements()):
+    # for iCnt2 in range( 0, elem.numElements()):
+    for iCnt2, elem2 in enumerate( elem.elements ):
       if checkArr[ iCnt2 ] == True:
         continue
 
-      elem2 = elem.elements[ iCnt2 ]
+      # elem2 = elem.elements[ iCnt2 ]
       if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
         checkArr[ iCnt2 ] = True
         continue
@@ -2561,7 +2568,7 @@ class SymExpress( SymBaseList ):
 
       _optimizeAction( []                          , "Optimize expression"       ,  1 )
       _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
-      _optimizeAction( [ "power"                  ], "Eliminate powers"          , 10 )
+      _optimizeAction( [ "power"                  ], "Eliminate powers"          , 20 )
       # _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
       _optimizeAction( [ "multiply"               ], "Multiply"                  , 10 )
       _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
@@ -2753,7 +2760,8 @@ class SymExpress( SymBaseList ):
 
     output += startPower
 
-    if len( self.elements ) == 0:
+    # if len( self.elements ) == 0:
+    if not any( self.elements ) :
       output += '<mn>0</mn>'
 
     specicalVar = False
@@ -2810,7 +2818,8 @@ class SymExpress( SymBaseList ):
     if self.powerIsOne() == False :
       output += '('
 
-    if len( self.elements ) == 0:
+    # if len( self.elements ) == 0:
+    if not any( self.elements ) :
       output += '0'
 
     for iCnt, elem in enumerate( self.elements ) :
@@ -3123,9 +3132,13 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
   \n formula          =&lt;number|name|function&gt;&lt;operator&gt;&lt;number|name|function&gt;|&lt;start subformula&gt;&lt;formula&gt;&lt;end subformula&gt;
   \n Example: (4+2^3) + y( 1 + 3 i x)^2 + sin( 2 pi )
   """
-  iPosCur:int  = 0
+  iPosCur:int = 0
+  iLenFrm:int = 0
 
   def _symFormulaParser ( cFormula:str, iStartPos:int = -1, cEndChar:None|str = None ) -> SymExpress:
+    # init vars
+    nonlocal iPosCur
+    nonlocal iLenFrm
 
     oMul    :None|SymExpress       = None
     oPlus   :None|SymExpress       = None
@@ -3140,6 +3153,8 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
     if len( cFormula ) <= 0:
       raise NameError( 'No formula given' )
 
+    iLenFrm = len( cFormula )
+
     # give current position in formula
     def GetCurPos() -> int :
       nonlocal iPosCur
@@ -3148,9 +3163,11 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
     # give next character
     def CharNext() -> None|str :
       nonlocal iPosCur
+      nonlocal iLenFrm
 
       iPosCur += 1
-      if iPosCur >= len( cFormula ):
+      # if iPosCur >= len( cFormula ):
+      if iPosCur >= iLenFrm:
         iPosCur -= 1
         return None
 
@@ -3166,8 +3183,10 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
     # get current character
     def CharCurrent() -> None|str :
       nonlocal iPosCur
+      nonlocal iLenFrm
 
-      if iPosCur >= len( cFormula ):
+      # if iPosCur >= len( cFormula ):
+      if iPosCur >= iLenFrm:
         iPosCur -= 1
         return None
 
@@ -3310,8 +3329,6 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
       return cResult
 
 
-    # init vars
-    nonlocal iPosCur
 
     iPosCur     = iStartPos  # not yet started
     oMul        = SymExpress( '*' )

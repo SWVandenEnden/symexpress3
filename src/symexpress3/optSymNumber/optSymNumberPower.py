@@ -46,7 +46,8 @@ class OptSymNumberPower( optTypeBase.OptTypeBase ):
 
     elem = typing.cast( symexpress3.SymNumber, elem )
 
-    if ( elem.power != 1 and elem.power != -1 and elem.powerCounter > 1 ):
+    # if ( elem.power != 1 and elem.power != -1 and elem.powerCounter > 1 ):
+    if ( elem.powerCounter > 1 and elem.powerIsOneOrMinusOne() == False ):
       # can write out power
       pass
     else:

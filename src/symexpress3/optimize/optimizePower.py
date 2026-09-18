@@ -65,7 +65,8 @@ class OptimizePower( optimizeBase.OptimizeBase ):
       return result
 
     # special case for 1/(a * b) = 1/a * 1/b
-    if symExpr.symType == '*' and symExpr.powerCounter == 1 and symExpr.powerDenominator == 1 and symExpr.powerSign == -1:
+    # if symExpr.symType == '*' and symExpr.powerCounter == 1 and symExpr.powerDenominator == 1 and symExpr.powerSign == -1:
+    if symExpr.symType == '*' and symExpr.powerIsMinusOne() == True :
       for elem in symExpr.elements:
         elem.powerSign = -1 * elem.powerSign
       symExpr.powerSign = 1
@@ -115,12 +116,10 @@ class OptimizePower( optimizeBase.OptimizeBase ):
         symBiominal = symexpress3.SymNumber( 1, bioNum, 1)
 
         elemXBio = symexpress3.SymExpress( '*')
-        # elemXBio.add( elemX )
         elemXBio.elements.append( elemX )
         elemXBio.powerCounter = numN - iCnt
 
         elemYBio = symexpress3.SymExpress( '*')
-        # elemYBio.add( elemY )
         elemYBio.elements.append( elemY )
         elemYBio.powerCounter = iCnt
 
@@ -141,7 +140,6 @@ class OptimizePower( optimizeBase.OptimizeBase ):
       for elem in symExpr.elements :
         elemClone = symexpress3.SymExpress( '*' )
         elemClone.powerCounter = symExpr.powerCounter
-        # elemClone.add( elem )
         elemClone.elements.append( elem )
         elemNew.elements.append( elemClone )
 

@@ -68,9 +68,6 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           continue
         break
 
-      if elem == None:
-        return result
-
       elem = typing.cast( symexpress3.SymNumber, elem )
 
       # print( "_multiplyNumbers start: {}".format( symExpr ) )
@@ -121,19 +118,23 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         lFound = False
         iCnt   = 0
         for iCnt, elem1 in enumerate( symExpr.elements ) :
+
           if not isinstance( elem1 , symexpress3.SymExpress ):
             continue
+
           if elem1.symType != '*':
             continue
-          # if elem1.power != 1:
+
           if elem1.powerIsOne() == False:
             continue
+
           lFound = True
           for elem2 in elem1.elements :
-            # symExpr.add( elem2 )
             symExpr.elements.append( elem2 )
+
           del symExpr.elements[ iCnt ]
           result = True
+
           break
 
       return result
@@ -208,11 +209,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             for iCntSub1 in range( 0, elem2.numElements() ) :
               elem3    = elem2.elements[ iCntSub1 ]
               elemnew2 = symexpress3.SymExpress( '*' )
-              # elemnew2.add( elem1 )
               elemnew2.elements.append( elem1 )
-              # elemnew2.add( elem3 )
               elemnew2.elements.append( elem3 )
-              # elemnew.add ( elemnew2 )
               elemnew.elements.append( elemnew2 )
 
             symExpr.add( elemnew )
@@ -231,95 +229,96 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
+      maxLen = len( symExpr.elements )
+
       # print ( "_multiplyElemExpressExpress start")
-      arrDel:set[int] = set()
+      arrDel:set[int]  = set()
+      arrSkip:set[int] = set()
 
-      if len( symExpr.elements ) > 1:
+      if maxLen <= 1 :
+        return result
 
-        # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
+      # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
+      for iCnt, elem1 in enumerate( symExpr.elements ) :
 
-        maxLen1 = len( symExpr.elements ) - 1
-        maxLen2 = len( symExpr.elements )
-        # for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
-        for iCnt in range( 0, maxLen1 ) :
+        # only multiple expressions
+        if not isinstance( elem1 , symexpress3.SymExpress ):
+          arrSkip.add( iCnt )
+          continue
 
-          if iCnt in arrDel:
+        if elem1.symType != '+':
+          arrSkip.add( iCnt )
+          continue
+
+        # only multiply with power of 1
+        if elem1.powerIsOneOrMinusOne() == False:
+          arrSkip.add( iCnt )
+          continue
+
+      # no thing to do
+      if maxLen == len( arrSkip ):
+        return result
+
+      maxLen1 = maxLen - 1
+      maxLen2 = maxLen
+      for iCnt in range( 0, maxLen1 ) :
+
+        if iCnt in arrSkip:
+          continue
+
+        if iCnt in arrDel:
+          continue
+
+        elem1 = symExpr.elements[ iCnt ]
+
+        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+          if iCnt2 in arrSkip:
             continue
 
-          elem1:symexpress3.TypVarSym3Object = symExpr.elements[ iCnt ]
-
-          # only multiple expressions
-          if not isinstance( elem1 , symexpress3.SymExpress ):
+          if iCnt2 in arrDel:
             continue
 
-          # only + expressions
-          if elem1.symType != '+':
+          elem2 = symExpr.elements[ iCnt2 ]
+
+          if elem2.powerSign != elem1.powerSign:
             continue
 
-          # only multiply with power of 1
-          # if ( elem1.power != 1 and elem1.power != -1):  # pylint: disable=consider-using-in
-          # if  elem1.power not in (1, -1):
-          if elem1.powerIsOneOrMinusOne() == False:
-            continue
+          # 2 plus expression with power of 1
+          # the factors are already one, see loops above
+          elemnew           = symexpress3.SymExpress( '+' )
+          elemnew.powerSign = elem2.powerSign
 
-          for iCnt2 in range( iCnt + 1, maxLen2 ) :
+          # print ( f'_multiplyElemExpressExpress elem1: {len( elem1.elements )}, elem2: {len(elem2.elements)}' )
 
-            if iCnt2 in arrDel:
-              continue
+          # strSymExpr = str( symExpr )
+          # if len( strSymExpr ) > 500000000:
+          #   import pudb; pudb.set_trace()
+          #  with open("formula_big.txt", mode="w", encoding="utf-8") as f:
+          #    f.write(strSymExpr)
+          #  with open("formula_elem1.txt", mode="w", encoding="utf-8") as f:
+          #    f.write( str(elem1) )
+          #  with open("formula_elem2.txt", mode="w", encoding="utf-8") as f:
+          #    f.write( str(elem2) )
 
-            elem2  = symExpr.elements[ iCnt2 ]
+          elem1 = typing.cast( symexpress3.SymExpress, elem1 )
+          elem2 = typing.cast( symexpress3.SymExpress, elem2 )
 
-            # only multiply expressions
-            if not isinstance( elem2 , symexpress3.SymExpress ):
-              continue
-            # only + expressions
-            if elem2.symType != '+':
-              continue
+          for elemSub1 in elem1.elements:
 
-            # only multiply with power of 1
-            # if elem2.power not in (1, -1):
-            if elem2.powerIsOneOrMinusOne() == False:
-              continue
-            if elem2.powerSign != elem1.powerSign:
-              continue
+            for elemSub2 in elem2.elements:
+              elem12 = symexpress3.SymExpress( '*' )
+              elem12.elements.append( elemSub1 )
+              elem12.elements.append( elemSub2 )
+              elemnew.add( elem12 )
 
-            # 2 plus expression with power of 1
-            # the factors are already one, see loops above
-            elemnew           = symexpress3.SymExpress( '+' )
-            elemnew.powerSign = elem2.powerSign
+          elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
 
-            # print ( f'_multiplyElemExpressExpress elem1: {len( elem1.elements )}, elem2: {len(elem2.elements)}' )
+          symExpr.elements[ iCnt ] = elemnew
 
-            # strSymExpr = str( symExpr )
-            # if len( strSymExpr ) > 500000000:
-            #   import pudb; pudb.set_trace()
-            #  with open("formula_big.txt", mode="w", encoding="utf-8") as f:
-            #    f.write(strSymExpr)
-            #  with open("formula_elem1.txt", mode="w", encoding="utf-8") as f:
-            #    f.write( str(elem1) )
-            #  with open("formula_elem2.txt", mode="w", encoding="utf-8") as f:
-            #    f.write( str(elem2) )
-
-            elem1 = typing.cast( symexpress3.SymExpress, elem1 )
-
-            for elemSub1 in elem1.elements:
-
-              for elemSub2 in elem2.elements:
-                elem12 = symexpress3.SymExpress( '*' )
-                # elem12.add( elemSub1 )
-                elem12.elements.append( elemSub1 )
-                # elem12.add( elemSub2 )
-                elem12.elements.append( elemSub2 )
-                elemnew.add( elem12 )
-
-            elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
-
-            symExpr.elements[ iCnt ] = elemnew
-
-            arrDel.add( iCnt2 )
-            elem1  = symExpr.elements[ iCnt ]
-            result = True
-
+          arrDel.add( iCnt2 )
+          elem1  = symExpr.elements[ iCnt ]
+          result = True
 
       # print ( f"_multiplyElemExpressExpress end: {result}")
 
@@ -332,61 +331,86 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
     # multiply 2 variables
     def _multiplyElemVarVar() -> bool :
       result = False
+
       if symExpr.symType != '*':
         return result
 
-      # multiple all units with same name
-      lFound = True
-      while( lFound == True and len( symExpr.elements ) > 1 ):
-        lFound = False
-        for iCnt in range( 0, len( symExpr.elements ) - 1 ) :
-          elem1 = symExpr.elements[ iCnt     ]
+      maxLen = len( symExpr.elements )
 
-          # only SymVariable
-          if not isinstance( elem1 , symexpress3.SymVariable ):
+      if maxLen <= 1:
+        return result
+
+      arrDel:set[int]  = set()
+      arrSkip:set[int] = set()
+
+      for iCnt, elemskip in enumerate( symExpr.elements ) :
+        if not isinstance( elemskip, symexpress3.SymVariable ):
+          arrSkip.add( iCnt )
+          continue
+
+      # no variables found
+      if maxLen == len( arrSkip ):
+        return result
+
+      # multiple all units with same name
+      maxLen1 = maxLen - 1
+      maxLen2 = maxLen
+
+      for iCnt in range( 0, maxLen1 ) :
+
+        if iCnt in arrSkip:
+          continue
+
+        if iCnt in arrDel:
+          continue
+
+        elem1 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt ] )
+
+        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+          if iCnt2 in arrSkip:
             continue
 
-          iCnt2 = iCnt + 1
-          while iCnt2 < len( symExpr.elements ):
-            elem2 = symExpr.elements[ iCnt2 ]
-            iCnt2 += 1
+          if iCnt2 in arrDel:
+            continue
 
-            if not isinstance( elem2 , symexpress3.SymVariable ):
-              continue
+          elem2 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt2 ] )
 
-            # it must have the same name
-            if elem2.name != elem1.name:
-              continue
+          # it must have the same name
+          if elem2.name != elem1.name:
+            continue
 
-            # Special case for infinity
-            # If power sign is not the same then do nothing
-            # infinity * infinity / infinity = infinity / infinity = 1
-            # see optimzeInfinity.py & optSymVariableInfinity.py
-            if elem1.name == "infinity" and elem1.powerSign != elem2.powerSign:
-              continue
+          # Special case for infinity
+          # If power sign is not the same then do nothing
+          # infinity * infinity / infinity = infinity / infinity = 1
+          # see optimzeInfinity.py & optSymVariableInfinity.py
+          if elem1.name == "infinity" and elem1.powerSign != elem2.powerSign:
+            continue
 
-            elemnew = elem1.copy()
+          rememberPowerDenominator = elem1.powerDenominator
 
-            # if it is a fraction, make the denominator equal
-            elem1.powerCounter     *= elem2.powerDenominator
-            elem1.powerDenominator *= elem2.powerDenominator
+          # if it is a fraction, make the denominator equal
+          elem1.powerCounter     *= elem2.powerDenominator
+          elem1.powerDenominator *= elem2.powerDenominator
 
-            elem2.powerCounter     *= elemnew.powerDenominator
-            elem2.powerDenominator *= elemnew.powerDenominator
+          elem2.powerCounter     *= rememberPowerDenominator # elemnew.powerDenominator
+          elem2.powerDenominator *= rememberPowerDenominator # elemnew.powerDenominator
 
-            iCounter = elem1.powerCounter * elem1.powerSign + elem2.powerCounter * elem2.powerSign
+          iCounter = elem1.powerCounter * elem1.powerSign + elem2.powerCounter * elem2.powerSign
 
-            elem1.powerSign    = 1
-            elem1.powerCounter = iCounter
-            elem1.onlyOneRoot  = min( elem1.onlyOneRoot, elem2.onlyOneRoot )
+          elem1.powerSign    = 1
+          elem1.powerCounter = iCounter
+          elem1.onlyOneRoot  = min( elem1.onlyOneRoot, elem2.onlyOneRoot )
 
-            del symExpr.elements[ iCnt2 - 1 ] # already has done +1
-            lFound = True
-            result = True
-            break
+          arrDel.add( iCnt2 )
+          elem1  = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt ] )
 
-          if lFound == True:
-            break
+          result = True
+
+      # del elements
+      for iCnt in sorted( arrDel, reverse=True):
+        del symExpr.elements[ iCnt ]
+
       return result
 
     # multiply number with multiple-plus-expression
@@ -425,16 +449,13 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       symExpr.elements = []
       symExpr.symType  = '+'
+      result           = True
       for elemsub in elemExpr.elements :
         elemnew = symexpress3.SymExpress( '*' )
-        # elemnew.elements.append( elemNum )
         elemnew.add( elemNum )
         elemnew.elements.append( elemsub )
 
-        # symExpr.add( elemnew )
         symExpr.elements.append( elemnew )
-
-        result = True
 
       return result
 
@@ -444,7 +465,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      if symExpr.numElements() <= 1:
+      maxLen = symExpr.numElements()
+
+      if maxLen <= 1:
         return result
 
       for iCnt, elem in enumerate( symExpr.elements ) :
@@ -463,7 +486,6 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         for iCnt2, elemSub2 in enumerate( symExpr.elements ):
           if iCnt2 == iCnt:
             continue
-          # symMulti.add( elemSub2 )
           symMulti.elements.append( elemSub2 )
 
         # print( 'SymMulti: {}'.format( str( SymMulti )))
@@ -479,11 +501,9 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         result           = True
         for elemSub2 in elem.elements :
           symNew = symexpress3.SymExpress( '*' )
-          # symNew.elements.append( symMulti )
           symNew.add( symMulti )
           symNew.elements.append( elemSub2 )
 
-          # symExpr.add( symNew )
           symExpr.elements.append( symNew )
 
         # SymExpress is now a plus expression
@@ -497,124 +517,145 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      lFound = True
-      while lFound == True:
-        lFound = False
-        for iCnt, elem in enumerate( symExpr.elements ) :
+      arrDel:set[int]  = set()
+      arrSkip:set[int] = set()
 
-          if elem.powerDenominator == 1:
+      maxLen = len( symExpr.elements )
+
+      if maxLen <= 1 :
+        return result
+
+      for iCnt, elemskip in enumerate( symExpr.elements ) :
+        if elemskip.powerDenominator == 1:
+          arrSkip.add( iCnt )
+          continue
+
+        if elemskip.onlyOneRoot == 0:
+          arrSkip.add( iCnt )
+          continue
+
+      # nothing found
+      if maxLen == len( arrSkip ):
+        return result
+
+      maxLen1 = maxLen - 1
+      maxLen2 = maxLen
+
+      for iCnt in range( 0, maxLen1 ) :
+
+        if iCnt in arrSkip:
+          continue
+
+        if iCnt in arrDel:
+          continue
+
+        elem = symExpr.elements[ iCnt ]
+
+        # search for the next element with the same base
+        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+          if iCnt2 in arrSkip:
             continue
 
-          if elem.onlyOneRoot == 0:
+          if iCnt2 in arrDel:
             continue
 
-          # print( "_multplyPlusMultiplyOnlyRoots elem1: {}".format( str( elem )) )
+          elem2 = symExpr.elements[ iCnt2 ]
 
-          # search for the next element with the same base
-          for iCnt2 in range( iCnt + 1 , len( symExpr.elements )):
+          if not elem.isEqual( elem2, True, False ):
+            lOk = False
 
-            elem2 = symExpr.elements[ iCnt2 ]
+            # needed this 4 variable to initialize, but the initialize value is never used (pylint)
+            rem1FactCounter   = 1
+            rem2FactCounter   = 1
+            rem1PowerCounter  = 1
+            rem2PowerCounter  = 1
 
-            if elem2.onlyOneRoot != 1:
+            if ( isinstance( elem, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+              dPrimeSet1 = primefactor.FactorizationDict( elem.factCounter  )
+              dPrimeSet2 = primefactor.FactorizationDict( elem2.factCounter )
+
+              # print ( "dPrimeSet1: {}".format( dPrimeSet1 ))
+              # print ( "dPrimeSet2: {}".format( dPrimeSet2 ))
+
+              if ( len( dPrimeSet1 ) == 1 and len( dPrimeSet2 ) == 1 ):
+                if list( dPrimeSet1.keys() )[0] == list( dPrimeSet2.keys() )[0] :
+                  # 2 elements with the same base
+                  # put the numbers in the counters of the power
+                  # print( "list( dPrimeSet1)[ 0 ]: {}".format( list( dPrimeSet1.values())[ 0 ] ))
+                  # print( "list( dPrimeSet2)[ 0 ]: {}".format( list( dPrimeSet2.values() )[ 0 ] ))
+
+                  # not a nice solution but for the moment
+                  elemcheck1 = elem.copy()
+                  elemcheck1.powerSign        = 1
+                  elemcheck1.powerDenominator = 1
+                  elemcheck1.powerCounter     = 1
+
+                  elemcheck2 = elem2.copy()
+                  elemcheck2.powerSign        = 1
+                  elemcheck2.powerDenominator = 1
+                  elemcheck2.powerCounter     = 1
+
+                  rem1FactCounter    = list( dPrimeSet1.keys()  )[ 0 ]
+                  rem2FactCounter    = list( dPrimeSet2.keys()  )[ 0 ]
+                  rem1PowerCounter  = elem.powerCounter  * list( dPrimeSet1.values())[ 0 ]
+                  rem2PowerCounter  = elem2.powerCounter * list( dPrimeSet2.values())[ 0 ]
+
+                  lOk = True
+
+            if lOk == False:
               continue
 
-            if elem2.powerDenominator == 1:
+            elemcheck1.factCounter   = rem1FactCounter
+            elemcheck2.factCounter   = rem2FactCounter
+            elemcheck1.powerCounter  = rem1PowerCounter
+            elemcheck2.powerCounter  = rem2PowerCounter
+
+            elemcheck1.powerSign        = 1
+            elemcheck1.powerDenominator = 1
+            elemcheck1.powerCounter     = 1
+
+            elemcheck2.powerSign        = 1
+            elemcheck2.powerDenominator = 1
+            elemcheck2.powerCounter     = 1
+
+            if not elemcheck1.isEqual( elemcheck2 ):
               continue
 
-            if not elem.isEqual( elem2, True, False ):
-              lOk = False
+            elem  = typing.cast( symexpress3.SymNumber, elem  )
+            elem2 = typing.cast( symexpress3.SymNumber, elem2 )
 
-              # needed this 4 variable to initialize, but the initialize value is never used (pylint)
-              rem1FactCounter   = 1
-              rem2FactCounter   = 1
-              rem1PowerCounter  = 1
-              rem2PowerCounter  = 1
+            elem.factCounter    = rem1FactCounter
+            elem2.factCounter   = rem2FactCounter
+            elem.powerCounter   = rem1PowerCounter
+            elem2.powerCounter  = rem2PowerCounter
 
-              if ( isinstance( elem, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
-                dPrimeSet1 = primefactor.FactorizationDict( elem.factCounter  )
-                dPrimeSet2 = primefactor.FactorizationDict( elem2.factCounter )
+          # 2 radicals with the same denominator
+          # add the powers
+          if elem.powerDenominator != elem2.powerDenominator:
 
-                # print ( "dPrimeSet1: {}".format( dPrimeSet1 ))
-                # print ( "dPrimeSet2: {}".format( dPrimeSet2 ))
+            # iPowerCounter1       = elem.powerCounter
+            iPowerDenominator1   = elem.powerDenominator
 
-                if ( len( dPrimeSet1 ) == 1 and len( dPrimeSet2 ) == 1 ):
-                  if list( dPrimeSet1.keys() )[0] == list( dPrimeSet2.keys() )[0] :
-                    # 2 elements with the same base
-                    # put the numbers in the counters of the power
-                    # print( "list( dPrimeSet1)[ 0 ]: {}".format( list( dPrimeSet1.values())[ 0 ] ))
-                    # print( "list( dPrimeSet2)[ 0 ]: {}".format( list( dPrimeSet2.values() )[ 0 ] ))
+            elem.powerDenominator  *= elem2.powerDenominator
+            elem.powerCounter      *= elem2.powerDenominator
 
-                    # not a nice solution but for the moment
-                    elemcheck1 = elem.copy()
-                    elemcheck1.powerSign        = 1
-                    elemcheck1.powerDenominator = 1
-                    elemcheck1.powerCounter     = 1
+            elem2.powerCounter     *= iPowerDenominator1
+            elem2.powerDenominator *= iPowerDenominator1
 
-                    elemcheck2 = elem2.copy()
-                    elemcheck2.powerSign        = 1
-                    elemcheck2.powerDenominator = 1
-                    elemcheck2.powerCounter     = 1
+          iCounter = elem.powerCounter * elem.powerSign + elem2.powerCounter * elem2.powerSign
 
-                    rem1FactCounter    = list( dPrimeSet1.keys()  )[ 0 ]
-                    rem2FactCounter    = list( dPrimeSet2.keys()  )[ 0 ]
-                    rem1PowerCounter  = elem.powerCounter  * list( dPrimeSet1.values())[ 0 ]
-                    rem2PowerCounter  = elem2.powerCounter * list( dPrimeSet2.values())[ 0 ]
+          elem.powerSign     = 1
+          elem.powerCounter  = iCounter
 
-                    lOk = True
+          arrDel.add( iCnt2 )
+          elem = symExpr.elements[ iCnt ]
 
-              if lOk == False:
-                continue
+          result = True
 
-              elemcheck1.factCounter   = rem1FactCounter
-              elemcheck2.factCounter   = rem2FactCounter
-              elemcheck1.powerCounter  = rem1PowerCounter
-              elemcheck2.powerCounter  = rem2PowerCounter
-
-              elemcheck1.powerSign        = 1
-              elemcheck1.powerDenominator = 1
-              elemcheck1.powerCounter     = 1
-
-              elemcheck2.powerSign        = 1
-              elemcheck2.powerDenominator = 1
-              elemcheck2.powerCounter     = 1
-
-              if not elemcheck1.isEqual( elemcheck2 ):
-                continue
-
-              elem  = typing.cast( symexpress3.SymNumber, elem  )
-              elem2 = typing.cast( symexpress3.SymNumber, elem2 )
-
-              elem.factCounter    = rem1FactCounter
-              elem2.factCounter   = rem2FactCounter
-              elem.powerCounter   = rem1PowerCounter
-              elem2.powerCounter  = rem2PowerCounter
-
-            # 2 radicals with the same denominator
-            # add the powers
-            if elem.powerDenominator != elem2.powerDenominator:
-
-              # iPowerCounter1       = elem.powerCounter
-              iPowerDenominator1   = elem.powerDenominator
-
-              elem.powerDenominator  *= elem2.powerDenominator
-              elem.powerCounter      *= elem2.powerDenominator
-
-              elem2.powerCounter     *= iPowerDenominator1
-              elem2.powerDenominator *= iPowerDenominator1
-
-            iCounter = elem.powerCounter * elem.powerSign + elem2.powerCounter * elem2.powerSign
-
-            elem.powerSign     = 1
-            elem.powerCounter  = iCounter
-
-            # print( "elem new: {}".format( str( elem  )))
-
-            del symExpr.elements[ iCnt2 ]
-            lFound = True
-            result = True
-            break
-          if lFound == True:
-            break
+      # del elements
+      for iCnt in sorted( arrDel, reverse=True):
+        del symExpr.elements[ iCnt ]
 
       return result
 
@@ -625,56 +666,86 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      lFound = True
-      while lFound == True:
-        lFound = False
+      arrDel:set[int]  = set()
+      arrSkip:set[int] = set()
+
+      maxLen = len( symExpr.elements )
+
+      if maxLen <= 1 :
+        return result
+
+      for iCnt, elemskip in enumerate( symExpr.elements ) :
+        if elemskip.powerDenominator == 1:
+          arrSkip.add( iCnt )
+          continue
+        if elemskip.onlyOneRoot == 0 :
+          arrSkip.add( iCnt )
+          continue
+
+      # nothing found
+      if maxLen == len( arrSkip ):
+        return result
+
+      maxLen1 = maxLen - 1
+      maxLen2 = maxLen
+
+      for iCnt in range( 0, maxLen1 ) :
         oExpr  = None
-        for iCnt, elem in enumerate( symExpr.elements ) :
-          if elem.powerDenominator == 1:
+
+        if iCnt in arrSkip:
+          continue
+
+        if iCnt in arrDel:
+          continue
+
+        elem = symExpr.elements[ iCnt ]
+
+        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+          if iCnt2 in arrSkip:
             continue
-          if elem.onlyOneRoot == 0 :
+
+          if iCnt2 in arrDel:
             continue
 
-          iCnt2 = iCnt + 1
-          while iCnt2 < len( symExpr.elements ):
-            elem2 = symExpr.elements[ iCnt2 ]
-            iCnt2 += 1
-            if elem2.onlyOneRoot == 0:
-              continue
-            if elem2.power != elem.power:
-              continue
-            lFound = True
-            if oExpr == None:
-              oExpr = symexpress3.SymExpress( '*' )
-              oExpr.powerSign        = elem.powerSign
-              oExpr.powerCounter     = elem.powerCounter
-              oExpr.powerDenominator = elem.powerDenominator
-              oExpr.onlyOneRoot      = 1
+          elem2 = symExpr.elements[ iCnt2 ]
 
-            elem2.powerSign        = 1
-            elem2.powerCounter     = 1
-            elem2.powerDenominator = 1
+          if (   elem2.powerSign        != elem.powerSign
+              or elem2.powerCounter     != elem.powerCounter
+              or elem2.powerDenominator != elem.powerDenominator
+            ):
+            continue
 
-            # oExpr.add( elem2 )
-            oExpr.elements.append( elem2 )
+          if oExpr == None:
+            oExpr = symexpress3.SymExpress( '*' )
+            oExpr.powerSign        = elem.powerSign
+            oExpr.powerCounter     = elem.powerCounter
+            oExpr.powerDenominator = elem.powerDenominator
+            oExpr.onlyOneRoot      = 1
 
-            iCnt2 -= 1
-            del symExpr.elements[ iCnt2 ]
-            result = True
+          elem2.powerSign        = 1
+          elem2.powerCounter     = 1
+          elem2.powerDenominator = 1
 
-          if lFound == True:
-            oExpr = typing.cast( symexpress3.SymExpress, oExpr )
+          oExpr.elements.append( elem2 )
 
-            elem.powerSign        = 1
-            elem.powerCounter     = 1
-            elem.powerDenominator = 1
+          arrDel.add( iCnt2 )
 
-            # oExpr.add( elem )
-            oExpr.elements.append( elem )
-            del symExpr.elements[ iCnt ]
-            symExpr.add( oExpr )
-            result = True
-            break
+        # if lFound == True:
+        if oExpr != None:
+
+          elem.powerSign        = 1
+          elem.powerCounter     = 1
+          elem.powerDenominator = 1
+
+          oExpr.elements.append( elem )
+          symExpr.elements[ iCnt ] = oExpr
+
+          result = True
+
+      # del elements
+      for iCnt in sorted( arrDel, reverse=True):
+        del symExpr.elements[ iCnt ]
 
       # print( "symExpr: {}".format( str( symExpr )) )
       return result
@@ -684,51 +755,80 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       if symExpr.symType != '*':
         return result
-      if symExpr.numElements() <= 1:
+
+      arrDel:set[int]  = set()
+      arrSkip:set[int] = set()
+
+      maxLen = len( symExpr.elements )
+
+      if maxLen <= 1 :
         return result
 
-      lFound = True
-      while lFound == True:
+      for iCnt, elemskip in enumerate( symExpr.elements ) :
 
-        lFound = False
-        for iCnt, elem in enumerate( symExpr.elements ):
+        if not isinstance( elemskip, symexpress3.SymFunction ):
+          arrSkip.add( iCnt )
+          continue
 
-          # print( 'iCnt: {}'.format( iCnt ))
+        if elemskip.onlyOneRoot == 0 :
+          arrSkip.add( iCnt )
+          continue
 
-          if not isinstance( elem, symexpress3.SymFunction ):
+      # nothing found
+      if maxLen == len( arrSkip ):
+        return result
+
+      maxLen1 = maxLen - 1
+      maxLen2 = maxLen
+
+      for iCnt in range( 0, maxLen1 ) :
+
+        if iCnt in arrSkip:
+          continue
+
+        if iCnt in arrDel:
+          continue
+
+        elem = symExpr.elements[ iCnt ]
+
+        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+
+          if iCnt2 in arrSkip:
             continue
 
-          # print( '_multiplyFunctionFunction: {} {}'.format( iCnt, str( elem )))
+          if iCnt2 in arrDel:
+            continue
 
-          for iCnt2 in range( iCnt + 1, len( symExpr.elements ) ):
-            elem2 = symExpr.elements[ iCnt2 ]
+          elem2 = symExpr.elements[ iCnt2 ]
 
-            if elem2.isEqual( elem, True, False ) != True:
-              continue
+          if elem2.isEqual( elem, True, False ) != True:
+            continue
 
-            # 2 same function add powers
-            iPowerCounter1     = elem.powerCounter  * elem.powerSign
-            iPowerCounter2     = elem2.powerCounter * elem2.powerSign
+          # 2 same function add powers
+          iPowerCounter1     = elem.powerCounter  * elem.powerSign
+          iPowerCounter2     = elem2.powerCounter * elem2.powerSign
 
-            iPowerDenominator1 = elem.powerDenominator
-            iPowerDenominator2 = elem2.powerDenominator
+          iPowerDenominator1 = elem.powerDenominator
+          iPowerDenominator2 = elem2.powerDenominator
 
-            # 2/3 + 3/5 = 2 * 5 / 3 * 5 + 3 * 3 / 5 * 3
-            iPowerCounter     = iPowerCounter1 * iPowerDenominator2 + iPowerCounter2 * iPowerDenominator1
-            iPowerDenominator = iPowerDenominator1 * iPowerDenominator2
+          # 2/3 + 3/5 = 2 * 5 / 3 * 5 + 3 * 3 / 5 * 3
+          iPowerCounter     = iPowerCounter1 * iPowerDenominator2 + iPowerCounter2 * iPowerDenominator1
+          iPowerDenominator = iPowerDenominator1 * iPowerDenominator2
 
-            lFound = True
-            result = True
+          # lFound = True
+          result = True
 
-            elem.powerSign        = 1
-            elem.powerCounter     = iPowerCounter
-            elem.powerDenominator = iPowerDenominator
+          elem.powerSign        = 1
+          elem.powerCounter     = iPowerCounter
+          elem.powerDenominator = iPowerDenominator
 
-            del symExpr.elements[ iCnt2 ]
-            break
+          arrDel.add( iCnt2 )
+          elem = symExpr.elements[ iCnt ]
 
-          if lFound == True:
-            break
+      # del elements
+      for iCnt in sorted( arrDel, reverse=True):
+        del symExpr.elements[ iCnt ]
+
       return result
 
     #

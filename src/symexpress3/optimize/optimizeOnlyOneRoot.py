@@ -67,7 +67,8 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
       if elem.powerDenominator == 1 :
         continue
       if elem.factCounter == 1:
-        if ( elem.powerSign == 1 and elem.powerCounter == 1 and elem.factDenominator == 1 ):
+        # if ( elem.powerSign == 1 and elem.powerCounter == 1 and elem.factDenominator == 1 ):
+        if elem.powerIsOne() == True:
           elem.powerDenominator = 1
         continue
 
@@ -87,14 +88,17 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
           lFoundOne = True
 
           elem1 = symexpress3.SymNumber( 1, int( iPrime ), 1, 1, iFact, 1, 1 )
-          symFact.add ( elem1 )
+          # symFact.add ( elem1 )
+          symFact.elements.append( elem1 )
 
           if iRad > 0 :
             elem1 = symexpress3.SymNumber( 1, int( iPrime ), 1, 1, iRad, 1, 1 )
-            symDeno.add ( elem1 )
+            # symDeno.add ( elem1 )
+            symDeno.elements.append( elem1 )
         else:
           elem1 = symexpress3.SymNumber( 1, int( iPrime ), 1, 1, iCount, 1, 1 )
-          symDeno.add ( elem1 )
+          # symDeno.add ( elem1 )
+          symDeno.elements.append( elem1 )
 
       if lFoundOne == True:
         result = True
@@ -104,7 +108,8 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
         if elem.factDenominator > 1 :
           elem1 = symexpress3.SymNumber( 1, 1, elem.factDenominator, 1, 1, 1 )
-          symDeno.add( elem1 )
+          # symDeno.add( elem1 )
+          symDeno.elements.append( elem1 )
 
         symReplace = symexpress3.SymExpress( '*', elem.powerSign, 1, 1, elem.onlyOneRoot )
         symReplace.add( symFact )
@@ -154,14 +159,17 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
           lFoundOne = True
 
           elem1 = symexpress3.SymNumber( 1, 1, int( iPrime ), 1, iDenom, 1, 1 )
-          symFact.add ( elem1 )
+          # symFact.add ( elem1 )
+          symFact.elements.append ( elem1 )
 
           if iRad > 0 :
             elem1 = symexpress3.SymNumber( 1, 1, int( iPrime ), 1, iRad, 1, 1 )
-            symDeno.add ( elem1 )
+            # symDeno.add ( elem1 )
+            symDeno.elements.append( elem1 )
         else:
           elem1 = symexpress3.SymNumber( 1, 1, int( iPrime ), 1, iCount, 1, 1 )
-          symDeno.add ( elem1 )
+          # symDeno.add ( elem1 )
+          symDeno.elements.append( elem1 )
 
       if lFoundOne == True :
         result = True
@@ -171,14 +179,17 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
         if elem.factCounter > 1 :
           elem1 = symexpress3.SymNumber( 1, elem.factCounter, 1, 1, 1, 1 )
-          symDeno.add( elem1 )
+          # symDeno.add( elem1 )
+          symDeno.elements.append( elem1 )
 
         # symReplace = SymExpress( '*' )
         symReplace = symexpress3.SymExpress( '*', elem.powerSign, 1, 1, elem.onlyOneRoot )
 
-        symReplace.add( symFact )
+        # symReplace.add( symFact )
+        symReplace.elements.append( symFact )
         if symDeno.numElements() > 0:
-          symReplace.add( symDeno )
+          # symReplace.add( symDeno )
+          symReplace.elements.append( symDeno )
 
         # print( "deno old elem: {}".format( str( elem )))
         # print( "deno new elem: {}".format( str( symReplace)))
@@ -219,8 +230,10 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
       elemnew.factCounter = iFactCounter
 
       symReplace = symexpress3.SymExpress( '*', elem.powerSign, 1, 1, elem.onlyOneRoot )
-      symReplace.add( elemfact )
-      symReplace.add( elemnew )
+      # symReplace.add( elemfact )
+      # symReplace.add( elemnew )
+      symReplace.elements.append( elemfact )
+      symReplace.elements.append( elemnew  )
 
       #dValueElem = elem.getValue()
       #dValueRep  = symReplace.getValue()
@@ -329,14 +342,14 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
         if foundNegative == 1:
           # ok replace expression
           symCopy           = symExpr.copy()
-          symCopy.add ( symexpress3.SymNumber( -1, 1, 1,1 )) # -1
+          symCopy.elements.append ( symexpress3.SymNumber( -1, 1, 1,1 )) # -1
           symCopy.powerSign = 1
 
           symExpr.powerCounter     = 1
           symExpr.powerDenominator = 1 # do not change power sign
           symExpr.elements         = []
-          symExpr.add( symexpress3.SymVariable( 'i' ))
-          symExpr.add( symCopy )
+          symExpr.elements.append( symexpress3.SymVariable( 'i' ))
+          symExpr.elements.append( symCopy )
 
           return True
 
@@ -408,7 +421,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
         if not isinstance( elem, symexpress3.SymNumber ):
           continue
         # no powers
-        if elem.power != 1:
+        if elem.powerIsOne() == False :
           continue
         dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
         arrFact.append( dPrimeSet )
@@ -445,7 +458,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
           arrDenom.append( dPrimeSet )
 
         elif isinstance( elemplus, symexpress3.SymExpress ):
-          if elemplus.power != 1:
+          if elemplus.powerIsOne() == False :
             # print( "Power - 2 not 1: " + str( elemplus ))
             return result
 
@@ -459,7 +472,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
             if not isinstance( elem, symexpress3.SymNumber ):
               continue
             # no powers
-            if elem.power != 1:
+            if elem.powerIsOne() == False :
               continue
             dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
             arrFact.append( dPrimeSet )
@@ -528,7 +541,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
         newNum = symexpress3.SymNumber()
         newNum.factCounter   = iPrime
         newNum.powerCounter  = iCount
-        symNum.add( newNum )
+        symNum.elements.append( newNum )
 
     if len( arrDenom ) > 0:
       # all powers are now the same
@@ -536,7 +549,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
         newNum = symexpress3.SymNumber()
         newNum.factDenominator = iPrime
         newNum.powerCounter    = iCount
-        symNum.add( newNum )
+        symNum.elements.append( newNum )
 
     # print( "Common factor: " + str( symNum ))
 
@@ -558,7 +571,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     copySymExpr.powerDenominator = 1
     copySymExpr.powerSign        = 1
     # add copy to new
-    newSymExpr.add( copySymExpr )
+    newSymExpr.elements.append( copySymExpr )
     # add 1/fact to new
     # add 1/denom to new
     symNum.powerSign = -1
@@ -610,9 +623,11 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     # print( " " )
 
 
-    symExpr.add( symNum1 )
+    # symExpr.add( symNum1 )
+    symExpr.elements.append( symNum1 )
     # add new to org
-    symExpr.add( newSymExpr )
+    # symExpr.add( newSymExpr )
+    symExpr.elements.append( newSymExpr )
     symExpr.powerSign = 1 # correct powersign
 
     # print( "New symexpress: " + str( symExpr ))
