@@ -48,11 +48,8 @@ class OptimizePower( optimizeBase.OptimizeBase ):
     result = False
 
     if self.checkExpression( symExpr, action ) != True:
-      # print( "Afgekeurd: " + symExpr.symType )
       return result
 
-    # set type for mypy
-    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
     symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
     # auto set onlyOneRoot

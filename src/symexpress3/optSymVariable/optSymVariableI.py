@@ -68,8 +68,8 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
       elemExtra = elem.copy()
       elemExtra.powerCounter = 1
       elemExp = symexpress3.SymExpress( '*' )
-      elemExp.add( elemnew    )
-      elemExp.add( elemExtra  )
+      elemExp.elements.append( elemnew    )
+      elemExp.elements.append( elemExtra  )
       return elemExp
 
     if ( elem.powerSign == -1 and elem.powerCounter == 1 and elem.powerDenominator == 1 ):
@@ -79,8 +79,8 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
       elemExtra.powerCounter = 1
       elemExtra.powerSign    = 1
       elemExp = symexpress3.SymExpress( '*' )
-      elemExp.add( elemnew   )
-      elemExp.add( elemExtra )
+      elemExp.elements.append( elemnew   )
+      elemExp.elements.append( elemExtra )
       return elemExp
 
     # i^2 = -1
@@ -113,17 +113,11 @@ class OptSymVariableI( optTypeBase.OptTypeBase ):
         elemExtra.powerCounter = 1
         elemExtra.powerSign    = 1
         elemExp = symexpress3.SymExpress( '*' )
-        elemExp.add( elemNew   )
-        elemExp.add( elemExtra )
+        elemExp.elements.append( elemNew   )
+        elemExp.elements.append( elemExtra )
 
         elemNew = elemExp
 
-      # 1/i => 1/i * i/i = i / (i^2) = i / -1 = -i
-      # if ( elemNew.name == 'i' and elemNew.powerSign == -1 ):
-      #   # power will be 1, sign will be -1
-      #   # self.factSign  *= -1
-      #   # self.powerSign  = 1
-      #   pass
       return elemNew
 
     return None

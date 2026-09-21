@@ -359,7 +359,8 @@ class SymBase( ABC ):
   #
   def _addVar( self, objDict:None|TypVarSym3GetVarFunc, cVarName:None|str|TypVarSym3GetVarFunc, iNumber:int = 1 ) -> TypVarSym3GetVarFunc:
     # print( "dict type: {}".format( type( objDict )))
-    if ( cVarName == '' or cVarName == None ):  # pylint: disable=consider-using-in
+    # if ( cVarName == '' or cVarName == None ):  # pylint: disable=consider-using-in
+    if not cVarName:
       return {}
 
     if isinstance( cVarName, dict ):
@@ -2367,7 +2368,7 @@ class SymExpress( SymBaseList ):
 
     # get lower symexpress with same type and factor and power of 1
     def _optGetLowerSameType() -> bool :
-      result           = False
+      # result           = False
       lFound           = True
       arrDel:list[int] = []
       # while lFound == True:
@@ -2396,7 +2397,8 @@ class SymExpress( SymBaseList ):
         for iCnt in sorted( arrDel, reverse=True):
           del self.elements[ iCnt ]
 
-      return result # always False
+      # return result # always False
+      return lFound
 
     #
     # main default optimize
@@ -2463,9 +2465,10 @@ class SymExpress( SymBaseList ):
           print( f'Calculated: {str( dValue )}', file=filehandle )
 
 
-    def _optimizeAction( arrAction:list[str], cText:str, maxCount:int = 10 ) -> None :
+    def _optimizeAction( arrAction:list[str], cText:str, maxCount:int = 10 ) -> bool :
       iCnt     = 0
       bChanged = True
+      bResult  = False
 
       # print( f"optimizeAction: {arrAction}"  )
 
@@ -2502,6 +2505,8 @@ class SymExpress( SymBaseList ):
         if bChanged == False:
           break # nothing changed, leave loop
 
+        bResult = True
+
         # max iteration reached and no output, leave
         if iCnt >= maxCount and output == None and filehandle == None:
           break
@@ -2516,6 +2521,9 @@ class SymExpress( SymBaseList ):
           SymExpressTree( self, filehandle )
 
         _printCalc()
+
+      return bResult
+
 
     global globalDebugNoDebugCount # pylint: disable=global-statement
     global globalDebugNoDebugLevel # pylint: disable=global-statement
@@ -2544,11 +2552,15 @@ class SymExpress( SymBaseList ):
     # print( "optimizeNormal start")
 
 
-    cStartBig = ''
+    # cStartBig = ''
     iCntBig   = 0
-    cTestBig  = str( self )
+    # cTestBig  = str( self )
     maxBig    = 10
-    while( iCntBig < maxBig and cStartBig != cTestBig):
+    bChanged  = True
+    # while( iCntBig < maxBig and cStartBig != cTestBig):
+    while( iCntBig < maxBig and bChanged == True ):
+
+      bChanged = False
 
       if globalDebugLevel > 1 :
 
@@ -2561,23 +2573,25 @@ class SymExpress( SymBaseList ):
 
 
 
-      cStartBig  = cTestBig
+      # cStartBig  = cTestBig
       iCntBig   += 1
 
       # print( f"optimizeNormal loop: {iCntBig}")
 
-      _optimizeAction( []                          , "Optimize expression"       ,  1 )
-      _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
-      _optimizeAction( [ "power"                  ], "Eliminate powers"          , 20 )
-      # _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
-      _optimizeAction( [ "multiply"               ], "Multiply"                  , 10 )
-      _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
-      _optimizeAction( [ "add"                    ], "Add elements"              , 10 )
-      _optimizeAction( [ "divideDivide"           ], "Divide divide"             ,  1 )
+      bChanged |= _optimizeAction( []                          , "Optimize expression"       ,  1 )
+      bChanged |= _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
+      bChanged |= _optimizeAction( [ "power"                  ], "Eliminate powers"          , 20 )
+      # bChanged |= _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
+      bChanged |= _optimizeAction( [ "multiply"               ], "Multiply"                  ,  2 ) # special for large formula's'
+      bChanged |= _optimizeAction( [ "add"                    ], "Add elements"              ,  2 )
+      bChanged |= _optimizeAction( [ "multiply"               ], "Multiply"                  , 10 )
+      bChanged |= _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
+      bChanged |= _optimizeAction( [ "add"                    ], "Add elements"              , 10 )
+      bChanged |= _optimizeAction( [ "divideDivide"           ], "Divide divide"             ,  1 )
 
 
-      if iCntBig < maxBig:
-        cTestBig  = str( self )
+      # if iCntBig < maxBig:
+      #   cTestBig  = str( self )
 
     if output != None:
       output.writeLine( '<br>' )
@@ -2620,10 +2634,11 @@ class SymExpress( SymBaseList ):
           print( f'Calculated {cTekst} {iCnt}/{iCntBig}: value:{str( dValue )}', file=filehandle )
 
 
-    def _optimizeAction( arrAction:list[str], cText:str, iCntBig:int, iMaxCnt:int ) -> None :
+    def _optimizeAction( arrAction:list[str], cText:str, iCntBig:int, iMaxCnt:int ) -> bool :
       iCnt     = 0
       bChanged = True
       cCode    = 'None'
+      bResult  = False
       while( iCnt < iMaxCnt and bChanged == True ):
         bChanged = False
         iCnt += 1
@@ -2643,6 +2658,8 @@ class SymExpress( SymBaseList ):
         if bChanged == False:
           break
 
+        bResult = True
+
         if output != None:
           output.writeLine( '<br>' + cText + ' [' + cCode + '] ' + str( iCnt ) + '/' + str( iCntBig ) )
           output.writeSymExpress( self )
@@ -2655,6 +2672,8 @@ class SymExpress( SymBaseList ):
         self.optimizeNormal( output, filehandle, extra, varDict )
         _printCalc( arrAction[0], iCnt, iCntBig )
 
+      return bResult
+
     if globalDebugLevel > 0:
       _debugMessage( "optimizeExtended start")
 
@@ -2665,62 +2684,65 @@ class SymExpress( SymBaseList ):
 
     self.optimizeNormal( output, filehandle, extra, varDict )
 
-    cStartBig = ''
+    # cStartBig = ''
     iCntBig   = 0
-    cTest     = str( self )
+    # cTest     = str( self )
     iBigMax   = 8
-    while( iCntBig < iBigMax and cStartBig != cTest  ):
+    bChanged  = True
+    # while( iCntBig < iBigMax and cStartBig != cTest  ):
+    while( iCntBig < iBigMax and bChanged == True ):
+      bChanged = False
 
       if globalDebugLevel > 0 :
         _debugMessage( f"optimizeExtended iCntBig: {iCntBig}")
 
-      cStartBig = cTest
+      # cStartBig = cTest
       iCntBig  += 1
 
       # print( f"Big loop: {iCntBig}")
 
       if output != None:
-        output.writeLine( '<br>Big Loop '  + str( iCntBig ) )
+        output.writeLine( f'<br>Big Loop {iCntBig}' )
       if filehandle != None:
-        print( "Big Loop "  + str( iCntBig ), file=filehandle )
+        print( f"Big Loop {iCntBig}", file=filehandle )
 
       _printCalc( 'start', 0, iCntBig )
 
-      _optimizeAction( ["infinity"                    ], 'Simplify infinity'                           , iCntBig,  3 )
-      _optimizeAction( ["rootToPrincipalRoot"         ], 'Write out all roots into principal roots'    , iCntBig,  1 )
-      _optimizeAction( ["powerArrays"                 ], 'Put the power of the array into the elements', iCntBig,  1 )
-      _optimizeAction( ["arrayPower"                  ], 'Put the power of an array into his elements' , iCntBig, 10 )
-      _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
-      _optimizeAction( ["negRootToI"                  ], 'Negative root to i'                          , iCntBig,  1 )
-      _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
-      _optimizeAction( ["unnestingRadicals"           ], 'Unnesting Radicals'                          , iCntBig,  1 ) # unnesting radicals
-      _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
-      _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
-      _optimizeAction( ["radicalDenominatorToCounter" ], 'Radical denominator to counter'              , iCntBig,  1 )
-      _optimizeAction( ["unnestingCubicRoot"          ], 'Unnesting cubic root'                        , iCntBig,  1 )
-      _optimizeAction( ["rootIToSinCos"               ], 'Root i to cos + i sin'                       , iCntBig,  1 )
-      _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
-      _optimizeAction( ["imaginairDenominator"        ], 'Imaginair Denominator'                       , iCntBig,  1 ) # get imaginair denominator into the counter
-      _optimizeAction( ["rootOfImagNumToCosISin"      ], 'Root of imaginair number to cos + i sin'     , iCntBig,  1 )
-      _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
-      _optimizeAction( ["nestedRadicals"              ], 'Nested radicals'                             , iCntBig, 10 )
-      _optimizeAction( ["sinTwoCosTwo"                ], 'Sin^2 + Cos^2'                               , iCntBig,  1 ) # sin(x)^2 + cos(x)^2 = 1
-      _optimizeAction( ["cosXplusYtoSinCos"           ], 'cos(x+y) = cos(x)cos(y) - sin(x)sin(y)'      , iCntBig, 10 )
-      _optimizeAction( ["sinXplusYtoSinCos"           ], 'sin(x+y) = sin(x)cos(y) + cos(x)sin(y)'      , iCntBig, 10 )
-      # _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
-      _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
-      _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
-      _optimizeAction( ["numberOutDenominator"        ], 'Number out of denominator'                   , iCntBig,  2 ) # 1/(4a+4b) -> 1/4 * 1/(a+b)
-      _optimizeAction( ["compositeDenominator"        ], 'Composite denominator'                       , iCntBig,  2 ) # a/(a+b)+b/(a+b) = 1
-      _optimizeAction( ["flipDenominator"             ], 'Flip denominator'                            , iCntBig,  2 ) # a/(a+b+c) + b/(a+b+c) = 1 - c/(a+b+c)
-      _optimizeAction( ["compactDenominator"          ], 'Compact denominator'                         , iCntBig,  2 ) # -a-1+a^^2/(a+1) = (-2a-1)/(a+1)
+      bChanged |= _optimizeAction( ["infinity"                    ], 'Simplify infinity'                           , iCntBig,  3 )
+      bChanged |= _optimizeAction( ["rootToPrincipalRoot"         ], 'Write out all roots into principal roots'    , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["powerArrays"                 ], 'Put the power of the array into the elements', iCntBig,  1 )
+      bChanged |= _optimizeAction( ["arrayPower"                  ], 'Put the power of an array into his elements' , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["negRootToI"                  ], 'Negative root to i'                          , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["unnestingRadicals"           ], 'Unnesting Radicals'                          , iCntBig,  1 ) # unnesting radicals
+      bChanged |= _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
+      bChanged |= _optimizeAction( ["radicalDenominatorToCounter" ], 'Radical denominator to counter'              , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["unnestingCubicRoot"          ], 'Unnesting cubic root'                        , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["rootIToSinCos"               ], 'Root i to cos + i sin'                       , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["imaginairDenominator"        ], 'Imaginair Denominator'                       , iCntBig,  1 ) # get imaginair denominator into the counter
+      bChanged |= _optimizeAction( ["rootOfImagNumToCosISin"      ], 'Root of imaginair number to cos + i sin'     , iCntBig,  1 )
+      bChanged |= _optimizeAction( ["functionToValues"            ], 'Function to values'                          , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["nestedRadicals"              ], 'Nested radicals'                             , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["sinTwoCosTwo"                ], 'Sin^2 + Cos^2'                               , iCntBig,  1 ) # sin(x)^2 + cos(x)^2 = 1
+      bChanged |= _optimizeAction( ["cosXplusYtoSinCos"           ], 'cos(x+y) = cos(x)cos(y) - sin(x)sin(y)'      , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["sinXplusYtoSinCos"           ], 'sin(x+y) = sin(x)cos(y) + cos(x)sin(y)'      , iCntBig, 10 )
+      # bChanged |= _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
+      bChanged |= _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
+      bChanged |= _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
+      bChanged |= _optimizeAction( ["numberOutDenominator"        ], 'Number out of denominator'                   , iCntBig,  2 ) # 1/(4a+4b) -> 1/4 * 1/(a+b)
+      bChanged |= _optimizeAction( ["compositeDenominator"        ], 'Composite denominator'                       , iCntBig,  2 ) # a/(a+b)+b/(a+b) = 1
+      bChanged |= _optimizeAction( ["flipDenominator"             ], 'Flip denominator'                            , iCntBig,  2 ) # a/(a+b+c) + b/(a+b+c) = 1 - c/(a+b+c)
+      bChanged |= _optimizeAction( ["compactDenominator"          ], 'Compact denominator'                         , iCntBig,  2 ) # -a-1+a^^2/(a+1) = (-2a-1)/(a+1)
 
 
       # _optimizeAction( ["cosAtanDiv3"                 ], 'cos( atan(x)/3)'                             , iCntBig,  1 )
 
-      if iCntBig >= iBigMax:
-        break
-      cTest = str( self )
+      # if iCntBig >= iBigMax:
+      #   break
+      # cTest = str( self )
 
     if output != None:
       output.writeLine( '<br>' )

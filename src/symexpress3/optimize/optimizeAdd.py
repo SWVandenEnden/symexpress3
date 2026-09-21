@@ -110,22 +110,22 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
             elemnew = symexpress3.SymExpress( '*' )
             elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
-            elemnew.add( elemnum )
-            elemnew.add( elem1   )
+            elemnew.elements.append( elemnum )
+            elemnew.elements.append( elem1   )
             symExpr.elements[ iCnt ] = elemnew
           else:
-            elem3 = symexpress3.SymNumber()
-            elem3.factSign        = elem1.factSign
-            elem3.factCounter     = elem1.factCounter
-            elem3.factDenominator = elem1.factDenominator
-            elem3.onlyOneRoot     = elem1.onlyOneRoot
+            # elem3 = symexpress3.SymNumber()
+            # elem3.factSign        = elem1.factSign
+            # elem3.factCounter     = elem1.factCounter
+            elem3factDenominator = elem1.factDenominator
+            elem3onlyOneRoot     = elem1.onlyOneRoot
 
             # elem1.factSign *= elem2.factSign
             elem1.factCounter     *= elem2.factDenominator
             elem1.factDenominator *= elem2.factDenominator
 
-            elem2.factCounter     *= elem3.factDenominator
-            elem2.factDenominator *= elem3.factDenominator
+            elem2.factCounter     *= elem3factDenominator
+            elem2.factDenominator *= elem3factDenominator
 
             elem1factor = elem1.factSign * elem1.factCounter
             elem2factor = elem2.factSign * elem2.factCounter
@@ -133,7 +133,7 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             elem1.factSign    = 1
             elem1.factCounter = elem1factor + elem2factor
             # elem1.onlyOneRoot = max( elem3.onlyOneRoot, elem2.onlyOneRoot )
-            elem1.onlyOneRoot = min( elem3.onlyOneRoot, elem2.onlyOneRoot )
+            elem1.onlyOneRoot = min( elem3onlyOneRoot, elem2.onlyOneRoot )
 
           # print( "elem1 new: {}".format( str( elem1 )))
           # del symExpr.elements[ iCnt2 ]
@@ -145,8 +145,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
         if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
           elemnew = symexpress3.SymExpress( '*' )
           elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
-          elemnew.add( elemnum )
-          elemnew.add( elem1   )
+          elemnew.elements.append( elemnum )
+          elemnew.elements.append( elem1   )
           symExpr.elements[ iCnt ] = elemnew
 
           arrDel.add( iCnt2 )
@@ -205,18 +205,18 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
               # print( 'elemsub start: {}, power: {}'.format( str( elemsub ), elemsub.power ))
               # print( 'elemnum start: {}'.format( str( elemnum )))
 
-              elem3 = symexpress3.SymNumber()
-              elem3.factSign        = elemnum.factSign
-              elem3.factCounter     = elemnum.factCounter
-              elem3.factDenominator = elemnum.factDenominator
-              elem3.onlyOneRoot     = elemnum.onlyOneRoot
+              # elem3 = symexpress3.SymNumber()
+              # elem3.factSign        = elemnum.factSign
+              # elem3.factCounter     = elemnum.factCounter
+              elem3factDenominator = elemnum.factDenominator
+              elem3onlyOneRoot     = elemnum.onlyOneRoot
 
               # elem1.factSign *= elem2.factSign
               elemnum.factCounter     *= elemsub.factDenominator
               elemnum.factDenominator *= elemsub.factDenominator
 
-              elemsub.factCounter     *= elem3.factDenominator
-              elemsub.factDenominator *= elem3.factDenominator
+              elemsub.factCounter     *= elem3factDenominator
+              elemsub.factDenominator *= elem3factDenominator
 
               elem1factor = elemnum.factSign * elemnum.factCounter
               elem2factor = elemsub.factSign * elemsub.factCounter
@@ -230,17 +230,19 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
               elemnum.factSign    = 1
               elemnum.factCounter = elem1factor + elem2factor
               # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
-              elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
+              elemnum.onlyOneRoot = min( elem3onlyOneRoot, elemsub.onlyOneRoot )
 
               # print( "elemnum end: {}".format( elemnum ))
             else:
-              elemnew.add( elemsub )
+              # elemnew.add( elemsub )
+              elemnew.elements.append( elemsub )
 
           # print( "elemnum add: {}".format( elemnum ))
           if lFoundOne == False:
             continue
 
-          elemnew.add( elemnum )
+          # elemnew.add( elemnum )
+          elemnew.elements.append( elemnum )
           symExpr.elements[ iCnt ] = elemnew
 
           # print( 'special, elemnew : {}'.format( str( elemnew  )))
@@ -258,8 +260,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           # 2 expression with powers
           elemnew = symexpress3.SymExpress( '*' )
-          elemnew.add( symexpress3.SymNumber( 1, 2, 1, 1,1,1 ))
-          elemnew.add( elem1 )
+          elemnew.elements.append( symexpress3.SymNumber( 1, 2, 1, 1,1,1 ))
+          elemnew.elements.append( elem1 )
 
           symExpr.elements[ iCnt ] = elemnew
 
@@ -416,7 +418,8 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           # elemnum.onlyOneRoot = max( elem3.onlyOneRoot, elemsub.onlyOneRoot )
           elemnum.onlyOneRoot = min( elem3.onlyOneRoot, elemsub.onlyOneRoot )
 
-          elemnew.add( elemnum )
+          # elemnew.add( elemnum )
+          elemnew.elements.append( elemnum )
 
           # if ( (dVal1 + dVal2) != elemnew.getValue() ):
           #   print( 'result: {} = {} = {} = {}  +  {}'.format( elemnew.getValue(), dVal1 + dVal2, str( elemnew ), cElem1, cElem2 ))

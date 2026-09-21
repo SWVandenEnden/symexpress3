@@ -57,14 +57,15 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     for iCnt, elem in enumerate( symExpr.elements ) :
       # elem = symExpr.elements[ iCnt ]
 
+      if elem.powerDenominator == 1 :
+        continue
+
       if not isinstance( elem, symexpress3.SymNumber ):
         continue
       # print( "elem.onlyOneRoot: {} {}".format( elem.onlyOneRoot, elem ) )
       if elem.onlyOneRoot != 1:
         continue
       if elem.factSign != 1 :
-        continue
-      if elem.powerDenominator == 1 :
         continue
       if elem.factCounter == 1:
         # if ( elem.powerSign == 1 and elem.powerCounter == 1 and elem.factDenominator == 1 ):
@@ -393,11 +394,11 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
     if symExpr.symType == '*':
       iFoudnNumbers = 0
       for elem in symExpr.elements :
-        if not isinstance( elem, symexpress3.SymNumber)  :
+        if elem.powerDenominator > 1:
           continue
         if elem.powerCounter > 1:
           continue
-        if elem.powerDenominator > 1:
+        if not isinstance( elem, symexpress3.SymNumber)  :
           continue
         iFoudnNumbers += 1
         if iFoudnNumbers > 1:
@@ -447,7 +448,7 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
 
       for elemplus in symExpr.elements:
         if isinstance( elemplus, symexpress3.SymNumber ):
-          if elemplus.power != 1:
+          if elemplus.powerIsOne() == False:
             # print( "Power - 1 not 1: " + str( elemplus ))
             return result
 
@@ -469,11 +470,11 @@ class OptimizeOnlyOneRoot( optimizeBase.OptimizeBase ):
           found = False
           for elem in elemplus.elements:
             # print( "Check : " + str( elem ) + str( type( elem )))
+            if elem.powerIsOne() == False :
+              continue
             if not isinstance( elem, symexpress3.SymNumber ):
               continue
             # no powers
-            if elem.powerIsOne() == False :
-              continue
             dPrimeSet = primefactor.FactorizationDict( elem.factCounter )
             arrFact.append( dPrimeSet )
 

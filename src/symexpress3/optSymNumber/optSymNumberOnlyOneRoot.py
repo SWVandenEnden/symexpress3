@@ -75,8 +75,8 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
         newExpr = symexpress3.SymExpress( '*' )
         elemcopy = elem.copy()
         elemcopy.factSign = 1
-        newExpr.add( elemcopy )
-        newExpr.add( symexpress3.SymVariable( 'i' ))
+        newExpr.elements.append( elemcopy )
+        newExpr.elements.append( symexpress3.SymVariable( 'i' ))
 
         return newExpr
 
@@ -117,7 +117,7 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
         newExpr.powerCounter = elem.powerCounter
 
         outNum = symexpress3.SymNumber( 1, elem.factCounter, elem.factDenominator, 1, 1, 1 )
-        newExpr.add( outNum )
+        newExpr.elements.append( outNum )
 
         orgExpr  = symexpress3.SymExpress( '*' )
         orgExpr.powerDenominator = elem.powerDenominator
@@ -125,12 +125,12 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
         elemcopy.powerSign        = 1
         elemcopy.powerCounter     = 1
         elemcopy.powerDenominator = 1
-        orgExpr.add( elemcopy )
+        orgExpr.elements.append( elemcopy )
 
         inNum  = symexpress3.SymNumber( 1, elem.factDenominator, elem.factCounter, 1, elem.powerDenominator, 1 )
-        orgExpr.add( inNum )
+        orgExpr.elements.append( inNum )
 
-        newExpr.add( orgExpr )
+        newExpr.elements.append( orgExpr )
 
         return newExpr
 
@@ -149,8 +149,8 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
         newExpr = symexpress3.SymExpress( '*' )
         elemcopy = elem.copy()
         elemcopy.factSign = 1
-        newExpr.add( elemcopy )
-        newExpr.add( symexpress3.SymVariable( 'i' ))
+        newExpr.elements.append( elemcopy )
+        newExpr.elements.append( symexpress3.SymVariable( 'i' ))
 
         return newExpr
 
@@ -167,7 +167,7 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
     elemcopy.powerSign        = 1
     elemcopy.powerCounter     = 1
     elemcopy.powerDenominator = 1
-    orgExpr.add( elemcopy )
+    orgExpr.elements.append( elemcopy )
 
     # counter
     for iPrime, iCount in dChange.items():
@@ -181,8 +181,8 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
       outNum = symexpress3.SymNumber( 1, iPrime, 1,  1, divisor, elem.powerDenominator, 1 )
       inNum  = symexpress3.SymNumber( 1, iPrime, 1, -1, divisor, 1                    , 1 )
 
-      orgExpr.add( inNum  )
-      newExpr.add( outNum )
+      orgExpr.elements.append( inNum  )
+      newExpr.elements.append( outNum )
 
     # denominator
     for iPrime, iCount in dChange2.items():
@@ -194,10 +194,10 @@ class OptSymNumberOnlyOneRoot( optTypeBase.OptTypeBase ):
       outNum = symexpress3.SymNumber( 1, 1, iPrime,  1, divisor, elem.powerDenominator, 1 )
       inNum  = symexpress3.SymNumber( 1, 1, iPrime, -1, divisor, 1                    , 1 )
 
-      orgExpr.add( inNum  )
-      newExpr.add( outNum )
+      orgExpr.elements.append( inNum  )
+      newExpr.elements.append( outNum )
 
-    newExpr.add( orgExpr )
+    newExpr.elements.append( orgExpr )
 
     return newExpr
 

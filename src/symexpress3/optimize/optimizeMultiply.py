@@ -45,41 +45,49 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
   def optimize( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
 
     result = False
+
     if self.checkExpression( symExpr, action ) != True:
-      # print( "Afgekeurd: " + symExpr.symType )
       return result
 
-    # set type for mypy
-    # https://mypy.readthedocs.io/en/stable/type_narrowing.html
     symExpr = typing.cast( symexpress3.SymExpress, symExpr )
+
 
     # multiply symNumbers
     def _multiplyNumbers() -> bool :
+
       result = False
+
       if symExpr.symType != '*':
         return result
 
       elem = None
       iCnt = 0
+
       for iCnt, elem in enumerate( symExpr.elements ) :
-        if not isinstance( elem, symexpress3.SymNumber ):
-          continue
         if elem.powerDenominator != 1:
           continue
+        if not isinstance( elem, symexpress3.SymNumber ):
+          continue
         break
+
+      if elem == None:
+        return result
 
       elem = typing.cast( symexpress3.SymNumber, elem )
 
       # print( "_multiplyNumbers start: {}".format( symExpr ) )
 
       for iCnt2 in range( len( symExpr.elements ) -1 , -1, -1 ) :
+
         if iCnt2 <= iCnt:
           break
+
         elem2 = symExpr.elements[ iCnt2 ]
-        if not isinstance( elem2, symexpress3.SymNumber ):
-          continue
 
         if elem2.powerDenominator > 1:
+          continue
+
+        if not isinstance( elem2, symexpress3.SymNumber ):
           continue
 
         if elem2.powerCounter > 1:
@@ -107,25 +115,32 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       return result
 
-    # get all sub expressions with power op 1
+    # get all sub expressions with power of 1
     def _multiplyElemGetSubPowerOne() -> bool :
       result = False
+
       if symExpr.symType != '*':
         return result
 
+      iStart = 0
       lFound = True
-      while lFound == True :
-        lFound = False
-        iCnt   = 0
-        for iCnt, elem1 in enumerate( symExpr.elements ) :
 
-          if not isinstance( elem1 , symexpress3.SymExpress ):
+      while lFound == True :
+
+        lFound  = False
+        iMaxLen = len( symExpr.elements )
+
+        for iCnt in range( iStart, iMaxLen ):
+
+          elem1 = symExpr.elements[ iCnt ]
+
+          if elem1.powerIsOne() == False:
+            continue
+
+          if not isinstance( elem1, symexpress3.SymExpress ):
             continue
 
           if elem1.symType != '*':
-            continue
-
-          if elem1.powerIsOne() == False:
             continue
 
           lFound = True
@@ -133,6 +148,7 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             symExpr.elements.append( elem2 )
 
           del symExpr.elements[ iCnt ]
+          iStart = iCnt
           result = True
 
           break
@@ -154,11 +170,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         iCnt   = 0
         for iCnt, elem1 in enumerate( symExpr.elements ) :
 
-          if not isinstance( elem1, symexpress3.SymVariable ):
-            continue
-
           # a root have multiple solutions, cannot multiply with + expressions
           if (elem1.powerDenominator > 1 and elem1.onlyOneRoot == 0 ):
+            continue
+
+          if not isinstance( elem1, symexpress3.SymVariable ):
             continue
 
           iCnt2 = 0
@@ -230,54 +246,70 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       maxLen = len( symExpr.elements )
+      if maxLen <= 1 :
+        return result
 
       # print ( "_multiplyElemExpressExpress start")
       arrDel:set[int]  = set()
-      arrSkip:set[int] = set()
+      # arrSkip:set[int] = set()
+      arrValid:set[int]= set()
 
-      if maxLen <= 1 :
-        return result
 
       # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
       for iCnt, elem1 in enumerate( symExpr.elements ) :
 
+        # only multiply with power of 1
+        if elem1.powerIsOneOrMinusOne() == False:
+          # arrSkip.add( iCnt )
+          continue
+
         # only multiple expressions
         if not isinstance( elem1 , symexpress3.SymExpress ):
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
 
         if elem1.symType != '+':
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
 
-        # only multiply with power of 1
-        if elem1.powerIsOneOrMinusOne() == False:
-          arrSkip.add( iCnt )
-          continue
 
-      # no thing to do
-      if maxLen == len( arrSkip ):
+        arrValid.add( iCnt )
+
+
+      # nothing to do
+      if len( arrValid ) <= 1 :
         return result
 
-      maxLen1 = maxLen - 1
-      maxLen2 = maxLen
-      for iCnt in range( 0, maxLen1 ) :
+      # maxLen1 = maxLen - 1
+      # maxLen2 = maxLen
+      # for iCnt in range( 0, maxLen1 ) :
+      for iCnt in arrValid :
 
-        if iCnt in arrSkip:
-          continue
+        # if iCnt in arrSkip:
+        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem1 = symExpr.elements[ iCnt ]
 
-        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        # fncFilter = lambda x: x > iCnt
 
-          if iCnt2 in arrSkip:
-            continue
+        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
+        for iCnt2 in subSet :
+        # for iCnt2 in arrValid  :
+        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
+        # for iCnt2 in filter( fncFilter, arrValid ):
 
-          if iCnt2 in arrDel:
-            continue
+          # if iCnt2 in arrSkip:
+          # if iCnt2 not in arrValid:
+          # if iCnt2 <= iCnt:
+          #   continue
+
+          # the set has no fixed order
+          # if iCnt2 in arrDel:
+          #   continue
 
           elem2 = symExpr.elements[ iCnt2 ]
 
@@ -312,7 +344,10 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elem12.elements.append( elemSub2 )
               elemnew.add( elem12 )
 
-          elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
+          # elemnew.optimizeNormal( extra=['nodebug'] ) # make's it smaller but is this wise on this level
+          elemnew.optimize( "multiply" ) # this is faster but cost more memory
+          elemnew.optimize( "add"      )
+          elemnew.optimize( None       )
 
           symExpr.elements[ iCnt ] = elemnew
 
@@ -341,38 +376,49 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       arrDel:set[int]  = set()
-      arrSkip:set[int] = set()
+      # arrSkip:set[int] = set()
+      arrValid:set[int]= set()
 
       for iCnt, elemskip in enumerate( symExpr.elements ) :
         if not isinstance( elemskip, symexpress3.SymVariable ):
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
+        arrValid.add( iCnt )
 
       # no variables found
-      if maxLen == len( arrSkip ):
+      # if len( arrSkip ) + 1 >= maxLen :
+      if len( arrValid ) <= 1:
         return result
 
       # multiple all units with same name
-      maxLen1 = maxLen - 1
-      maxLen2 = maxLen
+      # maxLen1 = maxLen - 1
+      # maxLen2 = maxLen
 
-      for iCnt in range( 0, maxLen1 ) :
+      # for iCnt in range( 0, maxLen1 ) :
+      for iCnt in arrValid :
 
-        if iCnt in arrSkip:
-          continue
+        # if iCnt in arrSkip:
+        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem1 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt ] )
 
-        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
+        for iCnt2 in subSet :
 
-          if iCnt2 in arrSkip:
-            continue
+        # for iCnt2 in arrValid:
+        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
 
-          if iCnt2 in arrDel:
-            continue
+          # if iCnt2 in arrSkip:
+          # if iCnt2 not in arrValid:
+          # if iCnt2 <= iCnt:
+          #   continue
+
+          # if iCnt2 in arrDel:
+          #   continue
 
           elem2 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt2 ] )
 
@@ -472,13 +518,15 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       for iCnt, elem in enumerate( symExpr.elements ) :
         elem = symExpr.elements[ iCnt ]
+
+        if elem.powerIsOne() == False :
+          continue
+
         if not isinstance( elem, symexpress3.SymExpress ):
           continue
         if elem.symType != '+':
           continue
         if elem.numElements() <= 1:
-          continue
-        if elem.powerIsOne() == False :
           continue
         # found a plus expression within a multiply express
         # make it a plus expression
@@ -517,34 +565,40 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      arrDel:set[int]  = set()
-      arrSkip:set[int] = set()
-
       maxLen = len( symExpr.elements )
 
       if maxLen <= 1 :
         return result
 
+      arrDel:set[int]  = set()
+      # arrSkip:set[int] = set()
+      arrValid:set[int]= set()
+
+
       for iCnt, elemskip in enumerate( symExpr.elements ) :
         if elemskip.powerDenominator == 1:
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
 
         if elemskip.onlyOneRoot == 0:
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
+
+        arrValid.add( iCnt )
 
       # nothing found
-      if maxLen == len( arrSkip ):
+      # if len( arrSkip ) + 1 >= maxLen :
+      if len( arrValid ) <= 1:
         return result
 
-      maxLen1 = maxLen - 1
-      maxLen2 = maxLen
+      # maxLen1 = maxLen - 1
+      # maxLen2 = maxLen
 
-      for iCnt in range( 0, maxLen1 ) :
+      # for iCnt in range( 0, maxLen1 ) :
+      for iCnt in arrValid :
 
-        if iCnt in arrSkip:
-          continue
+        # if iCnt in arrSkip:
+        #   continue
 
         if iCnt in arrDel:
           continue
@@ -552,13 +606,20 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         elem = symExpr.elements[ iCnt ]
 
         # search for the next element with the same base
-        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
+        for iCnt2 in subSet :
 
-          if iCnt2 in arrSkip:
-            continue
+        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        # for iCnt2 in arrValid:
+        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
 
-          if iCnt2 in arrDel:
-            continue
+          # if iCnt2 in arrSkip:
+          # if iCnt2 not in arrValid:
+          # if iCnt2 <= iCnt:
+          #   continue
+
+          # if iCnt2 in arrDel:
+          #   continue
 
           elem2 = symExpr.elements[ iCnt2 ]
 
@@ -666,47 +727,57 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      arrDel:set[int]  = set()
-      arrSkip:set[int] = set()
-
       maxLen = len( symExpr.elements )
 
       if maxLen <= 1 :
         return result
 
+      arrDel:set[int]  = set()
+      # arrSkip:set[int] = set()
+      arrValid:set[int]= set()
+
       for iCnt, elemskip in enumerate( symExpr.elements ) :
         if elemskip.powerDenominator == 1:
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
         if elemskip.onlyOneRoot == 0 :
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
+
+        arrValid.add( iCnt )
 
       # nothing found
-      if maxLen == len( arrSkip ):
+      # if len( arrSkip ) + 1 >= maxLen :
+      if len( arrValid ) <= 1:
         return result
 
-      maxLen1 = maxLen - 1
-      maxLen2 = maxLen
+      # maxLen1 = maxLen - 1
+      # maxLen2 = maxLen
 
-      for iCnt in range( 0, maxLen1 ) :
+      # for iCnt in range( 0, maxLen1 ) :
+      for iCnt in arrValid :
         oExpr  = None
 
-        if iCnt in arrSkip:
-          continue
+        # if iCnt in arrSkip:
+        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem = symExpr.elements[ iCnt ]
 
-        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
+        for iCnt2 in subSet :
+        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        # for iCnt2 in arrValid:
 
-          if iCnt2 in arrSkip:
-            continue
+          # if iCnt2 in arrSkip:
+          # if iCnt2 not in arrValid:
+          # if iCnt2 <= iCnt:
+          #   continue
 
-          if iCnt2 in arrDel:
-            continue
+          # if iCnt2 in arrDel:
+          #   continue
 
           elem2 = symExpr.elements[ iCnt2 ]
 
@@ -756,48 +827,60 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       if symExpr.symType != '*':
         return result
 
-      arrDel:set[int]  = set()
-      arrSkip:set[int] = set()
-
       maxLen = len( symExpr.elements )
 
       if maxLen <= 1 :
         return result
 
-      for iCnt, elemskip in enumerate( symExpr.elements ) :
+      arrDel:set[int]  = set()
+      # arrSkip:set[int] = set()
+      arrValid:set[int]= set()
 
+
+      for iCnt, elemskip in enumerate( symExpr.elements ) :
         if not isinstance( elemskip, symexpress3.SymFunction ):
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
 
         if elemskip.onlyOneRoot == 0 :
-          arrSkip.add( iCnt )
+          # arrSkip.add( iCnt )
           continue
+
+        arrValid.add( iCnt )
+
 
       # nothing found
-      if maxLen == len( arrSkip ):
+      # if len( arrSkip ) + 1 >= maxLen :
+      if len( arrValid ) <= 1:
         return result
 
-      maxLen1 = maxLen - 1
-      maxLen2 = maxLen
+      # maxLen1 = maxLen - 1
+      # maxLen2 = maxLen
 
-      for iCnt in range( 0, maxLen1 ) :
+      # for iCnt in range( 0, maxLen1 ) :
+      for iCnt in arrValid :
 
-        if iCnt in arrSkip:
-          continue
+        # if iCnt in arrSkip:
+        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem = symExpr.elements[ iCnt ]
 
-        for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
+        for iCnt2 in subSet :
+        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
+        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
+        # for iCnt2 in arrValid:
 
-          if iCnt2 in arrSkip:
-            continue
+          # if iCnt2 in arrSkip:
+          # if iCnt2 not in arrValid:
+          # if iCnt2 <= iCnt:
+          #   continue
 
-          if iCnt2 in arrDel:
-            continue
+          # if iCnt2 in arrDel:
+          #   continue
 
           elem2 = symExpr.elements[ iCnt2 ]
 
@@ -842,67 +925,67 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
     if symExpr.numElements() <= 1:
       return result
 
-    debug = False
+    # debug = False
     # debug = True
 
     # multiply SymNumbers
     answer  = _multiplyNumbers()
-    if debug == True and answer == True:
-      print( f"_multiplyNumbers: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyNumbers: {str(symExpr)}")
     result |= answer
 
     # get all sub expressons with power op 1
     answer  = _multiplyElemGetSubPowerOne()
-    if debug == True and answer == True:
-      print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
     result |= answer
 
     # multiply SymVariable with sympexression of type +
     answer  = _multiplyElemUnitExpress()
-    if debug == True and answer == True:
-      print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyElemGetSubPowerOne: {str(symExpr)}")
     result |= answer
 
     # multiply 2 symexpressions (type plus)
     answer  = _multiplyElemExpressExpress()
-    if debug == True and answer == True:
-      print( f"_multiplyElemExpressExpress: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyElemExpressExpress: {str(symExpr)}")
     result |= answer
 
     # multiple all SymVariable
     answer  = _multiplyElemVarVar()
-    if debug == True and answer == True:
-      print( f"_multiplyElemVarVar: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyElemVarVar: {str(symExpr)}")
     result |= answer
 
     # multiply number with plus expression
     answer  = _multiplyNumberExpress()
-    if debug == True and answer == True:
-      print( f"_multiplyNumberExpress: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyNumberExpress: {str(symExpr)}")
     result |= answer
 
     # multiply radicals with onylroots
     answer  = _multplyPlusMultiplyOnlyRoots()
-    if debug == True and answer == True:
-      print( f"_multplyPlusMultiplyOnlyRoots: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multplyPlusMultiplyOnlyRoots: {str(symExpr)}")
     result |= answer
 
     # multiply radicals with onlyroots with same power
     answer  = _multplyRadicalsSamePowerOnlyRoots()
-    if debug == True and answer == True:
-      print( f"_multplyRadicalsSamePowerOnlyRoots: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multplyRadicalsSamePowerOnlyRoots: {str(symExpr)}")
     result |= answer
 
     # multiply plus with multiply
     answer  = _multplyPlusExpressMultiply()
-    if debug == True and answer == True:
-      print( f"_multplyPlusExpressMultiply: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multplyPlusExpressMultiply: {str(symExpr)}")
     result |= answer
 
     # multiply same function = power + 1
     answer  = _multiplyFunctionFunction()
-    if debug == True and answer == True:
-      print( f"_multiplyFunctionFunction: {str(symExpr)}")
+    # if debug == True and answer == True:
+    #   print( f"_multiplyFunctionFunction: {str(symExpr)}")
     result |= answer
 
     return result
