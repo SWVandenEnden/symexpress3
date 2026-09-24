@@ -2442,12 +2442,18 @@ class SymExpress( SymBaseList ):
     return result
 
 
-  def optimizeNormal( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|list[str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
+  def optimizeNormal( self
+                    , output    :None|SymToHtml        = None
+                    , filehandle:None|typing.TextIO    = None
+                    , extra     :None|list[str]        = None
+                    , varDict   :TypVarSym3VarDictNone = None
+                    ) -> bool:
     """
     Normalize the expression, this is a combination of optimize(), multiply, i, power and add optimize methods
     \n output = SymToHtml class
     \n filehandle = file handle
     \n If output and/or a filehandle is given then all the sub-optimizations will be written to it.
+    \n return True if expression is changed
     """
 
     def _printCalc() -> None :
@@ -2515,6 +2521,7 @@ class SymExpress( SymBaseList ):
           output.writeLine( '<br>' + cText + ' [' + cCode + '] ' + str( iCnt ) )
           output.writeSymExpress( self )
           output.writeLine( str( self ))
+
         if filehandle != None:
           print( cText + ' [' + cCode + '] ' + str( iCnt ), file=filehandle )
           print( self, file=filehandle )
@@ -2527,6 +2534,8 @@ class SymExpress( SymBaseList ):
 
     global globalDebugNoDebugCount # pylint: disable=global-statement
     global globalDebugNoDebugLevel # pylint: disable=global-statement
+
+    bResult = False
 
     if globalDebugLevel > 1 :
       globalDebugNoDebugLevel += 1
@@ -2549,15 +2558,9 @@ class SymExpress( SymBaseList ):
       SymExpressTree( self, filehandle )
     _printCalc()
 
-    # print( "optimizeNormal start")
-
-
-    # cStartBig = ''
     iCntBig   = 0
-    # cTestBig  = str( self )
     maxBig    = 10
     bChanged  = True
-    # while( iCntBig < maxBig and cStartBig != cTestBig):
     while( iCntBig < maxBig and bChanged == True ):
 
       bChanged = False
@@ -2571,9 +2574,6 @@ class SymExpress( SymBaseList ):
           globalDebugNoDebugCount += 1
           _debugMessage( f"optimizeNormal nodebug flag (count:{globalDebugNoDebugCount}, level:{globalDebugNoDebugLevel}) iCntBig: {iCntBig}, type: {self.symType}, number of elements: {self.numElements()}")
 
-
-
-      # cStartBig  = cTestBig
       iCntBig   += 1
 
       # print( f"optimizeNormal loop: {iCntBig}")
@@ -2581,17 +2581,12 @@ class SymExpress( SymBaseList ):
       bChanged |= _optimizeAction( []                          , "Optimize expression"       ,  1 )
       bChanged |= _optimizeAction( [ "onlyOneRoot"            ], "Simplify only one roots"   ,  1 )
       bChanged |= _optimizeAction( [ "power"                  ], "Eliminate powers"          , 20 )
-      # bChanged |= _optimizeAction( [ "multiply","none", "add" ], "Multiply and add elements" , 10 )
-      bChanged |= _optimizeAction( [ "multiply"               ], "Multiply"                  ,  2 ) # special for large formula's'
-      bChanged |= _optimizeAction( [ "add"                    ], "Add elements"              ,  2 )
       bChanged |= _optimizeAction( [ "multiply"               ], "Multiply"                  , 10 )
       bChanged |= _optimizeAction( [ "i"                      ], "Write out i"               ,  1 )
       bChanged |= _optimizeAction( [ "add"                    ], "Add elements"              , 10 )
       bChanged |= _optimizeAction( [ "divideDivide"           ], "Divide divide"             ,  1 )
 
-
-      # if iCntBig < maxBig:
-      #   cTestBig  = str( self )
+      bResult |= bChanged
 
     if output != None:
       output.writeLine( '<br>' )
@@ -2604,12 +2599,15 @@ class SymExpress( SymBaseList ):
       if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
         _debugMessage( "optimizeNormal end")
 
-    # cleanup memory
-    # does not work...
-    # gc.collect()
+    return bResult
 
 
-  def optimizeExtended( self , output:None|SymToHtml = None, filehandle:None|typing.TextIO = None, extra:None|list[str] = None, varDict:TypVarSym3VarDictNone = None ) -> None:
+  def optimizeExtended( self
+                      , output    :None|SymToHtml        = None
+                      , filehandle:None|typing.TextIO    = None
+                      , extra     :None|list[str]        = None
+                      , varDict   :TypVarSym3VarDictNone = None
+                      ) -> bool :
     """
     Optimize the expression in all the possibilities, this use the power, multiply, i , add, radicals, unnestingRadicals, nestedRadicals, imaginairDenominator, splitDenominator, sinTwoCosTwo and functionToValues optimizations
     \n output = SymToHtml class
@@ -2617,6 +2615,7 @@ class SymExpress( SymBaseList ):
     \n If output and/or a filehandle is given then all the sub-optimizations will be written to it.
     \n extra = list of extra optimizations:
     \n .............[ "calculation" ] for calculate the value and put it in the given output
+    \n return True is expression is changed
 
     """
 
@@ -2677,32 +2676,30 @@ class SymExpress( SymBaseList ):
     if globalDebugLevel > 0:
       _debugMessage( "optimizeExtended start")
 
-    _printCalc( 'start', 0, 0 )
+    bResult = False
 
+    _printCalc( 'start', 0, 0 )
 
     # print( "optimizeExtended start")
 
     self.optimizeNormal( output, filehandle, extra, varDict )
 
-    # cStartBig = ''
     iCntBig   = 0
-    # cTest     = str( self )
     iBigMax   = 8
     bChanged  = True
-    # while( iCntBig < iBigMax and cStartBig != cTest  ):
     while( iCntBig < iBigMax and bChanged == True ):
       bChanged = False
 
       if globalDebugLevel > 0 :
         _debugMessage( f"optimizeExtended iCntBig: {iCntBig}")
 
-      # cStartBig = cTest
       iCntBig  += 1
 
       # print( f"Big loop: {iCntBig}")
 
       if output != None:
         output.writeLine( f'<br>Big Loop {iCntBig}' )
+
       if filehandle != None:
         print( f"Big Loop {iCntBig}", file=filehandle )
 
@@ -2729,7 +2726,6 @@ class SymExpress( SymBaseList ):
       bChanged |= _optimizeAction( ["sinTwoCosTwo"                ], 'Sin^2 + Cos^2'                               , iCntBig,  1 ) # sin(x)^2 + cos(x)^2 = 1
       bChanged |= _optimizeAction( ["cosXplusYtoSinCos"           ], 'cos(x+y) = cos(x)cos(y) - sin(x)sin(y)'      , iCntBig, 10 )
       bChanged |= _optimizeAction( ["sinXplusYtoSinCos"           ], 'sin(x+y) = sin(x)cos(y) + cos(x)sin(y)'      , iCntBig, 10 )
-      # bChanged |= _optimizeAction( ["splitDenominator"            ], 'Split Denominator'                           , iCntBig,  1 ) # get 1 ( a * b * c )  as 1/a * 1/b * 1/b
       bChanged |= _optimizeAction( ["expandArrays"                ], 'Expand arrays'                               , iCntBig, 10 )
       bChanged |= _optimizeAction( ["radicalFractionToWhole"      ], 'Radical fractions to whole numbers'          , iCntBig,  2 )
       bChanged |= _optimizeAction( ["numberOutDenominator"        ], 'Number out of denominator'                   , iCntBig,  2 ) # 1/(4a+4b) -> 1/4 * 1/(a+b)
@@ -2737,12 +2733,7 @@ class SymExpress( SymBaseList ):
       bChanged |= _optimizeAction( ["flipDenominator"             ], 'Flip denominator'                            , iCntBig,  2 ) # a/(a+b+c) + b/(a+b+c) = 1 - c/(a+b+c)
       bChanged |= _optimizeAction( ["compactDenominator"          ], 'Compact denominator'                         , iCntBig,  2 ) # -a-1+a^^2/(a+1) = (-2a-1)/(a+1)
 
-
-      # _optimizeAction( ["cosAtanDiv3"                 ], 'cos( atan(x)/3)'                             , iCntBig,  1 )
-
-      # if iCntBig >= iBigMax:
-      #   break
-      # cTest = str( self )
+      bResult |= bChanged
 
     if output != None:
       output.writeLine( '<br>' )
@@ -2752,6 +2743,157 @@ class SymExpress( SymBaseList ):
 
     if globalDebugLevel > 0:
       _debugMessage( "optimizeExtended end")
+
+    return bResult
+
+
+  def optimizeCustom( self
+                    , actionList:list[dict[str,int]]
+                    , maxBig    :int                   = 1
+                    , output    :None|SymToHtml        = None
+                    , filehandle:None|typing.TextIO    = None
+                    , extra     :None|list[str]        = None
+                    , varDict   :TypVarSym3VarDictNone = None
+                    ) -> bool:
+    """
+    Optimize the expression with the given action list
+    \n output = SymToHtml class
+    \n filehandle = file handle
+    \n If output and/or a filehandle is given then all the sub-optimizations will be written to it.
+    \n return True if expression is changed
+    """
+
+    def _printCalc() -> None :
+      if ( extra != None and "calculation" in extra ):
+        try:
+          dValue = self.getValue( varDict )
+        except Exception as err: # pylint: disable=broad-exception-caught
+          dValue = str( err )
+
+        if output != None:
+          output.writeLine( f'Calculated: {str( dValue )}' )
+        if filehandle != None:
+          print( f'Calculated: {str( dValue )}', file=filehandle )
+
+
+    def _optimizeAction( cAction:str, maxCount:int ) -> bool :
+      iCnt     = 0
+      bChanged = True
+      bResult  = False
+      maxCount = max( 1, maxCount )
+
+      # print( f"optimizeAction: {arrAction}"  )
+
+      while( iCnt < maxCount and bChanged == True ):
+        bChanged = False
+        iCnt    += 1
+
+        if globalDebugLevel > 1 :
+          if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+            _debugMessage( f"start action: {cAction} count: {iCnt}, type: {self.symType}, number of elements: {self.numElements()}")
+
+        match cAction:
+          case 'optimizeExtended': bChanged |= self.optimizeExtended( output, filehandle, extra, varDict )
+          case 'optimizeNormal'  : bChanged |= self.optimizeNormal(   output, filehandle, extra, varDict )
+          case 'none'            : bChanged |= self.optimize()
+          case _                 : bChanged |= self.optimize( cAction )
+
+        if globalDebugLevel > 1 :
+          if extra == None or 'nodebug' not in extra:
+            _debugMessage( f"end   action: {cAction} count: {iCnt}, type: {self.symType}, number of elements: {self.numElements()}, changed: {bChanged}")
+
+            if globalDebugFileFormula != None:
+              with open( globalDebugFileFormula, mode="w", encoding="utf-8") as f:
+                f.write( str( self ) )
+
+        if bChanged == False:
+          break # nothing changed, leave loop
+
+        bChanged |= self.optimize( None )
+        bResult = True
+
+        # max iteration reached and no output, leave
+        if iCnt >= maxCount and output == None and filehandle == None:
+          break
+
+        if output != None:
+          output.writeLine( '<br>' + cAction + ' [' + cAction + '] ' + str( iCnt ) )
+          output.writeSymExpress( self )
+          output.writeLine( str( self ))
+
+        if filehandle != None:
+          print( cAction + ' [' + cAction + '] ' + str( iCnt ), file=filehandle )
+          print( self, file=filehandle )
+          SymExpressTree( self, filehandle )
+
+        _printCalc()
+
+      return bResult
+
+
+    global globalDebugNoDebugCount # pylint: disable=global-statement
+    global globalDebugNoDebugLevel # pylint: disable=global-statement
+
+    bResult = False
+
+    if globalDebugLevel > 1 :
+      globalDebugNoDebugLevel += 1
+
+      if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+        _debugMessage( "optimizeCustom start")
+
+    if output != None:
+      if not isinstance( output , SymToHtml ):
+        raise NameError( f'optimizeCustom, output is incorrect: {type( output )}, expected SymToHtml object or None' )
+
+    if output != None:
+      output.writeLine( '<br>Original expression' )
+      output.writeSymExpress( self )
+      output.writeLine( str( self ))
+
+    if filehandle != None:
+      print( "Original expression", file=filehandle )
+      print( self, file=filehandle )
+      SymExpressTree( self, filehandle )
+    _printCalc()
+
+    iCntBig   = 0
+    bChanged  = True
+    while( iCntBig < maxBig and bChanged == True ):
+
+      bChanged = False
+
+      if globalDebugLevel > 1 :
+
+        if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+          _debugMessage( f"optimizeCustom iCntBig: {iCntBig}")
+          globalDebugNoDebugCount = 0
+        else:
+          globalDebugNoDebugCount += 1
+          _debugMessage( f"optimizeCustom nodebug flag (count:{globalDebugNoDebugCount}, level:{globalDebugNoDebugLevel}) iCntBig: {iCntBig}, type: {self.symType}, number of elements: {self.numElements()}")
+
+      iCntBig   += 1
+
+      # print( f"optimizeNormal loop: {iCntBig}")
+      for listAction in actionList:
+        for cAction, iCount in listAction.items():
+          bChanged |= _optimizeAction( cAction, iCount )
+
+      bResult |= bChanged
+
+    if output != None:
+      output.writeLine( '<br>' )
+
+    if filehandle != None:
+      print( " ", file=filehandle )
+
+    if globalDebugLevel > 1 :
+      globalDebugNoDebugLevel -= 1
+
+      if extra == None or 'nodebug' not in extra: # see optimizeMultiply.py
+        _debugMessage( "optimizeCustom end")
+
+    return bResult
 
 
   # copy the expression (sort of deep copy)

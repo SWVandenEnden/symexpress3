@@ -43,7 +43,7 @@ def TextOutput( cText:str, cFileName:None|str ) -> None:
     print( cText )
 
 
-def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:list[str], exportFile:None|str ) -> None:
+def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:list[dict[str,int]], exportFile:None|str ) -> None:
   """
   Optimize the given expression according the optimize actions
   Output the result for the given output types`
@@ -67,19 +67,7 @@ def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:l
     oExpress.optimizeExtended()
   else:
     oExpress.optimize()
-    for optKey in optimizeActions:
-      if optKey == "optimizeNormal":
-        oExpress.optimizeNormal()
-        continue
-      if optKey == "optimizeExtended":
-        oExpress.optimizeExtended()
-        continue
-      if optKey == "none":
-        oExpress.optimize()
-        continue
-      oExpress.optimize( optKey )
-      oExpress.optimize()
-
+    oExpress.optimizeCustom( optimizeActions )
 
   if exportFile != None:
     try:
@@ -132,33 +120,50 @@ def OptimzeFunction( cExpress:str, outputFormat:str|list[str], optimizeActions:l
 
 
 
-def CheckOptimizeActions( cList:str ) -> list[str]:
+def CheckOptimizeActions( cList:str ) -> list[dict[str,int]]:
   """
   Check of the given optimize actions are valid
   """
   optDict = symexpress3.GetAllOptimizeActions()
 
+  cList = cList.replace( chr(10), ',' )  # linefeed
+  cList = cList.replace( chr(13), ''  )  # carriage-return
+  cList = cList.replace( chr(9) , ''  )  # tab
+  cList = cList.replace( ' '    , ''  )
+
   actions = cList.split(",")
-  actions = [s.strip() for s in actions]
+
+  dResult :list[dict[str,int]] = []
+  dDict   :dict[str,int]       = {}
+  cLastKey:str                 = ""
 
   for optKey in actions:
 
-    if optKey == "optimizeNormal":
+    if not optKey:
       continue
 
-    if optKey == "optimizeExtended":
-      continue
+    match optKey:
+      case "optimizeNormal"  : pass
+      case "optimizeExtended": pass
+      case "none"            : pass
+      case _:
 
-    if optKey == "none":
-      continue
+        if optKey.isdigit():
+          if not cLastKey:
+            print( f"Unknown optimize action (-a or -af) : {optKey}" )
 
-    if optKey in optDict:
-      continue
+          dDict[ cLastKey ] = int( optKey )
+          continue
 
-    print( f"Unknown optimize action (-a) : {optKey}" )
-    sys.exit(1)
+        if optKey not in optDict:
+          print( f"Unknown optimize action (-a or -af) : {optKey}" )
+          sys.exit(1)
 
-  return actions
+    cLastKey = optKey
+    dDict[ optKey ] = 1
+    dResult.append( dDict )
+
+  return dResult
 
 
 def DisplayList( listTypes:str ) -> None:
@@ -226,6 +231,7 @@ def DisplayHelp() -> None:
   print( "  -h           : Help" )
   print( "  -v           : Version information" )
   print( "  -a <actions> : Comma separated list of actions" )
+  print( "  -af <file>   : Input file for list of actions" )
   print( "  -l <types>   : List of types" )
   print( "                 f = defined functions" )
   print( "                 a = optimize actions" )
@@ -253,9 +259,9 @@ def CommandLine( argv:list[str] ) -> None:
   """
   Process the symexpres3 command line parameters
   """
-  outputFormat        = ""
-  exportFile:None|str = None
-  optimizeActions     = []
+  outputFormat   :str                 = ""
+  exportFile     :None|str            = None
+  optimizeActions:list[dict[str,int]] = []
 
   mpmath.mp.dps = 20 # precision for calculations, https://mpmath.org/doc/current/basics.html
 
@@ -275,6 +281,10 @@ def CommandLine( argv:list[str] ) -> None:
       case "file":
         data = Path( cArg ).read_text( encoding="utf-8" )
         expressions.append( data )
+
+      case "optfile"     :
+        data = Path( cArg ).read_text( encoding="utf-8" )
+        optimizeActions = CheckOptimizeActions( data )
 
       case "list"        : DisplayList( cArg )
       case "exportfile"  : exportFile      = cArg
@@ -296,6 +306,7 @@ def CommandLine( argv:list[str] ) -> None:
       case "-l"   : mode = "list"
       case "-o"   : mode = "output"
       case "-a"   : mode = "optimize"
+      case "-af"  : mode = "optfile"
       case "-f"   : mode = "file"
       case "-e"   : mode = "exportfile"
       case "-dps" : mode = "precision"
