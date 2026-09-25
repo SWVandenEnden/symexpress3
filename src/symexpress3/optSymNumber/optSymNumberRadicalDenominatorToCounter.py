@@ -36,7 +36,7 @@ class OptSymNumberRadicalDenominatorToCounter( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "radicalDenominatorToCounter"
-    self._symtype      = symexpress3.SymNumber
+    self._symtype      = symexpress3.CLASSTYPE_SYMNUMBER # symexpress3.SymNumber
     self._desc         = "Move the radical from the denominator to the counter, principal root only"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

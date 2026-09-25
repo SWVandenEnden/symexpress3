@@ -36,7 +36,7 @@ class OptSymVariableRootIToSinCos( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "rootIToSinCos"
-    self._symtype      = symexpress3.SymVariable
+    self._symtype      = symexpress3.CLASSTYPE_SYMVARIABLE # symexpress3.SymVariable
     self._desc         = "Root i to cos + i sin"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

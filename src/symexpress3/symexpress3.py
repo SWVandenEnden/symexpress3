@@ -95,9 +95,9 @@ from __future__ import annotations
 __buildnumber__ = "20260828001" # build number
 
 import sys
+import typing
 import math
 # import warnings
-import typing
 # import gc
 from datetime import datetime
 
@@ -146,12 +146,24 @@ globalDebugNoDebugLevel:int     = 0     # how many levels deep
 # Classes:
 # - SymNumber      : Number
 # - SymVariable    : Variable
+# - SymFunction    : Function
 # - SymExpress     : The symbolic expression
 # - SymArray       : Array of SymExpress
 #
 # - SymBase        : Base class
 # - SymBasePower   : Quotation handling for factor and power
 # - SymBaseList    : List base
+
+#
+# isinstance() is slow and this is an intern replacement to get it faster
+# enum is possible to use but an integer is faster
+#
+CLASSTYPE_UNKNOWN     = 0
+CLASSTYPE_SYMNUMBER   = 1
+CLASSTYPE_SYMVARIABLE = 2
+CLASSTYPE_SYMFUNCTION = 3
+CLASSTYPE_SYMARRAY    = 4
+CLASSTYPE_SYMEXPRESS  = 5
 
 
 # mathml colors
@@ -219,7 +231,18 @@ class SymBase( ABC ):
   """
   Abstract class that is the base of all symexpress classes
   """
-  __slots__ = ()
+  __slots__ = ('_classType',)
+
+  def __init__( self ) -> None:
+    super().__init__()
+    self._classType = CLASSTYPE_UNKNOWN
+
+  @property
+  def classType(self) -> int :
+    """
+    Get the class type. Is for internal use too speedup isinstance()
+    """
+    return self._classType
 
   @abstractmethod
   def optimize( self, cAction:str|None = None ) -> bool:
@@ -293,17 +316,20 @@ class SymBase( ABC ):
       return False
 
     # only a expression of type * can has an expression and this type
-    if not isinstance( elem, SymExpress ):
+    # if not isinstance( elem, SymExpress ):
+    if elem.classType != CLASSTYPE_SYMEXPRESS:
       return False
+
+    elem = typing.cast( SymExpress, elem )
 
     if elem.symType != '*':
       return False
 
-    # the expression must has 2 elements, 1 number and 1 variable
-    if elem.numElements() != 2:
+    if  elem.powerIsOne() == False :
       return False
 
-    if  elem.powerIsOne() == False :
+    # the expression must has 2 elements, 1 number and 1 variable
+    if elem.numElements() != 2:
       return False
 
     elem1 = elem.elements[ 0 ]
@@ -311,12 +337,14 @@ class SymBase( ABC ):
 
     # don't want to change this construction, readable...
     # pylint: disable=no-else-return
-    if isinstance( elem1, SymNumber ):
+    # if isinstance( elem1, SymNumber ):
+    if elem1.classType == CLASSTYPE_SYMNUMBER:
       if elem1.powerIsOne() == False :
         return False
       return self.isEqual( elem2 )
     else:
-      if not isinstance( elem2, SymNumber ):
+      # if not isinstance( elem2, SymNumber ):
+      if elem2.classType != CLASSTYPE_SYMNUMBER:
         return False
       return self.isEqual( elem1 )
     # cannot come here, but to be sure
@@ -326,8 +354,11 @@ class SymBase( ABC ):
   # get SymVariable and give a SymExpress back if the variable is in dDict, otherwise None is given
   #
   def _replaceVar( self, elem:TypVarSym3Object, dDict:TypVarSym3VarDict ) -> None|TypVarSym3Object:
-    if not isinstance( elem, SymVariable ):
+    # if not isinstance( elem, SymVariable ):
+    if elem.classType != CLASSTYPE_SYMVARIABLE:
       return None
+
+    elem = typing.cast( SymVariable, elem )
 
     if elem.name == '':
       return None
@@ -388,10 +419,13 @@ class SymBase( ABC ):
   # otherwise the SymExpress will be returned
   #
   def _funcionToValue( self, elem:TypVarSym3Object, funcname:None|str = None ) -> None|TypVarSym3Object:
-    if not isinstance( elem, SymFunction ):
+    # if not isinstance( elem, SymFunction ):
+    if elem.classType != CLASSTYPE_SYMFUNCTION:
       return None
 
     result = None
+
+    elem = typing.cast( SymFunction, elem )
 
     # if function name is given, only convert that function
     if funcname != None and elem.name != funcname: # pylint: disable=consider-using-in
@@ -769,6 +803,7 @@ class SymNumber( SymBasePower ):
                     , in_powerDenominator
                     , in_onlyOneRoot
                     )
+    self._classType       = CLASSTYPE_SYMNUMBER
 
     self.factSign         = in_factSign
     self.factCounter      = in_factCounter
@@ -852,13 +887,16 @@ class SymNumber( SymBasePower ):
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
     """
-    if not isinstance( elem, SymNumber ):
-      if ( self.factCounter == 0 and isinstance( elem, SymExpress ) == True ):
+    # if not isinstance( elem, SymNumber ):
+    if elem.classType != CLASSTYPE_SYMNUMBER:
+      # if ( self.factCounter == 0 and isinstance( elem, SymExpress ) == True ):
+      if ( self.factCounter == 0 and elem.classType == CLASSTYPE_SYMEXPRESS ):
         # if elem.numElements() == 0:
         if not elem.elements :
           return True
 
-        if ( elem.numElements() == 1 and isinstance( elem.elements [ 0 ], SymNumber )):
+        # if ( elem.numElements() == 1 and isinstance( elem.elements [ 0 ], SymNumber )):
+        if ( elem.numElements() == 1 and elem.elements [ 0 ].classType == CLASSTYPE_SYMNUMBER ):
           if elem.elements [ 0 ].factCounter == 0:
             return True
 
@@ -1090,7 +1128,9 @@ class SymVariable( SymBasePower ):
                     , in_powerDenominator
                     , in_onlyOneRoot
                     )
-    self.name = in_name
+
+    self._classType = CLASSTYPE_SYMVARIABLE
+    self.name       = in_name
 
   @property
   def name(self) -> str :
@@ -1116,8 +1156,11 @@ class SymVariable( SymBasePower ):
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
     """
-    if not isinstance( elem, SymVariable ):
+    # if not isinstance( elem, SymVariable ):
+    if elem.classType != CLASSTYPE_SYMVARIABLE:
       return self.isEqualExpress( elem, checkFactor )
+
+    elem = typing.cast( SymVariable, elem )
 
     # if (checkPower == True and elem.power != self.power  ):
     if checkPower == True:
@@ -1332,7 +1375,8 @@ class SymBaseList( SymBasePower ):
     """
     Exist there an array in this expression
     """
-    if isinstance( self, SymArray ):
+    # if isinstance( self, SymArray ):
+    if self.classType == CLASSTYPE_SYMARRAY:
       return True
 
     result = False
@@ -1394,8 +1438,11 @@ class SymBaseList( SymBasePower ):
     # print( "Start _optGetOneExpressions: {}".format( str( self )))
     for iCnt, elem in enumerate( self.elements ):
 
-      if not isinstance( elem, (SymExpress, SymArray)):
+      # if not isinstance( elem, (SymExpress, SymArray)):
+      if elem.classType not in [ CLASSTYPE_SYMARRAY, CLASSTYPE_SYMEXPRESS ]:
         continue
+
+      elem = typing.cast( SymExpress, elem )
 
       if elem.numElements() != 1:
         continue
@@ -1525,6 +1572,20 @@ class SymArray( SymBaseList ):
   """
   __slots__ = ()
 
+  def __init__( self
+              , in_powerSign        :int = 1
+              , in_powerCounter     :int = 1
+              , in_powerDenominator :int = 1
+              , in_onlyOneRoot      :int = 1 # default principal root
+              ) -> None :
+
+    super().__init__( in_powerSign
+                    , in_powerCounter
+                    , in_powerDenominator
+                    , in_onlyOneRoot
+                    )
+    self._classType = CLASSTYPE_SYMARRAY
+
   def optimize( self, cAction:None|str = None ) -> bool :
 
     """
@@ -1571,7 +1632,8 @@ class SymArray( SymBaseList ):
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
     """
-    if not isinstance( elem, SymArray ):
+    # if not isinstance( elem, SymArray ):
+    if elem.classType != CLASSTYPE_SYMARRAY:
       return self.isEqualExpress( elem, checkFactor )
 
     # if (checkPower == True and elem.power != self.power  ):
@@ -1581,6 +1643,8 @@ class SymArray( SymBaseList ):
           or self.powerDenominator != elem.powerDenominator
          ):
         return False
+
+    elem = typing.cast( SymArray, elem )
 
     if elem.numElements() != self.numElements():
       return False
@@ -1712,7 +1776,8 @@ class SymFunction( SymBaseList ):
                     , in_powerDenominator
                     , in_onlyOneRoot
                     )
-    self.name = in_name
+    self._classType = CLASSTYPE_SYMFUNCTION
+    self.name       = in_name
 
   @property
   def name(self) -> str :
@@ -1767,7 +1832,10 @@ class SymFunction( SymBaseList ):
     # is sub element is a symexpress with 1 element, get it
     for iCnt, elem in enumerate( self.elements ):
 
-      if ( isinstance( elem, SymExpress ) and elem.numElements() == 1 ):
+      # if ( isinstance( elem, SymExpress ) and elem.numElements() == 1 ):
+      if ( elem.classType == CLASSTYPE_SYMEXPRESS and elem.numElements() == 1 ): # type:ignore
+        elem = typing.cast( SymExpress, elem )
+
         elem1 = elem.elements[0]
         # counter & denominator can be equal
         # if ( elem.power == 1 and elem.powerDenominator == 1):
@@ -1775,7 +1843,8 @@ class SymFunction( SymBaseList ):
           self.elements[ iCnt ]  = elem1
           result = True
 
-        elif ( isinstance( elem1 , SymVariable ) and elem1.powerIsOne() == True ):
+        # elif ( isinstance( elem1 , SymVariable ) and elem1.powerIsOne() == True ):
+        elif ( elem1.classType == CLASSTYPE_SYMVARIABLE and elem1.powerIsOne() == True ):
           elem1.powerSign        *= elem.powerSign
           elem1.powerCounter     *= elem.powerCounter
           elem1.powerDenominator *= elem.powerDenominator
@@ -1783,7 +1852,8 @@ class SymFunction( SymBaseList ):
           self.elements[ iCnt ]   = elem1
           result = True
 
-        elif ( isinstance( elem1 , SymExpress ) and elem1.powerIsOne() == True ):
+        # elif ( isinstance( elem1 , SymExpress ) and elem1.powerIsOne() == True ):
+        elif ( elem1.classType == CLASSTYPE_SYMEXPRESS and elem1.powerIsOne() == True ):
           elem1.powerSign        *= elem.powerSign
           elem1.powerCounter     *= elem.powerCounter
           elem1.powerDenominator *= elem.powerDenominator
@@ -1791,7 +1861,8 @@ class SymFunction( SymBaseList ):
           self.elements[ iCnt ]   = elem1
           result = True
 
-        elif ( isinstance( elem1, SymNumber ) and elem.powerSign == 1 and elem1.powerIsMinusOne() == True ):
+        # elif ( isinstance( elem1, SymNumber ) and elem.powerSign == 1 and elem1.powerIsMinusOne() == True ):
+        elif ( elem1.classType == CLASSTYPE_SYMNUMBER and elem.powerSign == 1 and elem1.powerIsMinusOne() == True ):
           elem1.powerCounter     = elem.powerCounter
           elem1.powerDenominator = elem.powerDenominator
 
@@ -1799,7 +1870,8 @@ class SymFunction( SymBaseList ):
           result = True
 
       # need always 1 element in a symexpression
-      if ( isinstance( elem, SymExpress ) and elem.numElements() == 0 ):
+      # if ( isinstance( elem, SymExpress ) and elem.numElements() == 0 ):
+      if ( elem.classType == CLASSTYPE_SYMEXPRESS and elem.numElements() == 0 ): # type:ignore
         self.elements[ iCnt ] = SymNumber( 1, 0, 1, 1, 1, 1 )
         result = True
 
@@ -1810,8 +1882,11 @@ class SymFunction( SymBaseList ):
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
     """
-    if not isinstance( elem, SymFunction ):
+    # if not isinstance( elem, SymFunction ):
+    if elem.classType != CLASSTYPE_SYMFUNCTION :
       return self.isEqualExpress( elem, checkFactor )
+
+    elem = typing.cast( SymFunction, elem )
 
     if self.name != elem.name:
       return False
@@ -1961,7 +2036,8 @@ class SymExpress( SymBaseList ):
                     , in_powerDenominator
                     , in_onlyOneRoot
                     )
-    self.symType = in_symType
+    self._classType = CLASSTYPE_SYMEXPRESS
+    self.symType    = in_symType
 
   @property
   def symType(self) -> str :
@@ -1988,9 +2064,15 @@ class SymExpress( SymBaseList ):
     Check if the given object is equal to this object.
     Return True for equal and False for not equal
     """
-    if not isinstance( elem, SymExpress ):
+    # if not isinstance( elem, SymExpress ):
+    if elem.classType != CLASSTYPE_SYMEXPRESS :
       # elem is not an expression
       return elem.isEqualExpress( self, checkFactor )
+
+    elem = typing.cast( SymExpress, elem )
+
+    selfNum = self.numElements()
+    elemNum = elem.numElements()
 
     # if checkPower == True and elem.power != self.power:
     if checkPower == True and ( self.powerSign != elem.powerSign or self.powerCounter != elem.powerCounter or self.powerDenominator != elem.powerDenominator ):
@@ -2001,38 +2083,59 @@ class SymExpress( SymBaseList ):
         elemExpr = None
         selfExpr = None
 
-        if ( elem.symType == '*'  and elem.numElements() == 2 ):
+        # if ( elem.symType == '*'  and elem.numElements() == 2 ):
+        if ( elem.symType == '*'  and elemNum == 2 ):
           elem1 = elem.elements[ 0 ]
           elem2 = elem.elements[ 1 ]
 
-          lElemFactor = isinstance( elem1, SymNumber ) or isinstance( elem2, SymNumber )
+          # if elem1.classType == CLASSTYPE_SYMNUMBER or elem2.classType == CLASSTYPE_SYMNUMBER:
+          lElemFactor = CLASSTYPE_SYMNUMBER in [ elem1.classType, elem2.classType ]
+          #   lElemFactor = True
+          # else:
+          #   lElemFactor = False
 
-          if ( lElemFactor == True and ( isinstance( elem1, SymExpress ) or isinstance( elem2, SymExpress ))):
+          # lElemFactor = isinstance( elem1, SymNumber ) or isinstance( elem2, SymNumber )
+
+          # if ( lElemFactor == True and ( isinstance( elem1, SymExpress ) or isinstance( elem2, SymExpress ))):
+          # if ( lElemFactor == True and ( elem1.classType == CLASSTYPE_SYMEXPRESS or elem2.classType == CLASSTYPE_SYMEXPRESS )):
+          if lElemFactor == True and CLASSTYPE_SYMEXPRESS in [ elem1.classType, elem2.classType ] :
             # ok 1 is SymExpress
             pass
           else:
             lElemFactor = False
 
           if lElemFactor == True:
-            if isinstance( elem1, SymNumber ):
+            # if isinstance( elem1, SymNumber ):
+            if elem1.classType == CLASSTYPE_SYMNUMBER :
               elemExpr = elem2
             else:
               elemExpr = elem1
 
-        if ( self.symType == '*'  and self.numElements() == 2 ):
+        # if ( self.symType == '*'  and self.numElements() == 2 ):
+        if ( self.symType == '*'  and selfNum == 2 ):
+
           self1 = self.elements[ 0 ]
           self2 = self.elements[ 1 ]
 
-          lSelfFactor = isinstance( self1, SymNumber ) or isinstance( self2, SymNumber )
+          # lSelfFactor = isinstance( self1, SymNumber ) or isinstance( self2, SymNumber )
+          lSelfFactor = CLASSTYPE_SYMNUMBER in [self1.classType, self2.classType ]
+          # if self1.classType == CLASSTYPE_SYMNUMBER or self2.classType == CLASSTYPE_SYMNUMBER:
+          #   lSelfFactor = True
+          # else:
+          #   lSelfFactor = False
 
-          if ( lSelfFactor == True and ( isinstance( self1, SymExpress ) or isinstance( self2, SymExpress ))):
+
+          # if ( lSelfFactor == True and ( isinstance( self1, SymExpress ) or isinstance( self2, SymExpress ))):
+          # if ( lSelfFactor == True and ( self1.classType == CLASSTYPE_SYMEXPRESS or self2.classType == CLASSTYPE_SYMEXPRESS )):
+          if lSelfFactor == True and CLASSTYPE_SYMEXPRESS in [ self1.classType, self2.classType ] :
             # ok 1 is SymExpress
             pass
           else:
             lSelfFactor = False
 
           if lSelfFactor == True:
-            if isinstance( self1, SymNumber ):
+            # if isinstance( self1, SymNumber ):
+            if self1.classType == CLASSTYPE_SYMNUMBER :
               selfExpr = self2
             else:
               selfExpr = self1
@@ -2058,20 +2161,24 @@ class SymExpress( SymBaseList ):
 
     # skip factor for 1 unit expressions or multiply (*) expressions
     if checkFactor == False:
-      if ( self.symType == '+' and self.numElements() > 1 ):
+      # if ( self.symType == '+' and self.numElements() > 1 ):
+      if ( self.symType == '+' and selfNum > 1 ):
         checkFactor = True
 
-      if ( elem.symType == '+' and elem.numElements() > 1 ):
+      # if ( elem.symType == '+' and elem.numElements() > 1 ):
+      if ( elem.symType == '+' and elemNum > 1 ):
         checkFactor = True
 
-    if ( checkFactor == True and elem.numElements() != self.numElements() ):
+    # if ( checkFactor == True and elem.numElements() != self.numElements() ):
+    if ( checkFactor == True and elemNum != selfNum ):
       return False
 
     # print( "isequal self: {}, elem: {}, checkFactor: {}, self.power: {}, elem.power: {}".format( str( self ), str( elem ), checkFactor, self.power, elem.power ))
 
 
     # array to remember if element is already used
-    checkArr = [False] * elem.numElements()
+    # checkArr = [False] * elem.numElements()
+    checkArr:set[int]  = set()
     # for iCnt in range( 0, elem.numElements() ):
     #   checkArr.append( False )
 
@@ -2081,18 +2188,22 @@ class SymExpress( SymBaseList ):
     for elem1 in self.elements:
       # elem1  = self.elements[ iCnt ]
 
-      if ( checkFactor == False and isinstance( elem1, SymNumber ) and elem1.powerIsOne() == True ):
+      # if ( checkFactor == False and isinstance( elem1, SymNumber ) and elem1.powerIsOne() == True ):
+      if ( checkFactor == False and elem1.classType == CLASSTYPE_SYMNUMBER and elem1.powerIsOne() == True ):
         continue
 
       lFound = False
       # for iCnt2 in range( 0, elem.numElements()) :
       for iCnt2, elem2 in enumerate( elem.elements ):
-        if checkArr[ iCnt2 ] == True:
+        if iCnt2 in checkArr:
+        # if checkArr[ iCnt2 ] == True:
           continue
         # elem2 = elem.elements[ iCnt2 ]
 
-        if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
-          checkArr[ iCnt2 ] = True
+        # if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
+        if ( checkFactor == False and elem2.classType == CLASSTYPE_SYMNUMBER and elem2.powerIsOne() == True ):
+          # checkArr[ iCnt2 ] = True
+          checkArr.add( iCnt2 )
           continue
 
         # print( "Check elem1: " + str( elem1 ) )
@@ -2101,7 +2212,8 @@ class SymExpress( SymBaseList ):
         if elem1.isEqual( elem2 ) != True:
           continue
 
-        checkArr[ iCnt2 ] = True
+        # checkArr[ iCnt2 ] = True
+        checkArr.add( iCnt2 )
         lFound = True
         break
 
@@ -2113,12 +2225,15 @@ class SymExpress( SymBaseList ):
     # now check off all the elem units are used
     # for iCnt2 in range( 0, elem.numElements()):
     for iCnt2, elem2 in enumerate( elem.elements ):
-      if checkArr[ iCnt2 ] == True:
+      if iCnt2 in checkArr:
+      # if checkArr[ iCnt2 ] == True:
         continue
 
       # elem2 = elem.elements[ iCnt2 ]
-      if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
-        checkArr[ iCnt2 ] = True
+      # if ( checkFactor == False and isinstance( elem2, SymNumber ) and elem2.powerIsOne() == True ):
+      if ( checkFactor == False and elem2.classType == CLASSTYPE_SYMNUMBER and elem2.powerIsOne() == True ):
+        # checkArr[ iCnt2 ] = True
+        checkArr.add( iCnt2 )
         continue
 
       return False
@@ -2295,8 +2410,10 @@ class SymExpress( SymBaseList ):
       result = False
       for iCnt in range( len( self.elements ) - 1, -1, -1 ) :
         elem = self.elements[ iCnt ]
-        if (  ( isinstance( elem, SymNumber  ) and elem.factCounter == 0 )
-           or ( isinstance( elem, SymExpress ) and not elem.elements     )
+        # if (  ( isinstance( elem, SymNumber  ) and elem.factCounter == 0 )
+        #    or ( isinstance( elem, SymExpress ) and not elem.elements     )
+        if (  ( elem.classType == CLASSTYPE_SYMNUMBER  and elem.factCounter == 0 ) # type:ignore
+           or ( elem.classType == CLASSTYPE_SYMEXPRESS and not elem.elements     ) # type:ignore
            ):
           if self.symType == '*':
             self.elements = []
@@ -2318,12 +2435,14 @@ class SymExpress( SymBaseList ):
       for iCnt in range( len( self.elements ) - 1, -1, -1 ) :
         elem = self.elements[ iCnt ]
         # if isinstance( elem, SymExpress ) and elem.numElements() == 0:
-        if isinstance( elem, SymExpress ) and not elem.elements :
+        # if isinstance( elem, SymExpress ) and not elem.elements :
+        if elem.classType == CLASSTYPE_SYMEXPRESS and not elem.elements : # type:ignore
           del self.elements[ iCnt ]
           result = True
           continue
         # if ( isinstance( elem, SymNumber ) and elem.factor == 0 ) :
-        if ( isinstance( elem, SymNumber ) and elem.factCounter == 0 ) :
+        # if ( isinstance( elem, SymNumber ) and elem.factCounter == 0 ) :
+        if ( elem.classType == CLASSTYPE_SYMNUMBER and elem.factCounter == 0 ) : # type:ignore
           del self.elements[ iCnt ]
           result = True
           continue
@@ -2339,12 +2458,15 @@ class SymExpress( SymBaseList ):
         for iCnt in range( len( self.elements ) - 1, -1, -1) :
           elem = self.elements[ iCnt ]
 
-          if not isinstance( elem, SymNumber ):
+          # if not isinstance( elem, SymNumber ):
+          if elem.classType != CLASSTYPE_SYMNUMBER :
             continue
 
           # in this case are multiple if's faster then one if with or
           if elem.onlyOneRoot != 1:
             continue
+
+          elem = typing.cast( SymNumber, elem )
 
           # if elem.factor != 1:
           #   continue
@@ -2377,8 +2499,12 @@ class SymExpress( SymBaseList ):
       for iCnt, elem in enumerate( self.elements ) :
         if iCnt in arrDel:
           continue
-        if not isinstance( elem, SymExpress ):
+        # if not isinstance( elem, SymExpress ):
+        if elem.classType != CLASSTYPE_SYMEXPRESS:
           continue
+
+        elem = typing.cast( SymExpress, elem )
+
         if elem.symType != self.symType:
           continue
         if elem.powerIsOne() == False :
@@ -2990,8 +3116,9 @@ class SymExpress( SymBaseList ):
       if iCnt > 0:
         output += ' ' + self.symType + ' '
 
-      if ( self.symType == '*' and isinstance( elem, SymExpress ) and elem.symType != '*' ) :
-        if ( elem.powerIsOne() == True and ( elem.numElements() ) > 1 ):
+      # if ( self.symType == '*' and isinstance( elem, SymExpress ) and elem.symType != '*' ) :
+      if ( self.symType == '*' and elem.classType == CLASSTYPE_SYMEXPRESS and elem.symType != '*' ) : # type:ignore
+        if ( elem.powerIsOne() == True and ( elem.numElements() ) > 1 ):                              # type:ignore
           output += '(' + str( elem ) + ')'
         else:
           output += str( elem )
@@ -3581,9 +3708,13 @@ def SymFormulaParser ( cFormula:None|str ) -> SymExpress :
           # need the factor, so no name and no factor on the expression, the factor is placed in the symunit
           if cParam2.numElements() == 1:
             cParam2 = cParam2.elements[ 0 ] # type:ignore
-            # print( "cParam2 (3): {}".format ( str( cParam2 )))
+
+            # print( f"cParam2 (3): {str( cParam2 )}  type:{type(cParam2)}" )
 
             if isinstance( cParam2 , SymNumber ):
+
+              # print( "cParam2 is symNumber")
+
               if cParam2.powerSign == -1:
                 iExpt2  = cParam2.factCounter * cParam2.factSign
                 iExpt   = cParam2.factDenominator

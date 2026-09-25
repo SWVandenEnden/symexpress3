@@ -40,9 +40,9 @@ class OptTypeBase( ABC ):
   __slots__ = ( '_name', '_symtype', '_desc')
 
   def __init__( self ) -> None:
-    self._name    :str         = ""    # must be set by in the real class
-    self._symtype :typing.Any  = None  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction
-    self._desc    :None|str    = ""    # description of the optimization
+    self._name    :str         = ""                             # must be set by in the real class
+    self._symtype :int         = symexpress3.CLASSTYPE_UNKNOWN  # symexpress3 type class, example symexpress3.CLASSTYPE_SYMNUMBER
+    self._desc    :None|str    = ""                             # description of the optimization
 
   @property
   def name(self) -> str :
@@ -65,19 +65,20 @@ class OptTypeBase( ABC ):
     """
     return self._desc
 
-  def checkType( self, elem:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+  def checkType( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Check if the given elem
     """
     if action != self.name :
-      # print( "one: " + self.name )
       return False
 
-    if elem == None:
-      # print( "two" )
-      return False
+    # if elem == None:
+    #   # print( "two" )
+    #   return False
 
-    if self._symtype != None and not isinstance( elem, self._symtype ): # pylint: disable=isinstance-second-argument-not-valid-type
+    # if self._symtype != None and not isinstance( elem, self._symtype ): # pylint: disable=isinstance-second-argument-not-valid-type
+    # if self._symtype != 0 and elem.classType != self._symtype :
+    if self._symtype not in [ symexpress3.CLASSTYPE_UNKNOWN, elem.classType ]:
       # print( "two a: " + str(  self._symtype) )
       # print(" two b: " + str( type(elem) ))
       return False

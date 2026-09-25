@@ -36,7 +36,7 @@ class OptSymNumberPower( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "power"
-    self._symtype      = symexpress3.SymNumber
+    self._symtype      = symexpress3.CLASSTYPE_SYMNUMBER # symexpress3.SymNumber
     self._desc         = "Write out powers"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

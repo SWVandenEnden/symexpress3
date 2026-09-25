@@ -57,7 +57,8 @@ class OptimizeExpandArrays( optimizeBase.OptimizeBase ):
 
     iArray = -1
     for iCnt, elemTest in enumerate( symExpr.elements ):
-      if isinstance( elemTest, symexpress3.SymArray ) and elemTest.power == 1 and elemTest.onlyOneRoot == 1:
+      # if isinstance( elemTest, symexpress3.SymArray ) and elemTest.power == 1 and elemTest.onlyOneRoot == 1:
+      if elemTest.classType == symexpress3.CLASSTYPE_SYMARRAY and elemTest.power == 1 and elemTest.onlyOneRoot == 1:
         iArray = iCnt
         break
 

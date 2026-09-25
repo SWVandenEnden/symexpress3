@@ -37,7 +37,7 @@ class OptSymNumberRadicalNumberToSum( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "radicalNumberToSum"
-    self._symtype      = symexpress3.SymNumber
+    self._symtype      = symexpress3.CLASSTYPE_SYMNUMBER #  symexpress3.SymNumber
     self._desc         = "Convert radical integers into a sum"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

@@ -35,7 +35,7 @@ class OptSymVariableInfinity( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "infinity"
-    self._symtype      = symexpress3.SymVariable
+    self._symtype      = symexpress3.CLASSTYPE_SYMVARIABLE # symexpress3.SymVariable
     self._desc         = "Simplify infinity"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

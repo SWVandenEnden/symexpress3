@@ -37,7 +37,7 @@ class OptSymNumberNegRootToI( optTypeBase.OptTypeBase ):
   def __init__( self ) -> None :
     super().__init__()
     self._name         = "negRootToI"
-    self._symtype      = symexpress3.SymNumber
+    self._symtype      = symexpress3.CLASSTYPE_SYMNUMBER #  symexpress3.SymNumber
     self._desc         = "Negative root change to i"
 
   def optimize( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> None|symexpress3.TypVarSym3Object:

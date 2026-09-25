@@ -22,6 +22,7 @@
 
 
 """
+import typing
 
 from symexpress3 import symexpress3
 from symexpress3 import optTypeBase
@@ -37,12 +38,12 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
 
   def __init__( self ) -> None:
     super().__init__()
-    self._name         = ""                       # must be set by in the real class
-    self._symtype      = symexpress3.SymFunction  # symexpress3 type class, example symexpress3.SymNumber, symexpress3.SymVariable, symexpress3.SymFunction
-    self._desc         = ""                       # description of the optimization
-    self._funcName     :str      = ""             # name of the function
-    self._minparams    :int      = 1              # minimum number of parameters
-    self._maxparams    :int      = 1              # maximum number of parameters
+    self._name         = ""                                # must be set by in the real class
+    self._symtype      = symexpress3.CLASSTYPE_SYMFUNCTION # symexpress3 type class
+    self._desc         = ""                                # description of the optimization
+    self._funcName     :str      = ""                      # name of the function
+    self._minparams    :int      = 1                       # minimum number of parameters
+    self._maxparams    :int      = 1                       # maximum number of parameters
 
 
   @property
@@ -67,7 +68,7 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
     return self._maxparams
 
 
-  def checkType( self, elem:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+  def checkType( self, elem:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
 
     """
     Check if the given elem
@@ -78,14 +79,16 @@ class OptFunctionBase( optTypeBase.OptTypeBase ):
       # print( "test 1")
       return False
 
-    if elem == None:
-      return False
+    elem = typing.cast( symexpress3.SymFunction, elem )
+
+    # if elem == None:
+    #   return False
 
     # this is always a SymFunction but mypy does not see it
-    if elem.name != self.functionName: # type:ignore
+    if elem.name != self.functionName:
       return False
 
-    numElem = elem.numElements() # type:ignore
+    numElem = elem.numElements()
     if  numElem < self._minparams :
       return False
 

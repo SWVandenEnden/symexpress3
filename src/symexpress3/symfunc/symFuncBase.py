@@ -90,7 +90,7 @@ class SymFuncBase( ABC ):
     return self._syntax
 
   @abstractmethod
-  def functionToValue( self, elem:None|symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
+  def functionToValue( self, elem:symexpress3.TypVarSym3Object ) -> None|symexpress3.TypVarSym3Object :
     """
     Convert a given function into a value/expression.
     Return None if it cannot convert
@@ -105,10 +105,14 @@ class SymFuncBase( ABC ):
 
   def _checkCorrectFunction( self, elem:None|symexpress3.TypVarSym3Object ) -> bool :
     # check if the given element is a function and has the correct function name
-    if not isinstance( elem, symexpress3.SymFunction ):
+    # if not isinstance( elem, symexpress3.SymFunction ):
+    if elem == None:
       return False
 
-    # elem = typing.cast( symexpress3.SymFunction, elem )
+    if elem.classType != symexpress3.CLASSTYPE_SYMFUNCTION :
+      return False
+
+    elem = typing.cast( symexpress3.SymFunction, elem )
 
     if elem.name != self.name:
       return False
@@ -220,31 +224,39 @@ class SymFuncBase( ABC ):
 
     return listOrValue
 
-  def getVarname( self, elemVar:None|symexpress3.TypVarSym3Object ) -> None|str :
+  def getVarname( self, elemVar:symexpress3.TypVarSym3Object ) -> None|str :
     """
     Get the variable name of given expression
     Special for integral functions
     """
 
-    while elemVar != None and not isinstance( elemVar, symexpress3.SymVariable):
+    # while elemVar != None and not isinstance( elemVar, symexpress3.SymVariable):
+    while elemVar.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
       if elemVar.power != 1:
-        elemVar = None
+        # elemVar = None
+        return None
 
-      elif isinstance( elemVar, symexpress3.SymExpress ):
+      # elif isinstance( elemVar, symexpress3.SymExpress ):
+      if elemVar.classType == symexpress3.CLASSTYPE_SYMEXPRESS :
+        elemVar = typing.cast( symexpress3.SymExpress, elemVar )
         if elemVar.numElements() == 1:
           elemVar = elemVar.elements[0]
         else:
-          elemVar = None
+          # elemVar = None
+          return None
 
       else:
-        elemVar = None
+        # elemVar = None
+        return None
 
-    if not isinstance( elemVar, symexpress3.SymVariable):
+    # if not isinstance( elemVar, symexpress3.SymVariable):
+    if elemVar.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
       return None
 
     if elemVar.power != 1:
       return None
 
+    elemVar = typing.cast( symexpress3.SymVariable, elemVar )
     cVar = elemVar.name
 
     return cVar

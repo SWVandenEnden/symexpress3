@@ -66,7 +66,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       for iCnt, elem in enumerate( symExpr.elements ) :
         if elem.powerDenominator != 1:
           continue
-        if not isinstance( elem, symexpress3.SymNumber ):
+        # if not isinstance( elem, symexpress3.SymNumber ):
+        if elem.classType != symexpress3.CLASSTYPE_SYMNUMBER :
           continue
         break
 
@@ -87,8 +88,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         if elem2.powerDenominator > 1:
           continue
 
-        if not isinstance( elem2, symexpress3.SymNumber ):
+        # if not isinstance( elem2, symexpress3.SymNumber ):
+        if elem2.classType != symexpress3.CLASSTYPE_SYMNUMBER :
           continue
+
+        elem2 = typing.cast( symexpress3.SymNumber, elem2 )
 
         if elem2.powerCounter > 1:
           elem2.factCounter     = pow( elem2.factCounter * elem2.factSign, elem2.powerCounter )
@@ -137,8 +141,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           if elem1.powerIsOne() == False:
             continue
 
-          if not isinstance( elem1, symexpress3.SymExpress ):
+          # if not isinstance( elem1, symexpress3.SymExpress ):
+          if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
             continue
+
+          elem1 = typing.cast( symexpress3.SymExpress, elem1 )
 
           if elem1.symType != '*':
             continue
@@ -162,31 +169,42 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       # print ( "_multiplyElemUnitExpress start")
+      if len( symExpr.elements ) <= 1:
+        return result
 
       lFound = True
-      while( lFound == True and len( symExpr.elements ) > 1 ):
+      iStart = 0
+      while lFound == True :
         # print ( f"_multiplyElemUnitExpress: {len( symExpr.elements )}")
         lFound = False
         iCnt   = 0
-        for iCnt, elem1 in enumerate( symExpr.elements ) :
+        maxLen = len( symExpr.elements )
+        # for iCnt, elem1 in enumerate( symExpr.elements ) :
+        for iCnt in range( iStart, maxLen ):
+          elem1 = symExpr.elements[ iCnt ]
 
           # a root have multiple solutions, cannot multiply with + expressions
           if (elem1.powerDenominator > 1 and elem1.onlyOneRoot == 0 ):
             continue
 
-          if not isinstance( elem1, symexpress3.SymVariable ):
+          # if not isinstance( elem1, symexpress3.SymVariable ):
+          if elem1.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
             continue
 
-          iCnt2 = 0
-          while( lFound == False and iCnt2 < len( symExpr.elements )):
-            if iCnt == iCnt2:
-              iCnt2 += 1
-              continue
+          iCnt2   = 0
+          maxLen2 = len( symExpr.elements )
+          while( lFound == False and iCnt2 < maxLen2 ):
+            # if iCnt == iCnt2:
+            #   iCnt2 += 1
+            #   continue
             elem2  = symExpr.elements[ iCnt2 ]
             iCnt2 += 1
 
-            if not isinstance( elem2, symexpress3.SymExpress ):
+            # if not isinstance( elem2, symexpress3.SymExpress ):
+            if elem2.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
               continue
+
+            elem2 = typing.cast( symexpress3.SymExpress, elem2 )
 
             # only multiply no + expressions
             if elem2.symType != '+' :
@@ -230,9 +248,11 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
               elemnew.elements.append( elemnew2 )
 
             symExpr.add( elemnew )
+
             # symExpr.elements.append( elemnew ) -> Cannot do this. Elements out out symExpr are all ready append. see few lines above
 
           if lFound == True:
+            iStart = iCnt
             # print( f"_multiplyElemUnitExpress found one: {str(symExpr)}")
             break
 
@@ -264,9 +284,12 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           continue
 
         # only multiple expressions
-        if not isinstance( elem1 , symexpress3.SymExpress ):
+        # if not isinstance( elem1 , symexpress3.SymExpress ):
+        if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
           # arrSkip.add( iCnt )
           continue
+
+        elem1 = typing.cast( symexpress3.SymExpress, elem1 )
 
         if elem1.symType != '+':
           # arrSkip.add( iCnt )
@@ -380,7 +403,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       arrValid:set[int]= set()
 
       for iCnt, elemskip in enumerate( symExpr.elements ) :
-        if not isinstance( elemskip, symexpress3.SymVariable ):
+        # if not isinstance( elemskip, symexpress3.SymVariable ):
+        if elemskip.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
           # arrSkip.add( iCnt )
           continue
         arrValid.add( iCnt )
@@ -474,19 +498,25 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
       elemNum  = None
       elemExpr = None
 
-      if isinstance( elem1, symexpress3.SymNumber ):
+      # if isinstance( elem1, symexpress3.SymNumber ):
+      if elem1.classType == symexpress3.CLASSTYPE_SYMNUMBER:
         elemNum = elem1
-      elif isinstance( elem2, symexpress3.SymNumber ):
+      # elif isinstance( elem2, symexpress3.SymNumber ):
+      elif elem2.classType == symexpress3.CLASSTYPE_SYMNUMBER :
         elemNum = elem2
       if elemNum == None:
         return result
 
-      if isinstance( elem1, symexpress3.SymExpress ):
+      # if isinstance( elem1, symexpress3.SymExpress ):
+      if elem1.classType == symexpress3.CLASSTYPE_SYMEXPRESS:
         elemExpr = elem1
-      elif isinstance( elem2, symexpress3.SymExpress ):
+      #elif isinstance( elem2, symexpress3.SymExpress ):
+      elif elem2.classType == symexpress3.CLASSTYPE_SYMEXPRESS:
         elemExpr = elem2
       if elemExpr == None:
         return result
+
+      elemExpr = typing.cast( symexpress3.SymExpress, elemExpr )
 
       if elemExpr.symType != '+':
         return result
@@ -522,8 +552,12 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         if elem.powerIsOne() == False :
           continue
 
-        if not isinstance( elem, symexpress3.SymExpress ):
+        # if not isinstance( elem, symexpress3.SymExpress ):
+        if elem.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
           continue
+
+        elem = typing.cast( symexpress3.SymExpress, elem )
+
         if elem.symType != '+':
           continue
         if elem.numElements() <= 1:
@@ -632,7 +666,12 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
             rem1PowerCounter  = 1
             rem2PowerCounter  = 1
 
-            if ( isinstance( elem, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+            # if ( isinstance( elem, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+            if elem.classType == symexpress3.CLASSTYPE_SYMNUMBER and elem2.classType ==  symexpress3.CLASSTYPE_SYMNUMBER:
+
+              elem  = typing.cast( symexpress3.SymNumber, elem  )
+              elem2 = typing.cast( symexpress3.SymNumber, elem2 )
+
               dPrimeSet1 = primefactor.FactorizationDict( elem.factCounter  )
               dPrimeSet2 = primefactor.FactorizationDict( elem2.factCounter )
 
@@ -838,7 +877,8 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
 
       for iCnt, elemskip in enumerate( symExpr.elements ) :
-        if not isinstance( elemskip, symexpress3.SymFunction ):
+        # if not isinstance( elemskip, symexpress3.SymFunction ):
+        if elemskip.classType != symexpress3.CLASSTYPE_SYMFUNCTION :
           # arrSkip.add( iCnt )
           continue
 

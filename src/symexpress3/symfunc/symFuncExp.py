@@ -232,12 +232,14 @@ class SymFuncExp( symFuncBase.SymFuncBase ):
         return None
       elemBase = str( elem.elements[ 1 ] )
 
-    # print("_convertFuncExp elem1: {}".format(elem1) )
+    # print( f"_convertFuncExp elem1: {str(elem1)}" )
+
     if str( elem1 ) == "0":
       elemStr = "1"
     else:
       elemStr = "(" + elemBase + ")^^(" + str( elem1 ) + ")"
-    # print( "_convertFuncExp: {}".format( elemStr ))
+
+    # print( f"_convertFuncExp: {elemStr}" )
 
     elemnew = symexpress3.SymFormulaParser( elemStr )
 

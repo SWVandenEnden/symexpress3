@@ -47,10 +47,12 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
       dictDemo:dict[str,typing.Any] = {}
 
       for iPos, elem in enumerate( symExpr.elements):
-        if not isinstance( elem, symexpress3.SymExpress ):
+        # if not isinstance( elem, symexpress3.SymExpress ):
+        if elem.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
           continue
 
         # print( f"Check element: {iPos}, {str(elem)}")
+        elem = typing.cast( symexpress3.SymExpress, elem )
 
         # elem = typing.cast( symexpress3.SymExpress, elem )
         if elem.symType != '*':
@@ -66,7 +68,8 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
 
         # now seek 1/a+b in elem
         for iPosSub, elemSub in enumerate( elem.elements):
-          if not isinstance( elemSub, symexpress3.SymExpress ):
+          # if not isinstance( elemSub, symexpress3.SymExpress ):
+          if elemSub.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
             continue
           if elemSub.powerSign != -1:
             continue
@@ -78,6 +81,7 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
           if elemSub.powerDenominator != 1:
             continue
 
+          elemSub = typing.cast( symexpress3.SymExpress, elemSub )
 
           if elemSub.symType != '+':
             continue
@@ -141,7 +145,9 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
         # if elempart has power != 1 then it is a one (1) element
         if elemPart.power != 1:
           numElemPart = 1
-        elif isinstance( elemPart, symexpress3.SymExpress):
+        # elif isinstance( elemPart, symexpress3.SymExpress):
+        elif elemPart.classType == symexpress3.CLASSTYPE_SYMEXPRESS :
+          elemPart    = typing.cast( symexpress3.SymExpress, elemPart )
           numElemPart = elemPart.numElements()
         else:
           numElemPart = 1
@@ -164,7 +170,9 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
 
           if elem0.power != 1:
             numElemOrg = 1
-          elif isinstance( elem0, symexpress3.SymExpress ):
+          # elif isinstance( elem0, symexpress3.SymExpress ):
+          elif elem0.classType == symexpress3.CLASSTYPE_SYMEXPRESS :
+            elem0      = typing.cast( symexpress3.SymExpress, elem0 )
             numElemOrg = elem0.numElements()
           else:
             numElemOrg = 1
@@ -177,7 +185,8 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
           else:
             if numElemOrg == 1 and numElemPart == 1:
               # numbers are special so mark it (only without power)
-              if isinstance( elem0, symexpress3.SymNumber) and isinstance( elemPart, symexpress3.SymNumber ):
+              # if isinstance( elem0, symexpress3.SymNumber) and isinstance( elemPart, symexpress3.SymNumber ):
+              if elem0.classType == symexpress3.CLASSTYPE_SYMNUMBER and elemPart.classType == symexpress3.CLASSTYPE_SYMNUMBER :
                 if elem0.power == 1 and elemPart.power == 1:
                   numElemMatch = 1
                   currentMatch[ 'number'    ] = 1
@@ -273,9 +282,11 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
       # print( f"elem0    : {str(elem0)}")
       # print( f"elemParts: {str(elemParts)}")
 
-      if isinstance( elem0, symexpress3.SymExpress ) and elem0.symType == '*':
+      # if isinstance( elem0, symexpress3.SymExpress ) and elem0.symType == '*':
+      if elem0.classType == symexpress3.CLASSTYPE_SYMEXPRESS and elem0.symType == '*': # type:ignore
 
         # ok search for each elements if it contains in the others
+        elem0 = typing.cast( symexpress3.SymExpress, elem0 )
 
         # collect all the elements in the first part
         for elem0Part in elem0.elements:
@@ -289,11 +300,14 @@ class OptimizeFlipDenominator( optimizeBase.OptimizeBase ):
           if elemNr == 0:
             continue
 
-          if not isinstance( elemNext, symexpress3.SymExpress):
+          # if not isinstance( elemNext, symexpress3.SymExpress):
+          if elemNext.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
+
             # print( f"Not SymExpress, stop: {str(elemNext)}")
             equalElements = []
             break
 
+          elemNext = typing.cast( symexpress3.SymExpress, elemNext )
 
           # collect equal elements
           elemNew = []

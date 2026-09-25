@@ -97,8 +97,13 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
         # same name, same power, found one
         # add factors and delete cnt2
-        if ( isinstance( elem1, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+        # if ( isinstance( elem1, symexpress3.SymNumber ) and isinstance( elem2, symexpress3.SymNumber )):
+        if elem1.classType == symexpress3.CLASSTYPE_SYMNUMBER and elem2.classType == symexpress3.CLASSTYPE_SYMNUMBER :
           # if ( elem1.power != 1 and elem1.power != -1 ): # pylint: disable=consider-using-in
+
+          elem1 = typing.cast( symexpress3.SymNumber, elem1 )
+          elem2 = typing.cast( symexpress3.SymNumber, elem2 )
+
           if elem1.powerIsOneOrMinusOne() == False :
 
             # if elem1.factor != elem2.factor :
@@ -142,7 +147,9 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           result = True
           continue
 
-        if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
+        # if ( not isinstance( elem1, symexpress3.SymExpress ) and not isinstance( elem2, symexpress3.SymExpress ) ):
+        # if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS and elem2.classType != symexpress3.CLASSTYPE_SYMEXPRESS:
+        if symexpress3.CLASSTYPE_SYMEXPRESS not in [ elem1.classType, elem2.classType] :
           elemnew = symexpress3.SymExpress( '*' )
           elemnum = symexpress3.SymNumber( 1, 2, 1, 1, 1, 1)
           elemnew.elements.append( elemnum )
@@ -154,18 +161,20 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           result = True
           continue
 
-        if ( not isinstance( elem1, symexpress3.SymExpress ) or not isinstance( elem2, symexpress3.SymExpress ) ):
+        # if ( not isinstance( elem1, symexpress3.SymExpress ) or not isinstance( elem2, symexpress3.SymExpress ) ):
+        if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS or elem2.classType != symexpress3.CLASSTYPE_SYMEXPRESS:
 
           # print( 'special, elem1: {}, elem2: {}'.format( str( elem1 ), str( elem2 )))
 
           # 2 different types, 1 is an expression
           elemnew = symexpress3.SymExpress( '*' )
           elemnum = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
-          if isinstance( elem1, symexpress3.SymExpress ):
+          # if isinstance( elem1, symexpress3.SymExpress ):
+          if elem1.classType == symexpress3.CLASSTYPE_SYMEXPRESS :
             elemexp = elem1
           else:
             # is is always a SymExpress type
-            elemexp = elem2 # type:ignore
+            elemexp = elem2
           elemnew.onlyOneRoot      = elemexp.onlyOneRoot
           elemnew.powerSign        = elemexp.powerSign
           elemnew.powerCounter     = elemexp.powerCounter
@@ -177,12 +186,18 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
             isinfinity = True
             # print( "!! Infinity: " + str( elemexp ) )
 
+
           # elemexp is now the symexpress
+          elemexp = typing.cast( symexpress3.SymExpress, elemexp )
+
           lOnlyOne  = True
           lFoundOne = True
           for iCnt3 in range( 0, elemexp.numElements()):
             elemsub = elemexp.elements[ iCnt3 ]
-            if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            # if ( lOnlyOne == True and isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            if lOnlyOne == True and elemsub.classType == symexpress3.CLASSTYPE_SYMNUMBER and elemsub.powerIsOne() == True :
+
+              elemsub = typing.cast( symexpress3.SymNumber, elemsub )
 
               if isinfinity == True:
                 #
@@ -275,14 +290,17 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           # 2 expression, 1 with power and 1 without
           if elem1.powerIsOne() == True :
-            elemnew = elem1
+            elemnew = elem1 # type:ignore
           else:
-            elemnew = elem2
+            elemnew = elem2 # type:ignore
+
           # search number in elemnew and increase it with 1
           for iCnt3 in range( elemnew.numElements()):
             elemsub = elemnew.elements[ iCnt3 ]
-            if not isinstance( elemsub, symexpress3.SymNumber ):
+            # if not isinstance( elemsub, symexpress3.SymNumber ):
+            if elemsub.classType != symexpress3.CLASSTYPE_SYMNUMBER :
               continue
+            elemsub = typing.cast( symexpress3.SymNumber, elemsub )
             iNumAdd = elemsub.factDenominator
 
             iFactCount          = elemsub.factCounter * elemsub.factSign + iNumAdd
@@ -318,13 +336,18 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           if "infinity" in elemexp.getVariables():
             isinfinity = True
 
+          elem2 = typing.cast( symexpress3.SymExpress, elem2 )
+
           # take all the numbers form elem2
           for iCnt3 in range( 0, elem2.numElements()):
             elemsub = elem2.elements[ iCnt3 ]
-            if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            # if (isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            if elemsub.classType == symexpress3.CLASSTYPE_SYMNUMBER and elemsub.powerIsOne() == True :
               if elemnum == None :
                 elemnum = elemsub
                 continue
+              elemnum = typing.cast( symexpress3.SymNumber, elemnum )
+              elemsub = typing.cast( symexpress3.SymNumber, elemsub )
 
               # print( 'elemnum: {}'.format( str( elemnum )))
               # print( 'elemsub: {}'.format( str( elemsub )))
@@ -355,14 +378,21 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
 
           # lFoundNum = False
           elemnum2  = None
+
           # elemexp is now the symexpress
+          elemexp = typing.cast( symexpress3.SymExpress, elemexp )
+
           for iCnt3 in range( 0, elemexp.numElements()):
             elemsub = elemexp.elements[ iCnt3 ]
 
-            if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            # if ( isinstance( elemsub, symexpress3.SymNumber ) and elemsub.powerIsOne() == True ):
+            if elemsub.classType == symexpress3.CLASSTYPE_SYMNUMBER and elemsub.powerIsOne() == True :
               if elemnum2 == None :
                 elemnum2 = elemsub
                 continue
+
+              elemnum2 = typing.cast( symexpress3.SymNumber, elemnum2 )
+              elemsub  = typing.cast( symexpress3.SymNumber, elemsub  )
 
               elem3 = symexpress3.SymNumber()
               elem3.factSign        = elemnum2.factSign
@@ -383,6 +413,9 @@ class OptimizeAdd( optimizeBase.OptimizeBase ):
           # second had no number so it is 1
           if elemnum2 == None:
             elemnum2 = symexpress3.SymNumber( 1, 1, 1, 1, 1, 1)
+
+          elemnum  = typing.cast( symexpress3.SymNumber, elemnum  )
+          elemnum2 = typing.cast( symexpress3.SymNumber, elemnum2 )
 
           if isinfinity == True:
             #

@@ -22,9 +22,9 @@
 
 
 """
+import typing
 
-from abc import ABC, abstractmethod
-
+from abc         import ABC, abstractmethod
 from symexpress3 import symexpress3
 
 #
@@ -37,9 +37,9 @@ class OptimizeBase( ABC ):
   __slots__ = ('_name', '_symtype', '_desc' )
 
   def __init__( self ) -> None:
-    self._name         :str = ""    # must be set by in the real class
-    self._symtype      :str = ""    # symexpression type, use "all" for all expression types
-    self._desc         :str = ""    # description of the function
+    self._name   :str = ""    # must be set by in the real class
+    self._symtype:str = ""    # symexpression type, use "all" for all expression types
+    self._desc   :str = ""    # description of the function
 
   @property
   def name(self) -> str :
@@ -62,20 +62,25 @@ class OptimizeBase( ABC ):
     """
     return self._desc
 
-  def checkExpression( self, symExpr:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+  # def checkExpression( self, symExpr:None|symexpress3.TypVarSym3Object, action:None|str ) -> bool:
+  def checkExpression( self, symExpr:symexpress3.TypVarSym3Object, action:None|str ) -> bool:
     """
     Check if the given symexpress is correct for this optimization class
     """
     if action != self.name :
       return False
 
-    if symExpr == None:
+    # if symExpr == None:
+    #   return False
+
+    # if not isinstance( symExpr, symexpress3.SymExpress ):
+    if symExpr.classType != symexpress3.CLASSTYPE_SYMEXPRESS:
       return False
 
-    if not isinstance( symExpr, symexpress3.SymExpress ):
-      return False
+    symExpr = typing.cast( symexpress3.SymExpress, symExpr )
 
-    if symExpr.symType != self.symType and self.symType != "all":  # pylint: disable=consider-using-in
+    # if symExpr.symType != self.symType and self.symType != "all":  # pylint: disable=consider-using-in
+    if self.symType not in [ symExpr.symType , "all" ]:
       return False
 
     return True # correct call
