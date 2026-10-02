@@ -92,7 +92,7 @@
 from __future__ import annotations
 
 # internal build number, for version number see version.py
-__buildnumber__ = "20260828001" # build number
+__buildnumber__ = "20260925001" # build number
 
 import sys
 import typing
@@ -2073,6 +2073,23 @@ class SymExpress( SymBaseList ):
 
     selfNum = self.numElements()
     elemNum = elem.numElements()
+
+    # if factor must be checked then the number of elements must be equal
+    if checkFactor == True:
+      if selfNum != elemNum:
+        # print( "isEqual checkFactor True num elements different")
+        return False
+
+    # First, fast check of equal is possible
+    if selfNum > 2 or elemNum > 2:
+      if abs( selfNum - elemNum ) > 1:
+        # print( "IsEqual Check diff ")
+        return False
+
+      if selfNum > 2 and elemNum > 2 and self.symType != elem.symType :
+        # print( "IsEqual Check symType ")
+        return False
+
 
     # if checkPower == True and elem.power != self.power:
     if checkPower == True and ( self.powerSign != elem.powerSign or self.powerCounter != elem.powerCounter or self.powerDenominator != elem.powerDenominator ):

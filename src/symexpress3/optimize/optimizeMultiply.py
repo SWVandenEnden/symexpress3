@@ -271,21 +271,19 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
 
       # print ( "_multiplyElemExpressExpress start")
       arrDel:set[int]  = set()
-      # arrSkip:set[int] = set()
       arrValid:set[int]= set()
 
 
       # print ( f'_multiplyElemExpressExpress elements count: {len( symExpr.elements )}   ' )
       for iCnt, elem1 in enumerate( symExpr.elements ) :
 
-        # only multiply with power of 1
-        if elem1.powerIsOneOrMinusOne() == False:
+        # only multiple expressions
+        if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
           # arrSkip.add( iCnt )
           continue
 
-        # only multiple expressions
-        # if not isinstance( elem1 , symexpress3.SymExpress ):
-        if elem1.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
+        # only multiply with power of 1
+        if elem1.powerIsOneOrMinusOne() == False:
           # arrSkip.add( iCnt )
           continue
 
@@ -295,44 +293,21 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
           # arrSkip.add( iCnt )
           continue
 
-
         arrValid.add( iCnt )
-
 
       # nothing to do
       if len( arrValid ) <= 1 :
         return result
 
-      # maxLen1 = maxLen - 1
-      # maxLen2 = maxLen
-      # for iCnt in range( 0, maxLen1 ) :
       for iCnt in arrValid :
-
-        # if iCnt in arrSkip:
-        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem1 = symExpr.elements[ iCnt ]
 
-        # fncFilter = lambda x: x > iCnt
-
-        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
         subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
         for iCnt2 in subSet :
-        # for iCnt2 in arrValid  :
-        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
-        # for iCnt2 in filter( fncFilter, arrValid ):
-
-          # if iCnt2 in arrSkip:
-          # if iCnt2 not in arrValid:
-          # if iCnt2 <= iCnt:
-          #   continue
-
-          # the set has no fixed order
-          # if iCnt2 in arrDel:
-          #   continue
 
           elem2 = symExpr.elements[ iCnt2 ]
 
@@ -399,50 +374,27 @@ class OptimizeMultiply( optimizeBase.OptimizeBase ):
         return result
 
       arrDel:set[int]  = set()
-      # arrSkip:set[int] = set()
       arrValid:set[int]= set()
 
       for iCnt, elemskip in enumerate( symExpr.elements ) :
-        # if not isinstance( elemskip, symexpress3.SymVariable ):
         if elemskip.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
-          # arrSkip.add( iCnt )
           continue
         arrValid.add( iCnt )
 
       # no variables found
-      # if len( arrSkip ) + 1 >= maxLen :
       if len( arrValid ) <= 1:
         return result
 
       # multiple all units with same name
-      # maxLen1 = maxLen - 1
-      # maxLen2 = maxLen
-
-      # for iCnt in range( 0, maxLen1 ) :
       for iCnt in arrValid :
-
-        # if iCnt in arrSkip:
-        #   continue
 
         if iCnt in arrDel:
           continue
 
         elem1 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt ] )
 
-        # for iCnt2 in range( iCnt + 1, maxLen2 ) :
         subSet = { x for x in arrValid if x > iCnt and x not in arrDel }
         for iCnt2 in subSet :
-
-        # for iCnt2 in arrValid:
-        # for iCnt2 in filter( lambda x:x > iCnt, arrValid ):
-
-          # if iCnt2 in arrSkip:
-          # if iCnt2 not in arrValid:
-          # if iCnt2 <= iCnt:
-          #   continue
-
-          # if iCnt2 in arrDel:
-          #   continue
 
           elem2 = typing.cast( symexpress3.SymVariable, symExpr.elements[ iCnt2 ] )
 
