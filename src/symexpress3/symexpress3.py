@@ -2825,7 +2825,7 @@ class SymExpress( SymBaseList ):
 
     # print( "optimizeExtended start")
 
-    self.optimizeNormal( output, filehandle, extra, varDict )
+    bResult = self.optimizeNormal( output, filehandle, extra, varDict )
 
     iCntBig   = 0
     iBigMax   = 8
@@ -2875,6 +2875,8 @@ class SymExpress( SymBaseList ):
       bChanged |= _optimizeAction( ["compositeDenominator"        ], 'Composite denominator'                       , iCntBig,  2 ) # a/(a+b)+b/(a+b) = 1
       bChanged |= _optimizeAction( ["flipDenominator"             ], 'Flip denominator'                            , iCntBig,  2 ) # a/(a+b+c) + b/(a+b+c) = 1 - c/(a+b+c)
       bChanged |= _optimizeAction( ["compactDenominator"          ], 'Compact denominator'                         , iCntBig,  2 ) # -a-1+a^^2/(a+1) = (-2a-1)/(a+1)
+      bChanged |= _optimizeAction( ["expSameBase"                 ], 'Add exp together with the same base'         , iCntBig,  1 ) # exp( 3^^(1/2) ) * exp( 5^^(1/2) ) = exp( 3^^(1/2) + 5^^(1/2) )
+
 
       bResult |= bChanged
 
