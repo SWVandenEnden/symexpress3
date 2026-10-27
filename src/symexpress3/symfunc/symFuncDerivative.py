@@ -91,10 +91,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       cVarName = elem.elements[ 1 ].name #type:ignore
 
       # plus expression with 1 element
-      if (     isinstance( elemFunc, symexpress3.SymExpress )
-           and elemFunc.symType == '+'
-           and elemFunc.numElements() == 1
+      # if (     isinstance( elemFunc, symexpress3.SymExpress )
+      if (     elemFunc.classType     == symexpress3.CLASSTYPE_SYMEXPRESS
+           and elemFunc.symType       == '+' # type:ignore
+           and elemFunc.numElements() == 1   # type:ignore
          ):
+        elemFunc = typing.cast( symexpress3.SymExpress, elemFunc )
         elemFunc = elemFunc.elements[ 0 ]
         if (   elemFunc.onlyOneRoot      != 1
             or elemFunc.powerSign        != 1
@@ -104,7 +106,9 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
           return None, None
 
       # variable type check it
-      if isinstance( elemFunc, symexpress3.SymVariable ):
+      # if isinstance( elemFunc, symexpress3.SymVariable ):
+      if elemFunc.classType == symexpress3.CLASSTYPE_SYMVARIABLE :
+        elemFunc = typing.cast( symexpress3.SymVariable, elemFunc )
         if elemFunc.name == cVarName :
           return None, [ elemFunc ]
         return [ elemFunc ], None
@@ -113,7 +117,9 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       arrConst:None|list[symexpress3.TypVarSym3Object] = []
       arrVar  :None|list[symexpress3.TypVarSym3Object] = []
 
-      if isinstance( elemFunc, symexpress3.SymExpress ) and elemFunc.symType == '*' :
+      # if isinstance( elemFunc, symexpress3.SymExpress ) and elemFunc.symType == '*' :
+      if elemFunc.classType == symexpress3.CLASSTYPE_SYMEXPRESS and elemFunc.symType == '*' : # type:ignore
+        elemFunc = typing.cast( symexpress3.SymExpress, elemFunc )
         for elemCheck in elemFunc.elements:
           dictVars = elemCheck.getVariables()
           if cVarName in dictVars:
@@ -147,8 +153,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
          ):
         return None
 
-      if not isinstance( elemFunc, symexpress3.SymFunction ):
+      # if not isinstance( elemFunc, symexpress3.SymFunction ):
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMFUNCTION :
         return None
+
+      elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
       cFuncName = elemFunc.name
       if cFuncName != "log":
@@ -178,12 +187,14 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       elemNew = symexpress3.SymExpress( '*' )
       elemDiv = symexpress3.SymExpress( '*' )
       elemDiv.powerSign = -1
-      elemDiv.add( expVar )
+      # elemDiv.add( expVar )
+      elemDiv.elements.append( expVar )
 
       if elemFunc.numElements() >= 2:
         elemLog = symexpress3.SymFunction( 'log' )
         elemLog.add( elemFunc.elements[1] )
-        elemDiv.add( elemLog )
+        # elemDiv.add( elemLog )
+        elemDiv.elements.append( elemLog )
 
       elemNew.add( elemDiv )
 
@@ -194,7 +205,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
          ):
 
         elemDir = symexpress3.SymFunction( 'derivative' )
-        elemDir.add( expVar )
+        # elemDir.add( expVar )
+        elemDir.elements.append( expVar )
         elemDir.add( elem.elements[ 1 ] )
         elemNew.add( elemDir )
 
@@ -216,8 +228,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
          ):
         return None
 
-      if not isinstance( elemFunc, symexpress3.SymFunction ):
+      # if not isinstance( elemFunc, symexpress3.SymFunction ):
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMFUNCTION :
         return None
+
+      elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
       cFuncName = elemFunc.name
       if cFuncName != "exp":
@@ -249,11 +264,13 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         if arrConst != None:
           expConst = symexpress3.SymExpress( '*' )
           for elemConst in arrConst:
-            expConst.add( elemConst )
+            # expConst.add( elemConst )
+            expConst.elements.append( elemConst )
 
         expVar = symexpress3.SymExpress( '*' )
         for elemVar in arrVar:
-          expVar.add( elemVar )
+          # expVar.add( elemVar )
+          expVar.elements.append( elemVar )
 
         elemNew:symexpress3.TypVarSym3Object = symexpress3.SymExpress( '*' )
         elemNew = typing.cast( symexpress3.SymExpress, elemNew )
@@ -264,7 +281,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         if dictBase == None and elemFunc.numElements() >= 2:
           elemLog = symexpress3.SymFunction( 'log' )
           elemLog.add( elemFunc.elements[1] )
-          elemNew.add( elemLog )
+          # elemNew.add( elemLog )
+          elemNew.elements.append( elemLog )
 
 
         if (   len( arrVar ) > 1
@@ -275,10 +293,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
           expVar = symexpress3.SymExpress( '*' )
           for elemVar in arrVar:
-            expVar.add( elemVar )
+            # expVar.add( elemVar )
+            expVar.elements.append( elemVar )
 
           elemDir = symexpress3.SymFunction( 'derivative' )
-          elemDir.add( expVar )
+          # elemDir.add( expVar )
+          elemDir.elements.append( expVar )
           elemDir.add( elem.elements[ 1 ] )
           elemNew.add( elemDir )
 
@@ -288,14 +308,16 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       # exp( a, x ) = exp( a - 1, x ) * a
       elemBase = elemFunc.elements[ 1 ]
-      if (   not isinstance( elemBase, symexpress3.SymVariable )
-          or elemBase.name != elem.elements[1].name  #type:ignore
-          or elemBase.power != 1
+      # if (   not isinstance( elemBase, symexpress3.SymVariable )
+      if (   elemBase.classType != symexpress3.CLASSTYPE_SYMVARIABLE
+          or elemBase.name      != elem.elements[1].name  #type:ignore
+          or elemBase.power     != 1
          ):
         return None
 
-      if (   isinstance( elemParam, symexpress3.SymNumber )
-         and elemParam.factor == 1
+      # if (   isinstance( elemParam, symexpress3.SymNumber )
+      if (   elemParam.classType == symexpress3.CLASSTYPE_SYMNUMBER
+         and elemParam.factor    == 1  #type:ignore
          ):
         # exp( 1, x ) = 1
         elemNew = symexpress3.SymNumber()
@@ -303,11 +325,13 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         elemNew = symexpress3.SymExpress('*')
         elemMin = symexpress3.SymExpress('+')
         elemMin.add( elemParam )
-        elemMin.add( symexpress3.SymNumber( -1, 1, 1 ))
+        # elemMin.add( symexpress3.SymNumber( -1, 1, 1 ))
+        elemMin.elements.append( symexpress3.SymNumber( -1, 1, 1 ))
         elemNew.add( elemParam )
 
         elemExp = symexpress3.SymFunction( 'exp' )
-        elemExp.add( elemMin )
+        # elemExp.add( elemMin )
+        elemExp.elements.append( elemMin )
         elemExp.add( elem.elements[1] )
 
         elemNew.add( elemExp )
@@ -329,8 +353,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
          ):
         return None
 
-      if not isinstance( elemFunc, symexpress3.SymFunction ):
+      # if not isinstance( elemFunc, symexpress3.SymFunction ):
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMFUNCTION:
         return None
+
+      elemFunc = typing.cast( symexpress3.SymFunction, elemFunc )
 
       cFuncName = elemFunc.name
       if not cFuncName in [ 'sin', 'cos', 'tan', 'asin', 'acos', 'atan' ]:
@@ -350,7 +377,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       elif cFuncName == "cos":
         # derivative( cos(x), x) = - sin(x)
-        elemNew.add( symexpress3.SymNumber( -1, 1, 1 ) )
+        # elemNew.add( symexpress3.SymNumber( -1, 1, 1 ) )
+        elemNew.elements.append( symexpress3.SymNumber( -1, 1, 1 ) )
         elemFnc = symexpress3.SymFunction( 'sin' )
         elemFnc.add( elemParam )
         elemNew.add( elemFnc )
@@ -376,10 +404,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         elemFnc.powerDenominator = 2
 
         elemMin = symexpress3.SymExpress('+')
-        elemMin.add( symexpress3.SymNumber(1,1,1))
+        # elemMin.add( symexpress3.SymNumber(1,1,1))
+        elemMin.elements.append( symexpress3.SymNumber(1,1,1))
 
         elemPower = symexpress3.SymExpress( '*')
-        elemPower.add( symexpress3.SymNumber( -1,1,1))
+        # elemPower.add( symexpress3.SymNumber( -1,1,1))
+        elemPower.elements.append( symexpress3.SymNumber( -1,1,1) )
         elemParam.powerCounter = 2
         elemPower.add( elemParam )
         elemParam.powerCounter = 1
@@ -399,10 +429,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         elemFnc.powerDenominator = 2
 
         elemMin = symexpress3.SymExpress('+')
-        elemMin.add( symexpress3.SymNumber(1,1,1))
+        # elemMin.add( symexpress3.SymNumber(1,1,1))
+        elemMin.elements.append( symexpress3.SymNumber(1,1,1) )
 
         elemPower = symexpress3.SymExpress( '*')
-        elemPower.add( symexpress3.SymNumber( -1,1,1))
+        # elemPower.add( symexpress3.SymNumber( -1,1,1))
+        elemPower.elements.append( symexpress3.SymNumber( -1,1,1) )
         elemParam.powerCounter = 2
         elemPower.add( elemParam )
         elemParam.powerCounter = 1
@@ -415,13 +447,15 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       elif cFuncName == "atan":
         # derivative( atan(x), x ) = 1 / (1 + x^^2)
 
-        elemNew.add( symexpress3.SymNumber( -1,1,1))
-        elemFnc = symexpress3.SymExpress('*' )
+        # elemNew.add( symexpress3.SymNumber( -1,1,1))
+        elemNew.elements.append( symexpress3.SymNumber( -1,1,1) )
+        elemFnc = symexpress3.SymExpress( '*' )
 
         elemFnc.powerSign        = -1
 
         elemMin = symexpress3.SymExpress('+')
-        elemMin.add( symexpress3.SymNumber(1,1,1))
+        # elemMin.add( symexpress3.SymNumber(1,1,1))
+        elemMin.elements.append( symexpress3.SymNumber(1,1,1) )
 
         elemPower = symexpress3.SymExpress( '*')
         elemParam.powerCounter = 2
@@ -480,19 +514,27 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       elemNew = symexpress3.SymExpress( '*' )
 
-      elemNew.add( elemNum )
-      elemExp = symexpress3.SymFunction( 'exp' )
+      # elemNew.add( elemNum )
+      elemNew.elements.append( elemNum )
+      elemExp      = symexpress3.SymFunction( 'exp' )
       elemExpPower = symexpress3.SymExpress('+')
-      elemExpPower.add( elemNum )
-      elemExpPower.add( symexpress3.SymNumber( -1, 1, 1 ))
-      elemExp.add( elemExpPower )
-      elemExp.add( elemBase )
-      elemNew.add( elemExp )
+      # elemExpPower.add( elemNum )
+      elemExpPower.elements.append( elemNum )
+      # elemExpPower.add( symexpress3.SymNumber( -1, 1, 1 ))
+      elemExpPower.elements.append( symexpress3.SymNumber( -1, 1, 1 ) )
+      # elemExp.add( elemExpPower )
+      elemExp.elements.append( elemExpPower )
+      # elemExp.add( elemBase     )
+      elemExp.elements.append( elemBase     )
+      elemNew.add( elemExp      )
 
-      if not isinstance( elemBase, symexpress3.SymVariable ):
+      # if not isinstance( elemBase, symexpress3.SymVariable ):
+      if elemBase.classType != symexpress3.CLASSTYPE_SYMVARIABLE :
         elemDir = symexpress3.SymFunction( 'derivative' )
-        elemDir.add( elemBase )
-        elemDir.add( elem.elements[ 1 ] )
+        # elemDir.add( elemBase )
+        elemDir.elements.append( elemBase )
+        # elemDir.add( elem.elements[ 1 ] )
+        elemDir.elements.append( elem.elements[ 1 ] )
         elemNew.add( elemDir )
 
       elem.copyPower( elemNew )
@@ -505,8 +547,11 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       """
       elemFunc = elem.elements[ 0 ]
       elemVar  = elem.elements[ 1 ]
-      if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      # if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
         return None
+
+      elemFunc = typing.cast( symexpress3.SymExpress, elemFunc )
 
       if elemFunc.numElements() <= 1:
         return None
@@ -526,33 +571,44 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       # derivative ( x )
       elemDerX = symexpress3.SymFunction( "derivative" )
-      elemDerX.add( elemX   )
-      elemDerX.add( elemVar )
+      # elemDerX.add( elemX   )
+      elemDerX.elements.append( elemX   )
+      # elemDerX.add( elemVar )
+      elemDerX.elements.append( elemVar )
 
       # derivative ( y )
       elemDerY = symexpress3.SymFunction( "derivative" )
-      elemDerY.add( elemY )
-      elemDerY.add( elemVar )
+      # elemDerY.add( elemY )
+      elemDerY.elements.append( elemY )
+      # elemDerY.add( elemVar )
+      elemDerY.elements.append( elemVar )
 
       # derivative ( x ) * y
       elemMultX  = symexpress3.SymExpress( '*' )
-      elemMultX.add( elemDerX )
-      elemMultX.add( elemY    )
+      # elemMultX.add( elemDerX )
+      elemMultX.elements.append( elemDerX )
+      # elemMultX.add( elemY    )
+      elemMultX.elements.append( elemY    )
 
       # - x * derivative ( y )
       elemMultY  = symexpress3.SymExpress( '*' )
-      elemMultY.add( elemDerY )
-      elemMultY.add( elemX    )
-      elemMultY.add( symexpress3.SymNumber( -1, 1, 1 )  )
+      # elemMultY.add( elemDerY )
+      elemMultY.elements.append( elemDerY )
+      # elemMultY.add( elemX    )
+      elemMultY.elements.append( elemX    )
+      elemMultY.elements.append( symexpress3.SymNumber( -1, 1, 1 )  )
 
       # ( derivative ( x ) * y - x * derivative ( y ) )
       elemMin = symexpress3.SymExpress( '+' )
-      elemMin.add( elemMultX )
-      elemMin.add( elemMultY )
+      # elemMin.add( elemMultX )
+      elemMin.elements.append( elemMultX )
+      # elemMin.add( elemMultY )
+      elemMin.elements.append( elemMultY )
 
       # 1 / ( y^^2 )
       elemKwdraat = symexpress3.SymExpress( '*', -1, 2, 1 )
-      elemKwdraat.add( elemY )
+      # elemKwdraat.add( elemY )
+      elemKwdraat.elements.append( elemY )
 
       # ( derivative ( x ) * y - x * derivative ( y ) ) / ( y^^2 )
       elemNew = symexpress3.SymExpress( '*' )
@@ -566,8 +622,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       derivative( x * y, x ) = derivative( x, x ) * y + x * derivative( y, x )
       """
       elemFunc = elem.elements[ 0 ]
-      if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      # if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
         return None
+
+      elemFunc = typing.cast( symexpress3.SymExpress, elemFunc )
+
       if elemFunc.symType != '*':
         return None
 
@@ -589,7 +649,8 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
           elemFirst = elemProd
           elemSecond = symexpress3.SymExpress( '*' )
         else:
-          elemSecond.add( elemProd ) # type:ignore
+          # elemSecond.add( elemProd ) # type:ignore
+          elemSecond.elements.append( elemProd ) # type:ignore
 
       elemNew  = symexpress3.SymExpress( '+' )
 
@@ -597,18 +658,26 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       # expFirst = typing.cast( symexpress3.SymExpress, expFirst )
 
       elemDer  = symexpress3.SymFunction( 'derivative' )
-      elemDer.add( elemFirst ) #type:ignore
-      elemDer.add( elem.elements[ 1 ] )
-      expFirst.add( elemDer )
-      expFirst.add( elemSecond ) #type:ignore
+      # elemDer.add( elemFirst ) #type:ignore
+      elemDer.elements.append( elemFirst ) #type:ignore
+      # elemDer.add( elem.elements[ 1 ] )
+      elemDer.elements.append( elem.elements[ 1 ] )
+      # expFirst.add( elemDer )
+      expFirst.elements.append( elemDer )
+      # expFirst.add( elemSecond ) #type:ignore
+      expFirst.elements.append( elemSecond ) #type:ignore
       elemNew.add( expFirst )
 
       expSecond = symexpress3.SymExpress( '*' )
-      expSecond.add( elemFirst ) #type:ignore
+      # expSecond.add( elemFirst ) #type:ignore
+      expSecond.elements.append( elemFirst ) #type:ignore
       elemDer  = symexpress3.SymFunction( 'derivative' )
-      elemDer.add( elemSecond ) #type:ignore
-      elemDer.add( elem.elements[ 1 ] )
-      expSecond.add( elemDer )
+      # elemDer.add( elemSecond ) #type:ignore
+      elemDer.elements.append( elemSecond ) #type:ignore
+      # elemDer.add( elem.elements[ 1 ] )
+      elemDer.elements.append( elem.elements[ 1 ] )
+      # expSecond.add( elemDer )
+      expSecond.elements.append( elemDer )
       elemNew.add( expSecond )
 
       elem.copyPower( elemNew )
@@ -622,8 +691,12 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
         derivative( x + y, x ) = derivative( x, x ) + deriate( y, x )
       """
       elemFunc = elem.elements[ 0 ]
-      if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      # if not isinstance( elemFunc, symexpress3.SymExpress ) :
+      if elemFunc.classType != symexpress3.CLASSTYPE_SYMEXPRESS :
         return None
+
+      elemFunc = typing.cast( symexpress3.SymExpress, elemFunc )
+
       if elemFunc.symType != '+':
         return None
 
@@ -640,8 +713,10 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
       elemNew = symexpress3.SymExpress( '+' )
       for elemPlus in elemFunc.elements:
         elemDer = symexpress3.SymFunction( 'derivative' )
-        elemDer.add( elemPlus )
-        elemDer.add( elem.elements[ 1 ] )
+        # elemDer.add( elemPlus )
+        elemDer.elements.append( elemPlus )
+        # elemDer.add( elem.elements[ 1 ] )
+        elemDer.elements.append( elem.elements[ 1 ] )
         elemNew.add( elemDer )
 
       elem.copyPower( elemNew )
@@ -676,17 +751,21 @@ class SymFuncDerivative( symFuncBase.SymFuncBase ):
 
       expConst = symexpress3.SymExpress( '*' )
       for elemConst in arrConst:
-        expConst.add( elemConst )
+        # expConst.add( elemConst )
+        expConst.elements.append( elemConst )
 
       expVar = symexpress3.SymExpress( '*' )
       for elemVar in arrVar:
-        expVar.add( elemVar )
+        # expVar.add( elemVar )
+        expVar.elements.append( elemVar )
 
       elemNew.add( expConst )
 
       elemDer = symexpress3.SymFunction( 'derivative' )
-      elemDer.add( expVar )
-      elemDer.add( elem.elements[ 1 ] )
+      # elemDer.add( expVar )
+      elemDer.elements.append( expVar )
+      # elemDer.add( elem.elements[ 1 ] )
+      elemDer.elements.append( elem.elements[ 1 ] )
       elemNew.add( elemDer )
 
       elem.copyPower( elemNew )
